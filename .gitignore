@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project-local agent config (not for repo)
+GEMINI.md
+.agent/rules/
+.antigravityignore
+docs/specs/
+ANTIGRAVITY_SUPER_PROMPTS.md
+
+# Logs
+*.log
+npm-debug.log*

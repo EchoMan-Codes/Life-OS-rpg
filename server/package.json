@@ -1,0 +1,14 @@
+{
+  "name": "life-os-rpg-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "healthcheck": "node src/scripts/healthcheck.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "nodemailer": "^6.9.16",
+    "pg": "^8.13.1"
+  }
+}

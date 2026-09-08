@@ -2,6 +2,7 @@ import { useState } from 'react';
 import clsx from 'clsx';
 
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { AuthModal } from '@/features/auth/components/AuthModal';
 import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
 
@@ -14,6 +15,7 @@ import { BottomNav } from './BottomNav';
  */
 export function AppShell({ children }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
   return (
@@ -23,6 +25,7 @@ export function AppShell({ children }) {
         <Sidebar
           collapsed={sidebarCollapsed}
           onToggle={() => setSidebarCollapsed((prev) => !prev)}
+          onOpenAuth={() => setAuthModalOpen(true)}
         />
       )}
 
@@ -41,7 +44,13 @@ export function AppShell({ children }) {
       </main>
 
       {/* Mobile: Bottom nav */}
-      {!isDesktop && <BottomNav />}
+      {!isDesktop && <BottomNav onOpenAuth={() => setAuthModalOpen(true)} />}
+
+      {/* Centralized Authentication Modal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+      />
     </div>
   );
 }

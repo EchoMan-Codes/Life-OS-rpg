@@ -1,0 +1,160 @@
+@import "tailwindcss";
+
+/*
+ * ══════════════════════════════════════════════
+ *  Life OS — Design Tokens (Tailwind v4 @theme)
+ *  Values from docs/specs/phase-1-1-design-system-shell.md
+ * ══════════════════════════════════════════════
+ */
+
+@theme {
+  /* ── Background (obsidian) ── */
+  --color-obsidian: #07080C;
+  --color-obsidian-900: #0B0D14;
+  --color-obsidian-800: #12141D;
+  --color-obsidian-700: #1B1E2B;
+
+  /* ── Glass surfaces ── */
+  --color-glass: rgba(255, 255, 255, 0.04);
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+
+  /* ── Text ── */
+  --color-ink: #E7E9EE;
+  --color-ink-muted: #9AA0AE;
+
+  /* ── Attribute colors (5 only — never add a sixth) ── */
+  --color-attr-strength: #DC2626;
+  --color-attr-intelligence: #38BDF8;
+  --color-attr-vitality: #34D399;
+  --color-attr-willpower: #A78BFA;
+  --color-attr-perception: #FBBF24;
+
+  /* ── Stat colors ── */
+  --color-hp: #E11D48;
+  --color-mana: #3B82F6;
+  --color-xp: #F59E0B;
+  --color-gold: #EAB308;
+
+  /* ── Typography ── */
+  --font-display: "Cabinet Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+
+  /* ── Border radius ── */
+  --radius-panel: 18px;
+  --radius-chip: 999px;
+
+  /* ── Backdrop blur ── */
+  --blur-glass: 18px;
+
+  /* ── Box shadows ── */
+  --shadow-glow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 8px 30px rgba(0, 0, 0, 0.35);
+  --shadow-glow-strength: 0 0 24px -6px rgba(220, 38, 38, 0.55);
+  --shadow-glow-intelligence: 0 0 24px -6px rgba(56, 189, 248, 0.55);
+  --shadow-glow-vitality: 0 0 24px -6px rgba(52, 211, 153, 0.55);
+  --shadow-glow-willpower: 0 0 24px -6px rgba(167, 139, 250, 0.55);
+  --shadow-glow-perception: 0 0 24px -6px rgba(251, 191, 36, 0.55);
+}
+
+/*
+ * ══════════════════════════════════════════════
+ *  Self-hosted fonts — @font-face declarations
+ *  Cabinet Grotesk: display face, weight 600 only for headings
+ *  Inter: body face, variable weight 100-900
+ * ══════════════════════════════════════════════
+ */
+
+@font-face {
+  font-family: "Cabinet Grotesk";
+  src: url("/fonts/CabinetGrotesk-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+}
+
+/*
+ * ══════════════════════════════════════════════
+ *  Base styles
+ * ══════════════════════════════════════════════
+ */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-obsidian);
+  color: var(--color-ink);
+  margin: 0;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/*
+ * ── Type scale utilities ──
+ * Display: 40/32/24px @ weight 600, -0.01em tracking
+ * Body: 16/14px @ weight 400/500
+ * No ALL-CAPS labels — sentence case only.
+ */
+
+.text-display-lg {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+
+.text-display-md {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+.text-display-sm {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.text-body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.text-body-sm {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.text-body-medium {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.text-label {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-ink-muted);
+  line-height: 1.4;
+}

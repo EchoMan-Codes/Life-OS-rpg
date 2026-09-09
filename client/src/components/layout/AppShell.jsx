@@ -3,11 +3,12 @@ import clsx from 'clsx';
 
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { AuthModal } from '@/features/auth/components/AuthModal';
+import { PlayerHud, FloatingTextContainer } from '@/components/hud';
 import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
 
 /**
- * App shell — desktop sidebar + mobile bottom nav.
+ * App shell — desktop sidebar + mobile bottom nav + persistent top player HUD.
  * Responsive swap at md breakpoint (768px).
  *
  * @param {object} props
@@ -29,10 +30,19 @@ export function AppShell({ children }) {
         />
       )}
 
+      {/* Persistent Top Player HUD */}
+      <PlayerHud
+        sidebarCollapsed={sidebarCollapsed}
+        isDesktop={isDesktop}
+      />
+
+      {/* Floating Combat Text Portal */}
+      <FloatingTextContainer />
+
       {/* Main content area */}
       <main
         className={clsx(
-          'min-h-screen transition-[margin] duration-200',
+          'min-h-screen pt-16 transition-[margin] duration-200',
           isDesktop
             ? sidebarCollapsed
               ? 'ml-20'

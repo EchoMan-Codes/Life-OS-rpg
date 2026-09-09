@@ -7,6 +7,7 @@ import { env } from './config/env.js';
 import { configurePassport } from './config/passport.js';
 import { authService } from './services/auth.service.js';
 import authRoutes from './routes/auth.routes.js';
+import characterRoutes from './routes/character.routes.js';
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.get('/api/v1/health', (req, res) => {
 
 // Mount domain routes
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/character', characterRoutes);
 
 // 404 handler for undefined routes
 app.use((req, res) => {

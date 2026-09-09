@@ -1,15 +1,20 @@
 import { useState } from 'react';
-import { Shield, Key, LogIn, LogOut, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Shield, Sparkles, LogIn, LogOut, RefreshCw, AlertTriangle, Coins, Heart, Flame, Key } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { Button, Card, Badge, Modal } from '@/components/ui';
 import { Sheet } from '@/components/layout';
 import { AuthModal } from '@/features/auth/components/AuthModal';
 import { useAuth } from '@/features/auth/hooks';
 import { setAccessToken } from '@/lib/axios';
+import { refreshToken } from '@/features/auth/api';
+import { useCharacter, CHARACTER_QUERY_KEY } from '@/features/character/hooks';
+import { useFloatingText } from '@/features/character/floatingText';
+import { AttributesDrawer } from '@/components/hud';
 
 /**
  * Development showcase page — displays all UI primitives, design tokens,
- * and the Phase 1.2 authentication test surface.
+ * Phase 1.2 authentication test surface, and Phase 2.1 HUD stat visualizer.
  */
 export default function DevShowcase() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -17,8 +22,12 @@ export default function DevShowcase() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState('login');
   const [refreshMessage, setRefreshMessage] = useState('');
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const { user, isAuthenticated, isLoading, logout, isLoggingOut } = useAuth();
+  const { data: character = {} } = useCharacter();
+  const { spawnFloatingText } = useFloatingText();
+  const queryClient = useQueryClient();
 
   const attributes = [
     'strength',
@@ -27,6 +36,41 @@ export default function DevShowcase() {
     'willpower',
     'perception',
   ];
+
+  const handleSimulateLowHp = () => {
+    // Optimistically patch ['character'] to test low-HP pulse (< 25%)
+    queryClient.setQueryData(CHARACTER_QUERY_KEY, (prev) => ({
+      ...(prev || {}),
+      hp: 15,
+      maxHp: 80,
+    }));
+    spawnFloatingText('-47 HP', 'hp');
+  };
+
+  const handleRestoreHp = () => {
+    queryClient.setQueryData(CHARACTER_QUERY_KEY, (prev) => ({
+      ...(prev || {}),
+      hp: 62,
+      maxHp: 80,
+    }));
+    spawnFloatingText('+47 HP', 'hp');
+  };
+
+  const handleGainXp = () => {
+    queryClient.setQueryData(CHARACTER_QUERY_KEY, (prev) => ({
+      ...(prev || {}),
+      xp: Math.min((prev?.xpForNextLevel || 604), (prev?.xp || 320) + 50),
+    }));
+    spawnFloatingText('+50 XP', 'xp');
+  };
+
+  const handleGainGold = () => {
+    queryClient.setQueryData(CHARACTER_QUERY_KEY, (prev) => ({
+      ...(prev || {}),
+      gold: (prev?.gold || 145) + 25,
+    }));
+    spawnFloatingText('+25 Gold', 'gold');
+  };
 
   const handleSimulateRefresh = async () => {
     try {
@@ -50,9 +94,118 @@ export default function DevShowcase() {
       <div>
         <h1 className="text-display-lg text-ink mb-2">Life OS</h1>
         <p className="text-body text-ink-muted">
-          Design system & dual-token auth showcase — Phase 1.1 + Phase 1.2
+          Design system, dual-token auth & real-time HUD stat visualizer — Phase 1.1, 1.2 & 2.1
         </p>
       </div>
+
+      {/* ── Phase 2.1: Player Status HUD & Real-Time Stat Visualizer ── */}
+      <section>
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles className="w-6 h-6 text-gold" />
+          <h2 className="text-display-sm text-ink">Phase 2.1 — Player Status HUD & Stat Visualizer</h2>
+        </div>
+
+        <Card variant="hud" className="p-6 space-y-6">
+          <div className="border-b border-glass-border pb-4">
+            <h3 className="text-display-xs text-ink font-semibold mb-1">
+              Live HUD Controls & Combat Text Triggers
+            </h3>
+            <p className="text-body-sm text-ink-muted">
+              Test real-time bar easing, low-HP pulsing (&lt;25%), portal-rendered floating combat text,
+              and the 5-axis Recharts radar chart.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <span className="text-caption font-semibold text-ink uppercase tracking-wider block mb-2">
+                1. Floating Combat Text Triggers (useFloatingText)
+              </span>
+              <div className="flex flex-wrap gap-2.5">
+                <Button
+                  variant="secondary"
+                  onClick={() => spawnFloatingText('+15 XP', 'xp')}
+                  className="text-xp border-xp/30"
+                >
+                  <Flame size={15} />
+                  +15 XP
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => spawnFloatingText('+5 Gold', 'gold')}
+                  className="text-gold border-gold/30"
+                >
+                  <Coins size={15} />
+                  +5 Gold
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => spawnFloatingText('-8 HP', 'hp')}
+                  className="text-attr-strength border-attr-strength/30"
+                >
+                  <Heart size={15} />
+                  -8 HP
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => spawnFloatingText('+12 HP', 'hp')}
+                  className="text-attr-vitality border-attr-vitality/30"
+                >
+                  <Heart size={15} />
+                  +12 HP
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <span className="text-caption font-semibold text-ink uppercase tracking-wider block mb-2">
+                2. Real-Time StatBar Easing & Low-HP Pulse
+              </span>
+              <div className="flex flex-wrap gap-2.5">
+                <Button
+                  variant="destructive"
+                  onClick={handleSimulateLowHp}
+                  title="Sets HP to 15/80 (18.75% < 25%) to trigger the pulsing bar animation"
+                >
+                  <AlertTriangle size={15} />
+                  Simulate Low HP (Pulse &lt; 25%)
+                </Button>
+                <Button variant="secondary" onClick={handleRestoreHp}>
+                  <Heart size={15} className="text-attr-vitality" />
+                  Restore Normal HP (62/80)
+                </Button>
+                <Button variant="ghost" onClick={handleGainXp}>
+                  <Flame size={15} className="text-xp" />
+                  Grant +50 XP
+                </Button>
+                <Button variant="ghost" onClick={handleGainGold}>
+                  <Coins size={15} className="text-gold" />
+                  Grant +25 Gold
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <span className="text-caption font-semibold text-ink uppercase tracking-wider block mb-2">
+                3. Attributes Drawer & 5-Axis Radar Chart
+              </span>
+              <div className="flex flex-wrap gap-2.5">
+                <Button variant="primary" onClick={() => setDrawerOpen(true)}>
+                  <Shield size={16} />
+                  Open Attributes Radar Drawer
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Attributes Drawer */}
+        <AttributesDrawer
+          isOpen={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          character={character}
+        />
+      </section>
 
       {/* ── Phase 1.2: Dual-Token Auth & Session Security ── */}
       <section>

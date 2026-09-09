@@ -1,4 +1,4 @@
-import { api } from '@/lib/axios';
+import { api, refreshAccessToken } from '@/lib/axios';
 
 /**
  * Log in with email and password.
@@ -24,12 +24,12 @@ export async function registerUser(userData) {
 
 /**
  * Manually trigger refresh token rotation to obtain a new access token.
+ * Uses the single-flight refreshAccessToken manager to avoid race conditions.
  *
  * @returns {Promise<{ user: object, accessToken: string }>}
  */
 export async function refreshToken() {
-  const { data } = await api.post('/auth/refresh');
-  return data.data;
+  return refreshAccessToken();
 }
 
 /**

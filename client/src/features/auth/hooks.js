@@ -16,6 +16,8 @@ export const ME_QUERY_KEY = ['me'];
  * Hook to retrieve the current authenticated user profile.
  */
 export function useMe() {
+  const queryClient = useQueryClient();
+
   return useQuery({
     queryKey: ME_QUERY_KEY,
     queryFn: async () => {
@@ -24,6 +26,7 @@ export function useMe() {
         try {
           const refreshed = await refreshToken();
           setAccessToken(refreshed.accessToken);
+          queryClient.invalidateQueries({ queryKey: ['character'] });
           return refreshed.user;
         } catch {
           return null;
@@ -48,6 +51,7 @@ export function useLogin() {
     onSuccess: (data) => {
       setAccessToken(data.accessToken);
       queryClient.setQueryData(ME_QUERY_KEY, data.user);
+      queryClient.invalidateQueries({ queryKey: ['character'] });
     },
   });
 }

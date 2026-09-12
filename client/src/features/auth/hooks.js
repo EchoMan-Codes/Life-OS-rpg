@@ -27,6 +27,8 @@ export function useMe() {
           const refreshed = await refreshToken();
           setAccessToken(refreshed.accessToken);
           queryClient.invalidateQueries({ queryKey: ['character'] });
+          queryClient.invalidateQueries({ queryKey: ['habits'] });
+          queryClient.invalidateQueries({ queryKey: ['dailies'] });
           return refreshed.user;
         } catch {
           return null;
@@ -52,6 +54,8 @@ export function useLogin() {
       setAccessToken(data.accessToken);
       queryClient.setQueryData(ME_QUERY_KEY, data.user);
       queryClient.invalidateQueries({ queryKey: ['character'] });
+      queryClient.invalidateQueries({ queryKey: ['habits'] });
+      queryClient.invalidateQueries({ queryKey: ['dailies'] });
     },
   });
 }
@@ -67,6 +71,9 @@ export function useRegister() {
     onSuccess: (data) => {
       setAccessToken(data.accessToken);
       queryClient.setQueryData(ME_QUERY_KEY, data.user);
+      queryClient.invalidateQueries({ queryKey: ['character'] });
+      queryClient.invalidateQueries({ queryKey: ['habits'] });
+      queryClient.invalidateQueries({ queryKey: ['dailies'] });
     },
   });
 }

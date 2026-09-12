@@ -16,12 +16,29 @@ const zxcvbnValidator = new ZxcvbnFactory({
   dictionary,
 });
 
+/**
+ * Validates whether a string is a recognized IANA timezone identifier.
+ *
+ * @param {string} tz
+ * @returns {boolean}
+ */
+export function isValidTimezone(tz) {
+  if (!tz || typeof tz !== 'string') return false;
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone: tz });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export class AuthService {
   /**
-   * Register a new user with email, password, and display name.
+   * Register a new user with email, password, display name, and optional IANA timezone.
    */
-  async register({ email, password, displayName, userAgent, ip }) {
+  async register({ email, password, displayName, userAgent, ip, timezone = 'UTC' }) {
     const normalizedEmail = email.toLowerCase().trim();
+    const safeTimezone = isValidTimezone(timezone) ? timezone : 'UTC';
 
     // 1. Password strength validation with @zxcvbn-ts/core (minimum score 2)
     const zxcvbnResult = zxcvbnValidator.check(password);
@@ -48,10 +65,10 @@ export class AuthService {
     // 4. Create user and initial refresh token in a single transaction
     return withTransaction(async (client) => {
       const userRes = await client.query(
-        `INSERT INTO users (email, password_hash, display_name)
-         VALUES ($1, $2, $3)
-         RETURNING id, email, display_name, avatar_url, created_at`,
-        [normalizedEmail, passwordHash, displayName.trim()]
+        `INSERT INTO users (email, password_hash, display_name, timezone)
+         VALUES ($1, $2, $3, $4)
+         RETURNING id, email, display_name, avatar_url, timezone, created_at`,
+        [normalizedEmail, passwordHash, displayName.trim(), safeTimezone]
       );
       const user = userRes.rows[0];
 
@@ -73,6 +90,7 @@ export class AuthService {
           email: user.email,
           displayName: user.display_name,
           avatarUrl: user.avatar_url,
+          timezone: user.timezone || 'UTC',
           createdAt: user.created_at,
         },
         accessToken,
@@ -88,7 +106,7 @@ export class AuthService {
     const normalizedEmail = email.toLowerCase().trim();
 
     const userRes = await query(
-      `SELECT id, email, password_hash, display_name, avatar_url, created_at
+      `SELECT id, email, password_hash, display_name, avatar_url, timezone, created_at
        FROM users WHERE email = $1`,
       [normalizedEmail]
     );
@@ -128,6 +146,7 @@ export class AuthService {
           email: user.email,
           displayName: user.display_name,
           avatarUrl: user.avatar_url,
+          timezone: user.timezone || 'UTC',
           createdAt: user.created_at,
         },
         accessToken,
@@ -270,7 +289,7 @@ export class AuthService {
    */
   async getUserById(userId) {
     const res = await query(
-      `SELECT id, email, display_name, avatar_url, created_at
+      `SELECT id, email, display_name, avatar_url, timezone, created_at
        FROM users WHERE id = $1`,
       [userId]
     );
@@ -288,6 +307,7 @@ export class AuthService {
       email: user.email,
       displayName: user.display_name,
       avatarUrl: user.avatar_url,
+      timezone: user.timezone || 'UTC',
       createdAt: user.created_at,
     };
   }

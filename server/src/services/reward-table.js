@@ -50,3 +50,43 @@ export function calculateHabitReward(difficulty, direction) {
 
   throw new Error(`Invalid score direction: ${direction}`);
 }
+
+/**
+ * HP penalty values for failing an active daily on midnight reset.
+ * Phase 3.2 specification:
+ * - trivial: 2 HP
+ * - easy: 5 HP
+ * - medium: 10 HP
+ * - hard: 18 HP
+ */
+export const HP_PENALTY = {
+  trivial: 2,
+  easy: 5,
+  medium: 10,
+  hard: 18,
+};
+
+/**
+ * Returns the authoritative HP penalty for missing an active daily.
+ *
+ * @param {'trivial' | 'easy' | 'medium' | 'hard'} difficulty
+ * @returns {number} HP penalty (positive integer, e.g. 5 for easy)
+ */
+export function hpPenaltyFor(difficulty) {
+  return HP_PENALTY[difficulty] ?? HP_PENALTY.easy;
+}
+
+/**
+ * Calculates XP and Gold granted for completing a daily.
+ *
+ * @param {'trivial' | 'easy' | 'medium' | 'hard'} difficulty
+ * @returns {{ xp: number, gold: number }}
+ */
+export function calculateDailyReward(difficulty) {
+  const base = DIFFICULTY_REWARDS[difficulty] || DIFFICULTY_REWARDS.easy;
+  return {
+    xp: base.xp,
+    gold: base.gold,
+  };
+}
+

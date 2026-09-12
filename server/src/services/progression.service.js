@@ -61,6 +61,7 @@ export async function applyReward(client, userId, { xp = 0, gold = 0, hp = 0, ma
     leveledUp = true;
   }
 
+  const finalXp = Math.max(0, newXp);
   const newHp = Math.max(0, Math.min(stat.max_hp, stat.hp + hp));
   const newMana = Math.max(0, Math.min(stat.max_mana, stat.mana + mana));
   const newGold = Math.max(0, stat.gold + gold);
@@ -69,7 +70,7 @@ export async function applyReward(client, userId, { xp = 0, gold = 0, hp = 0, ma
     `UPDATE character_stats
      SET xp = $1, level = $2, hp = $3, mana = $4, gold = $5, unallocated_points = $6, updated_at = now()
      WHERE user_id = $7`,
-    [newXp, level, newHp, newMana, newGold, unallocated, userId]
+    [finalXp, level, newHp, newMana, newGold, unallocated, userId]
   );
 
   return {
@@ -79,9 +80,84 @@ export async function applyReward(client, userId, { xp = 0, gold = 0, hp = 0, ma
     newHp,
     newMana,
     newGold,
-    newXp,
+    newXp: finalXp,
     xpForNextLevel: xpRequiredFor(level),
     unallocatedPoints: unallocated,
+  };
+}
+
+/**
+ * Transactionally reverses a previously granted daily/quest completion reward.
+ * Correctly restores character level and unallocated stat points if the original
+ * completion triggered one or more level-ups, leaving character progression
+ * in a completely consistent state without negative XP or invalid thresholds.
+ *
+ * @param {import('pg').PoolClient} client - Active transactional client
+ * @param {string} userId - User UUID
+ * @param {object} params
+ * @param {number} [params.xpAwarded=0]
+ * @param {number} [params.goldAwarded=0]
+ * @param {number} [params.levelsGained=0]
+ * @param {number} [params.pointsAwarded=0]
+ * @returns {Promise<object>}
+ */
+export async function revertReward(
+  client,
+  userId,
+  { xpAwarded = 0, goldAwarded = 0, levelsGained = 0, pointsAwarded = 0 }
+) {
+  const { rows } = await client.query(
+    'SELECT * FROM character_stats WHERE user_id = $1 FOR UPDATE',
+    [userId]
+  );
+  const stat = rows[0];
+
+  if (!stat) {
+    const err = new Error('Character stats not found for user');
+    err.status = 404;
+    err.code = 'CHARACTER_NOT_FOUND';
+    throw err;
+  }
+
+  let level = stat.level;
+  let unallocated = stat.unallocated_points;
+  let xp = stat.xp;
+
+  // 1. If level-ups occurred during the original completion, step down level(s)
+  if (levelsGained > 0) {
+    for (let i = 0; i < levelsGained; i++) {
+      if (level > 1) {
+        level -= 1;
+        xp += xpRequiredFor(level);
+      }
+    }
+    unallocated = Math.max(0, unallocated - pointsAwarded);
+  }
+
+  // 2. Revert the granted XP and Gold safely
+  let finalXp = Math.max(0, xp - xpAwarded);
+  const finalGold = Math.max(0, stat.gold - goldAwarded);
+
+  // 3. If any residual XP still meets or exceeds the required threshold, resolve forward
+  while (finalXp >= xpRequiredFor(level)) {
+    finalXp -= xpRequiredFor(level);
+    level += 1;
+    unallocated += 2;
+  }
+
+  await client.query(
+    `UPDATE character_stats
+     SET xp = $1, level = $2, gold = $3, unallocated_points = $4, updated_at = now()
+     WHERE user_id = $5`,
+    [finalXp, level, finalGold, unallocated, userId]
+  );
+
+  return {
+    revertedLevel: level,
+    revertedXp: finalXp,
+    revertedGold: finalGold,
+    unallocatedPoints: unallocated,
+    xpForNextLevel: xpRequiredFor(level),
   };
 }
 

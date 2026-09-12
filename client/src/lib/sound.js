@@ -68,6 +68,43 @@ export function playSound(soundName) {
 
       osc.start(now);
       osc.stop(now + 0.23);
+    } else if (soundName === 'daily_complete') {
+      // Shimmering completion chord: 4 harmonic tones (C5, E5, G5, C6)
+      const freqs = [523.25, 659.25, 783.99, 1046.5];
+      freqs.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.04);
+
+        gain.gain.setValueAtTime(0, now + idx * 0.04);
+        gain.gain.linearRampToValueAtTime(0.2, now + idx * 0.04 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.04 + 0.35);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now + idx * 0.04);
+        osc.stop(now + idx * 0.04 + 0.36);
+      });
+    } else if (soundName === 'daily_undo') {
+      // Soft descending uncheck tone: G4 -> E4
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(392.0, now);
+      osc.frequency.exponentialRampToValueAtTime(329.63, now + 0.15);
+
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.19);
     }
   } catch (err) {
     // Audio playback is non-blocking and fails gracefully if blocked by browser policy
@@ -78,7 +115,7 @@ export function playSound(soundName) {
 /**
  * React hook interface matching specification `useSound(soundName)`
  *
- * @param {'habit_positive' | 'habit_negative'} soundName
+ * @param {'habit_positive' | 'habit_negative' | 'daily_complete' | 'daily_undo'} soundName
  * @returns {() => void} Function to play the sound
  */
 export function useSound(soundName) {

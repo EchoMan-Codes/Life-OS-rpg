@@ -9,16 +9,32 @@ import { authService } from './services/auth.service.js';
 import authRoutes from './routes/auth.routes.js';
 import characterRoutes from './routes/character.routes.js';
 import habitRoutes from './routes/habit.routes.js';
+import dailyRoutes from './routes/daily.routes.js';
 
 const app = express();
 
 // Security headers
 app.use(helmet());
 
+// Allowed frontend origins (including localhost and 127.0.0.1 Vite dev variants)
+const allowedOrigins = new Set([
+  env.CLIENT_ORIGIN,
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5174',
+]);
+
 // CORS configuration supporting credentials from frontend
 app.use(
   cors({
-    origin: env.CLIENT_ORIGIN,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like curl, postman, or server-to-server)
+      if (!origin || allowedOrigins.has(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error(`Origin ${origin} not allowed by CORS`));
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -47,6 +63,7 @@ app.get('/api/v1/health', (req, res) => {
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/character', characterRoutes);
 app.use('/api/v1/habits', habitRoutes);
+app.use('/api/v1/dailies', dailyRoutes);
 
 // 404 handler for undefined routes
 app.use((req, res) => {

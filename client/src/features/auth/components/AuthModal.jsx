@@ -87,11 +87,16 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
         await register({ email, password, displayName });
         onClose();
       } catch (err) {
-        const errorMsg =
+        let errorMsg =
           err?.response?.data?.error?.message ||
-          (err?.response?.data?.error?.suggestions?.[0] ? `Weak password: ${err.response.data.error.suggestions[0]}` : null) ||
-          err?.message ||
-          'Registration failed. Please try again.';
+          (err?.response?.data?.error?.suggestions?.[0] ? `Weak password: ${err.response.data.error.suggestions[0]}` : null);
+        if (!errorMsg) {
+          if (err?.code === 'ERR_NETWORK' || err?.message === 'Network Error') {
+            errorMsg = 'Cannot connect to server. Please verify the backend is running on http://localhost:5000.';
+          } else {
+            errorMsg = err?.message || 'Registration failed. Please try again.';
+          }
+        }
         setLocalError(errorMsg);
       }
     } else {
@@ -99,10 +104,14 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
         await login({ email, password });
         onClose();
       } catch (err) {
-        const errorMsg =
-          err?.response?.data?.error?.message ||
-          err?.message ||
-          'Invalid credentials. Please try again.';
+        let errorMsg = err?.response?.data?.error?.message;
+        if (!errorMsg) {
+          if (err?.code === 'ERR_NETWORK' || err?.message === 'Network Error') {
+            errorMsg = 'Cannot connect to server. Please verify the backend is running on http://localhost:5000.';
+          } else {
+            errorMsg = err?.message || 'Invalid credentials. Please try again.';
+          }
+        }
         setLocalError(errorMsg);
       }
     }

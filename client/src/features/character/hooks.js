@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { fetchCharacter, allocateAttribute } from './api';
+import { useAuth } from '@/features/auth/hooks';
 
 export const CHARACTER_QUERY_KEY = ['character'];
 
@@ -8,10 +9,13 @@ export const CHARACTER_QUERY_KEY = ['character'];
  * Hook to retrieve current character stats.
  */
 export function useCharacter() {
+  const { isAuthenticated } = useAuth();
+
   return useQuery({
     queryKey: CHARACTER_QUERY_KEY,
     queryFn: fetchCharacter,
     staleTime: 10_000,
+    enabled: isAuthenticated,
   });
 }
 

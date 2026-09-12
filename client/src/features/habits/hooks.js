@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useToast } from '@/components/ui/useToast';
+import { useAuth } from '@/features/auth/hooks';
 import {
   fetchHabits,
   createHabit,
@@ -14,10 +15,13 @@ import { calculateHabitReward } from './rewardTable';
  * Hook to retrieve user habits with TanStack Query.
  */
 export function useHabits({ includeArchived = false } = {}) {
+  const { isAuthenticated } = useAuth();
+
   return useQuery({
     queryKey: ['habits', { includeArchived }],
     queryFn: () => fetchHabits({ includeArchived }),
     staleTime: 30 * 1000,
+    enabled: isAuthenticated,
   });
 }
 

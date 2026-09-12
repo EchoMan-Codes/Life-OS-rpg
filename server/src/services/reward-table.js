@@ -90,3 +90,51 @@ export function calculateDailyReward(difficulty) {
   };
 }
 
+/**
+ * Quest completion reward base values.
+ * Phase 3.3 specification:
+ * - trivial: 10 XP / 5 Gold
+ * - easy:    20 XP / 10 Gold
+ * - medium:  35 XP / 18 Gold
+ * - hard:    60 XP / 30 Gold
+ */
+export const QUEST_REWARDS = {
+  trivial: { xp: 10, gold: 5 },
+  easy: { xp: 20, gold: 10 },
+  medium: { xp: 35, gold: 18 },
+  hard: { xp: 60, gold: 30 },
+};
+
+/**
+ * Standard checklist subtask reward.
+ * Phase 3.3 specification: +2 XP / +1 Gold per item.
+ */
+export const CHECKLIST_ITEM_REWARD = {
+  xp: 2,
+  gold: 1,
+};
+
+/**
+ * Milestone bonuses at 25%, 50%, 75%, 100% progress thresholds.
+ */
+export const MILESTONE_REWARDS = {
+  25: { xp: 5, gold: 2 },
+  50: { xp: 10, gold: 4 },
+  75: { xp: 15, gold: 6 },
+  100: { xp: 20, gold: 8 },
+};
+
+/**
+ * Calculates parent quest completion reward based on difficulty.
+ *
+ * @param {'trivial' | 'easy' | 'medium' | 'hard'} difficulty
+ * @returns {{ xp: number, gold: number }}
+ */
+export function calculateQuestReward(difficulty) {
+  const base = QUEST_REWARDS[difficulty] || QUEST_REWARDS.medium;
+  return {
+    xp: base.xp,
+    gold: base.gold,
+  };
+}
+

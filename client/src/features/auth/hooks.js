@@ -29,6 +29,7 @@ export function useMe() {
           queryClient.invalidateQueries({ queryKey: ['character'] });
           queryClient.invalidateQueries({ queryKey: ['habits'] });
           queryClient.invalidateQueries({ queryKey: ['dailies'] });
+          queryClient.invalidateQueries({ queryKey: ['quests'] });
           return refreshed.user;
         } catch {
           return null;
@@ -56,6 +57,7 @@ export function useLogin() {
       queryClient.invalidateQueries({ queryKey: ['character'] });
       queryClient.invalidateQueries({ queryKey: ['habits'] });
       queryClient.invalidateQueries({ queryKey: ['dailies'] });
+      queryClient.invalidateQueries({ queryKey: ['quests'] });
     },
   });
 }
@@ -74,6 +76,7 @@ export function useRegister() {
       queryClient.invalidateQueries({ queryKey: ['character'] });
       queryClient.invalidateQueries({ queryKey: ['habits'] });
       queryClient.invalidateQueries({ queryKey: ['dailies'] });
+      queryClient.invalidateQueries({ queryKey: ['quests'] });
     },
   });
 }

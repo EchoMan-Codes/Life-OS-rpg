@@ -58,6 +58,8 @@ export function useLogin() {
       queryClient.invalidateQueries({ queryKey: ['habits'] });
       queryClient.invalidateQueries({ queryKey: ['dailies'] });
       queryClient.invalidateQueries({ queryKey: ['quests'] });
+      queryClient.invalidateQueries({ queryKey: ['shop-items'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
     },
   });
 }
@@ -77,6 +79,8 @@ export function useRegister() {
       queryClient.invalidateQueries({ queryKey: ['habits'] });
       queryClient.invalidateQueries({ queryKey: ['dailies'] });
       queryClient.invalidateQueries({ queryKey: ['quests'] });
+      queryClient.invalidateQueries({ queryKey: ['shop-items'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
     },
   });
 }

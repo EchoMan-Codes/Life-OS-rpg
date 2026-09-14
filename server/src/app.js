@@ -11,6 +11,7 @@ import characterRoutes from './routes/character.routes.js';
 import habitRoutes from './routes/habit.routes.js';
 import dailyRoutes from './routes/daily.routes.js';
 import questRoutes from './routes/quest.routes.js';
+import shopRoutes from './routes/shop.routes.js';
 
 const app = express();
 
@@ -66,6 +67,7 @@ app.use('/api/v1/character', characterRoutes);
 app.use('/api/v1/habits', habitRoutes);
 app.use('/api/v1/dailies', dailyRoutes);
 app.use('/api/v1/quests', questRoutes);
+app.use('/api/v1/shop', shopRoutes);
 
 // 404 handler for undefined routes
 app.use((req, res) => {

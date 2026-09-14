@@ -159,6 +159,43 @@ export function playSound(soundName) {
         osc.start(now + idx * 0.06);
         osc.stop(now + idx * 0.06 + 0.46);
       });
+    } else if (soundName === 'shop_purchase') {
+      // Golden coin shimmer: bright dual chime (B5 -> E6)
+      const freqs = [987.77, 1318.51];
+      freqs.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.04);
+
+        gain.gain.setValueAtTime(0, now + idx * 0.04);
+        gain.gain.linearRampToValueAtTime(0.22, now + idx * 0.04 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.04 + 0.3);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now + idx * 0.04);
+        osc.stop(now + idx * 0.04 + 0.31);
+      });
+    } else if (soundName === 'shop_insufficient_gold') {
+      // Dull error buzz: low pitch drop (130Hz -> 90Hz)
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(130.81, now);
+      osc.frequency.exponentialRampToValueAtTime(90.0, now + 0.18);
+
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.21);
     }
   } catch (err) {
     // Audio playback is non-blocking and fails gracefully if blocked by browser policy
@@ -169,7 +206,7 @@ export function playSound(soundName) {
 /**
  * React hook interface matching specification `useSound(soundName)`
  *
- * @param {'habit_positive' | 'habit_negative' | 'daily_complete' | 'daily_undo'} soundName
+ * @param {'habit_positive' | 'habit_negative' | 'daily_complete' | 'daily_undo' | 'quest_item_complete' | 'quest_milestone' | 'quest_complete' | 'shop_purchase' | 'shop_insufficient_gold'} soundName
  * @returns {() => void} Function to play the sound
  */
 export function useSound(soundName) {

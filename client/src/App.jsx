@@ -6,6 +6,7 @@ import AuthCallback from '@/pages/AuthCallback';
 import HabitsPage from '@/pages/HabitsPage';
 import DailiesPage from '@/pages/DailiesPage';
 import QuestsPage from '@/pages/QuestsPage';
+import ShopPage from '@/pages/ShopPage';
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
         <Route path="/habits" element={<HabitsPage />} />
         <Route path="/dailies" element={<DailiesPage />} />
         <Route path="/quests" element={<QuestsPage />} />
+        <Route path="/shop" element={<ShopPage />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
       </Routes>
     </AppShell>

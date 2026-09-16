@@ -10,10 +10,12 @@ import QuestsPage from '@/pages/QuestsPage';
 import ShopPage from '@/pages/ShopPage';
 import FocusChamberPage from '@/pages/FocusChamberPage';
 import ReflectionPage from '@/pages/ReflectionPage';
+import OnboardingPage from '@/pages/OnboardingPage';
 
 export default function App() {
   return (
     <Routes>
+      <Route path="/onboarding" element={<OnboardingPage />} />
       <Route path="/focus" element={<FocusChamberPage />} />
       <Route
         path="*"

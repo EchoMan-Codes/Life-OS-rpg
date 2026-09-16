@@ -13,6 +13,7 @@ import {
   ChevronRight,
   LogIn,
   LogOut,
+  Sparkles,
 } from 'lucide-react';
 
 import { spring, pressable } from '@/lib/motionVariants';
@@ -23,6 +24,7 @@ import { useAuth } from '@/features/auth/hooks';
  */
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/onboarding', icon: Sparkles, label: 'Welcome' },
   { to: '/habits', icon: Flame, label: 'Habits' },
   { to: '/dailies', icon: CalendarCheck, label: 'Dailies' },
   { to: '/quests', icon: Scroll, label: 'Quests' },

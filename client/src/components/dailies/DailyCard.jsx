@@ -7,6 +7,7 @@ import clsx from 'clsx';
 import { spring } from '@/lib/motionVariants';
 import { playSound } from '@/lib/sound';
 import { useFloatingText } from '@/features/character/floatingText';
+import { useCharacter } from '@/features/character/hooks';
 import { useCompleteDaily, useUndoDaily, useArchiveDaily } from '@/features/dailies/hooks';
 
 const DIFFICULTY_LABELS = {
@@ -43,6 +44,7 @@ const DAYS_OF_WEEK = [
 export function DailyCard({ daily, onEdit }) {
   const shouldReduceMotion = useReducedMotion();
   const { spawnFloatingText } = useFloatingText();
+  const { data: character } = useCharacter();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const completeMutation = useCompleteDaily(daily.id, daily);
@@ -70,14 +72,18 @@ export function DailyCard({ daily, onEdit }) {
       spawnFloatingText(`-${reward.xp} XP`, 'damage');
       undoMutation.mutate();
     } else {
-      playSound('daily_complete');
+      const willLevelUp =
+        character && character.xp + reward.xp >= (character.xpForNextLevel || 100);
+      if (!willLevelUp) {
+        playSound('daily_complete');
+      }
       spawnFloatingText(`+${reward.xp} XP`, 'xp');
       if (reward.gold > 0) {
         setTimeout(() => spawnFloatingText(`+${reward.gold} Gold`, 'gold'), 120);
       }
       completeMutation.mutate();
     }
-  }, [completeMutation, undoMutation, isCompleteToday, reward, spawnFloatingText]);
+  }, [completeMutation, undoMutation, isCompleteToday, reward, spawnFloatingText, character]);
 
   return (
     <div className="relative group select-none">

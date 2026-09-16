@@ -5,6 +5,8 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { AuthModal } from '@/features/auth/components/AuthModal';
 import { PlayerHud, FloatingTextContainer } from '@/components/hud';
 import { ToastProvider } from '@/components/ui/Toast';
+import { LevelUpModal } from '@/components/celebration/LevelUpModal';
+import { LootDropPopup } from '@/components/celebration/LootDropPopup';
 import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
 
@@ -40,6 +42,12 @@ export function AppShell({ children }) {
 
         {/* Floating Combat Text Portal */}
         <FloatingTextContainer />
+
+        {/* Global Level-Up Celebration Modal */}
+        <LevelUpModal />
+
+        {/* Global Loot Drop Popup */}
+        <LootDropPopup />
 
         {/* Main content area */}
         <main

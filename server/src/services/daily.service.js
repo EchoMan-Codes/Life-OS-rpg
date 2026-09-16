@@ -280,7 +280,11 @@ export class DailyService {
       const reward = calculateDailyReward(daily.difficulty);
 
       // 5. Apply progression reward
-      const progression = await applyReward(client, userId, reward);
+      const progression = await applyReward(client, userId, {
+        ...reward,
+        sourceType: 'daily',
+        sourceId: daily.id,
+      });
       const pointsAwarded = (progression.levelsGained || 0) * 2;
 
       // 6. Record completion audit record for safe undo
@@ -338,7 +342,11 @@ export class DailyService {
           ...reward,
           leveledUp: progression.leveledUp,
           levelsGained: progression.levelsGained || 0,
+          newLevel: progression.newLevel,
+          previousLevel: progression.previousLevel,
+          unallocatedPoints: progression.unallocatedPoints,
         },
+        progression,
       };
     });
   }

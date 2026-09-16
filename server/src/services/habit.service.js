@@ -291,7 +291,11 @@ export class HabitService {
       const reward = calculateHabitReward(habit.difficulty, direction);
 
       // 5. Apply progression reward (locks character_stats inside same transaction)
-      await applyReward(client, userId, reward);
+      const progression = await applyReward(client, userId, {
+        ...reward,
+        sourceType: 'habit',
+        sourceId: habitId,
+      });
 
       // 6. Insert audit log into habit_logs
       await client.query(
@@ -314,6 +318,7 @@ export class HabitService {
         habit: formatHabit(updatedHabit),
         character: formatCharacter(charRes.rows[0]),
         reward,
+        progression,
       };
     });
   }

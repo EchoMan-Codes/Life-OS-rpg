@@ -10,6 +10,7 @@ import {
   completeDaily,
   undoDaily,
 } from './api';
+import { checkAndTriggerCelebrations } from '@/features/celebration/celebrationEvents';
 
 const DIFFICULTY_REWARDS = {
   trivial: { xp: 3, gold: 1 },
@@ -162,9 +163,14 @@ export function useCompleteDaily(dailyId, daily) {
         type: 'error',
       });
     },
+    onSuccess: (res) => {
+      checkAndTriggerCelebrations(res?.data);
+      queryClient.invalidateQueries({ queryKey: ['battle-events'] });
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['dailies'] });
       queryClient.invalidateQueries({ queryKey: ['character'] });
+      queryClient.invalidateQueries({ queryKey: ['battle-events'] });
     },
   });
 }

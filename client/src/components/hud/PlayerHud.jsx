@@ -1,12 +1,18 @@
-import { useState } from 'react';
-import { Coins, Shield, User as UserIcon } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Coins, Moon, Shield, Swords, User as UserIcon } from 'lucide-react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 
 import { useCharacter } from '@/features/character/hooks';
 import { useAuth } from '@/features/auth/hooks';
+import { useRestModeStatus } from '@/features/rest-mode/hooks';
+import {
+  LIFEOS_OPEN_ATTRIBUTES_EVENT,
+  LIFEOS_OPEN_BATTLE_LOG_EVENT,
+} from '@/features/celebration/celebrationEvents';
 import { StatBar } from './StatBar';
 import { AttributesDrawer } from './AttributesDrawer';
+import { BattleActivityDrawer } from './BattleActivityDrawer';
 
 /**
  * Sticky top Player Status HUD.
@@ -19,8 +25,23 @@ import { AttributesDrawer } from './AttributesDrawer';
  */
 export function PlayerHud({ sidebarCollapsed = false, isDesktop = false }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [battleLogOpen, setBattleLogOpen] = useState(false);
   const { data: character = {} } = useCharacter();
   const { user } = useAuth();
+  const { data: restStatus } = useRestModeStatus();
+
+  useEffect(() => {
+    const handleOpenAttrs = () => setDrawerOpen(true);
+    const handleOpenBattle = () => setBattleLogOpen(true);
+
+    window.addEventListener(LIFEOS_OPEN_ATTRIBUTES_EVENT, handleOpenAttrs);
+    window.addEventListener(LIFEOS_OPEN_BATTLE_LOG_EVENT, handleOpenBattle);
+
+    return () => {
+      window.removeEventListener(LIFEOS_OPEN_ATTRIBUTES_EVENT, handleOpenAttrs);
+      window.removeEventListener(LIFEOS_OPEN_BATTLE_LOG_EVENT, handleOpenBattle);
+    };
+  }, []);
 
   // Fallback defaults while initial query loads
   const level = character.level ?? 4;
@@ -90,6 +111,17 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false }) {
             </div>
           </button>
 
+          {/* Rest Mode Persistent Badge */}
+          {restStatus?.isActive && (
+            <div
+              className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-950/80 border border-teal-600/50 text-teal-300 text-[10px] sm:text-xs font-medium shadow-sm shrink-0"
+              title={`Rest Mode Active: HP reset penalties are paused${restStatus.autoDeactivateAt ? ` until ${new Date(restStatus.autoDeactivateAt).toLocaleDateString()}` : ''}`}
+            >
+              <Moon size={11} className="text-teal-400 shrink-0" />
+              <span>Resting</span>
+            </div>
+          )}
+
           {/* 2. Middle: HP, Mana, XP StatBars */}
           <div className="flex items-center gap-2 sm:gap-3 md:gap-5 flex-1 max-w-2xl min-w-0">
             <StatBar type="hp" current={hp} max={maxHp} label="HP" />
@@ -110,6 +142,23 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false }) {
               </span>
             </div>
 
+            {/* Battle Activity Feed Button */}
+            <button
+              type="button"
+              onClick={() => setBattleLogOpen(true)}
+              aria-label="Open battle activity log"
+              title="Battle Activity Feed"
+              className={clsx(
+                'p-1.5 sm:px-2.5 sm:py-1.5 min-w-[44px] min-h-[44px] rounded-lg border border-glass-border',
+                'bg-glass hover:bg-glass/80 text-ink-muted hover:text-ink',
+                'flex items-center justify-center gap-1.5 text-caption font-display font-medium',
+                'transition-colors focus:outline-none focus:ring-2 focus:ring-glass-border'
+              )}
+            >
+              <Swords size={16} className="text-gold shrink-0" />
+              <span className="hidden md:inline">Log</span>
+            </button>
+
             {/* Attributes Drawer Button */}
             <button
               type="button"
@@ -117,9 +166,9 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false }) {
               aria-label="View Attributes Radar Chart"
               title="View Attributes"
               className={clsx(
-                'p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg border border-glass-border',
+                'p-1.5 sm:px-2.5 sm:py-1.5 min-w-[44px] min-h-[44px] rounded-lg border border-glass-border',
                 'bg-glass hover:bg-glass/80 text-ink-muted hover:text-ink',
-                'flex items-center gap-1.5 text-caption font-display font-medium',
+                'flex items-center justify-center gap-1.5 text-caption font-display font-medium',
                 'transition-colors focus:outline-none focus:ring-2 focus:ring-glass-border'
               )}
             >
@@ -135,6 +184,12 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false }) {
         isOpen={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         character={character}
+      />
+
+      {/* Collapsible Battle Activity Side Panel */}
+      <BattleActivityDrawer
+        isOpen={battleLogOpen}
+        onClose={() => setBattleLogOpen(false)}
       />
     </>
   );

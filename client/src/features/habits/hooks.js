@@ -10,6 +10,7 @@ import {
   scoreHabit,
 } from './api';
 import { calculateHabitReward } from './rewardTable';
+import { checkAndTriggerCelebrations } from '@/features/celebration/celebrationEvents';
 
 /**
  * Hook to retrieve user habits with TanStack Query.
@@ -205,9 +206,14 @@ export function useScoreHabit(habitId, habit) {
         type: 'error',
       });
     },
+    onSuccess: (res) => {
+      checkAndTriggerCelebrations(res?.data);
+      queryClient.invalidateQueries({ queryKey: ['battle-events'] });
+    },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['habits'] });
       queryClient.invalidateQueries({ queryKey: ['character'] });
+      queryClient.invalidateQueries({ queryKey: ['battle-events'] });
     },
   });
 }

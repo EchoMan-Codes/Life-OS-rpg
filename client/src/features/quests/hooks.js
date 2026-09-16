@@ -17,6 +17,7 @@ import {
   undoQuestItem,
   completeQuest,
 } from './api';
+import { checkAndTriggerCelebrations } from '@/features/celebration/celebrationEvents';
 
 /**
  * Hook to retrieve user quests with TanStack Query.
@@ -250,6 +251,9 @@ export function useCompleteQuestItem() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['quests'] });
       queryClient.invalidateQueries({ queryKey: ['character'] });
+      queryClient.invalidateQueries({ queryKey: ['battle-events'] });
+
+      checkAndTriggerCelebrations(data);
 
       if (data?.parentCompleted) {
         showToast({
@@ -281,6 +285,7 @@ export function useUndoQuestItem() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['quests'] });
       queryClient.invalidateQueries({ queryKey: ['character'] });
+      queryClient.invalidateQueries({ queryKey: ['battle-events'] });
     },
     onError: (err) => {
       showToast({
@@ -301,9 +306,13 @@ export function useCompleteQuest() {
 
   return useMutation({
     mutationFn: (questId) => completeQuest(questId),
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['quests'] });
       queryClient.invalidateQueries({ queryKey: ['character'] });
+      queryClient.invalidateQueries({ queryKey: ['battle-events'] });
+
+      checkAndTriggerCelebrations(data);
+
       showToast({
         title: 'Quest Conquered!',
         message: 'Quest rewards and remaining milestones granted.',

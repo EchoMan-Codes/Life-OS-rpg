@@ -7,6 +7,7 @@ import clsx from 'clsx';
 import { spring } from '@/lib/motionVariants';
 import { playSound } from '@/lib/sound';
 import { useFloatingText } from '@/features/character/floatingText';
+import { useCharacter } from '@/features/character/hooks';
 import { useScoreHabit, useArchiveHabit } from '@/features/habits/hooks';
 import { calculateHabitReward } from '@/features/habits/rewardTable';
 
@@ -27,6 +28,7 @@ const DIFFICULTY_COLORS = {
 export function HabitCard({ habit, onEdit }) {
   const shouldReduceMotion = useReducedMotion();
   const { spawnFloatingText } = useFloatingText();
+  const { data: character } = useCharacter();
   const scoreMutation = useScoreHabit(habit.id, habit);
   const archiveMutation = useArchiveHabit();
 
@@ -41,9 +43,15 @@ export function HabitCard({ habit, onEdit }) {
       if (scoreMutation.isPending) return;
 
       const reward = calculateHabitReward(habit.difficulty, direction);
+      const willLevelUp =
+        direction === 'positive' &&
+        character &&
+        character.xp + reward.xp >= (character.xpForNextLevel || 100);
 
       if (direction === 'positive') {
-        playSound('habit_positive');
+        if (!willLevelUp) {
+          playSound('habit_positive');
+        }
         setFlashBorder('positive');
         spawnFloatingText(`+${reward.xp} XP`, 'xp');
         if (reward.gold > 0) {
@@ -61,7 +69,7 @@ export function HabitCard({ habit, onEdit }) {
 
       scoreMutation.mutate(direction);
     },
-    [habit.difficulty, scoreMutation, spawnFloatingText]
+    [habit.difficulty, scoreMutation, spawnFloatingText, character]
   );
 
   const handleDragEnd = (_event, info) => {

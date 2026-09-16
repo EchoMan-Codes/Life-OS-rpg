@@ -7,6 +7,8 @@ import {
   CalendarCheck,
   Scroll,
   ShoppingBag,
+  Timer,
+  Moon,
   ChevronLeft,
   ChevronRight,
   LogIn,
@@ -25,6 +27,8 @@ const navItems = [
   { to: '/dailies', icon: CalendarCheck, label: 'Dailies' },
   { to: '/quests', icon: Scroll, label: 'Quests' },
   { to: '/shop', icon: ShoppingBag, label: 'Shop' },
+  { to: '/focus', icon: Timer, label: 'Focus' },
+  { to: '/reflection', icon: Moon, label: 'Reflection' },
 ];
 
 /**

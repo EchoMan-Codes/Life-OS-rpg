@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Shield, Sparkles, LogIn, LogOut, RefreshCw, AlertTriangle, Coins, Heart, Flame, Key } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Shield, Sparkles, LogIn, LogOut, RefreshCw, AlertTriangle, Coins, Heart, Flame, Key, Timer, HeartPulse } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { Button, Card, Badge, Modal } from '@/components/ui';
@@ -11,6 +12,9 @@ import { refreshToken } from '@/features/auth/api';
 import { useCharacter, CHARACTER_QUERY_KEY } from '@/features/character/hooks';
 import { useFloatingText } from '@/features/character/floatingText';
 import { AttributesDrawer } from '@/components/hud';
+import { RestModeBanner } from '@/components/hud/RestModeBanner';
+import { EveningReflectionCard } from '@/components/reflection/EveningReflectionCard';
+import { ConsistencyHeatmap } from '@/components/reflection/ConsistencyHeatmap';
 
 /**
  * Development showcase page — displays all UI primitives, design tokens,
@@ -97,6 +101,51 @@ export default function DevShowcase() {
           Design system, dual-token auth & real-time HUD stat visualizer — Phase 1.1, 1.2 & 2.1
         </p>
       </div>
+
+      {/* ── Phase 5.2: Anti-Burnout Rest Mode Banner ── */}
+      <RestModeBanner />
+
+      {/* ── Phase 5.1: Deep Work Focus Chamber Banner ── */}
+      <Card variant="glass" className="p-5 border border-azure-500/30 bg-gradient-to-r from-obsidian-900 via-obsidian-900 to-azure-950/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-xl bg-azure-500/15 border border-azure-500/30 flex items-center justify-center text-azure-400 shrink-0">
+            <Timer className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-display-xs font-bold text-white">Deep Work Focus Chamber</h2>
+            <p className="text-body-sm text-ink-muted">
+              Enter an uninterrupted full-screen flow state to restore character Mana.
+            </p>
+          </div>
+        </div>
+        <Link
+          to="/focus"
+          className="px-5 py-2.5 rounded-lg bg-azure-600 hover:bg-azure-500 text-white font-medium text-sm transition-colors shadow-md shadow-azure-900/30 whitespace-nowrap min-h-[44px] flex items-center justify-center shrink-0"
+        >
+          Enter Chamber
+        </Link>
+      </Card>
+
+      {/* ── Phase 5.2: Evening Reflection & Wellness Section ── */}
+      <section>
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <div className="flex items-center gap-2">
+            <HeartPulse className="w-6 h-6 text-teal-400" />
+            <h2 className="text-display-sm text-ink">Phase 5.2 — Evening Reflection & Wellness</h2>
+          </div>
+          <Link
+            to="/reflection"
+            className="text-xs font-medium text-teal-300 hover:text-teal-200 transition-colors flex items-center gap-1"
+          >
+            Open Full Wellness Page →
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <EveningReflectionCard />
+          <ConsistencyHeatmap />
+        </div>
+      </section>
 
       {/* ── Phase 2.1: Player Status HUD & Real-Time Stat Visualizer ── */}
       <section>

@@ -196,6 +196,77 @@ export function playSound(soundName) {
 
       osc.start(now);
       osc.stop(now + 0.21);
+    } else if (soundName === 'level_up') {
+      // Epic triumphant level-up fanfare: ascending major arpeggio (C5, E5, G5, C6, E6)
+      const notes = [
+        { freq: 523.25, time: 0, dur: 0.5 },
+        { freq: 659.25, time: 0.08, dur: 0.55 },
+        { freq: 783.99, time: 0.16, dur: 0.6 },
+        { freq: 1046.5, time: 0.24, dur: 0.75 },
+        { freq: 1318.51, time: 0.32, dur: 0.9 },
+      ];
+
+      notes.forEach(({ freq, time, dur }) => {
+        // Bright lead oscillator
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now + time);
+
+        gain.gain.setValueAtTime(0, now + time);
+        gain.gain.linearRampToValueAtTime(0.24, now + time + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + time + dur);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now + time);
+        osc.stop(now + time + dur + 0.01);
+
+        // Sub harmonic oscillator for depth
+        const subOsc = ctx.createOscillator();
+        const subGain = ctx.createGain();
+
+        subOsc.type = 'sine';
+        subOsc.frequency.setValueAtTime(freq / 2, now + time);
+
+        subGain.gain.setValueAtTime(0, now + time);
+        subGain.gain.linearRampToValueAtTime(0.12, now + time + 0.03);
+        subGain.gain.exponentialRampToValueAtTime(0.001, now + time + dur * 0.8);
+
+        subOsc.connect(subGain);
+        subGain.connect(ctx.destination);
+
+        subOsc.start(now + time);
+        subOsc.stop(now + time + dur * 0.8 + 0.01);
+      });
+    } else if (soundName === 'mana_refill') {
+      // Soft mystical crystal chime: gentle ascending pure sine waves (A4 -> C#5 -> E5 -> A5)
+      const notes = [
+        { freq: 440.0, time: 0, dur: 0.6 },
+        { freq: 554.37, time: 0.09, dur: 0.65 },
+        { freq: 659.25, time: 0.18, dur: 0.7 },
+        { freq: 880.0, time: 0.27, dur: 0.9 },
+      ];
+
+      notes.forEach(({ freq, time, dur }) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + time);
+
+        gain.gain.setValueAtTime(0, now + time);
+        gain.gain.linearRampToValueAtTime(0.12, now + time + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + time + dur);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now + time);
+        osc.stop(now + time + dur + 0.01);
+      });
     }
   } catch (err) {
     // Audio playback is non-blocking and fails gracefully if blocked by browser policy
@@ -206,7 +277,7 @@ export function playSound(soundName) {
 /**
  * React hook interface matching specification `useSound(soundName)`
  *
- * @param {'habit_positive' | 'habit_negative' | 'daily_complete' | 'daily_undo' | 'quest_item_complete' | 'quest_milestone' | 'quest_complete' | 'shop_purchase' | 'shop_insufficient_gold'} soundName
+ * @param {'habit_positive' | 'habit_negative' | 'daily_complete' | 'daily_undo' | 'quest_item_complete' | 'quest_milestone' | 'quest_complete' | 'shop_purchase' | 'shop_insufficient_gold' | 'level_up' | 'mana_refill'} soundName
  * @returns {() => void} Function to play the sound
  */
 export function useSound(soundName) {

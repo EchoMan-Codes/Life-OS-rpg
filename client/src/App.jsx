@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 
 import { AppShell } from '@/components/layout';
+import { AuthGate } from '@/components/auth/AuthGate';
 import DevShowcase from '@/pages/DevShowcase';
 import DashboardPage from '@/pages/DashboardPage';
 import AuthCallback from '@/pages/AuthCallback';
@@ -15,24 +16,40 @@ import OnboardingPage from '@/pages/OnboardingPage';
 export default function App() {
   return (
     <Routes>
+      {/* Public routes — no auth required */}
       <Route path="/onboarding" element={<OnboardingPage />} />
-      <Route path="/focus" element={<FocusChamberPage />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
+
+      {/* Full-screen focus — auth-gated but no AppShell chrome */}
+      <Route
+        path="/focus"
+        element={
+          <AuthGate>
+            <FocusChamberPage />
+          </AuthGate>
+        }
+      />
+
+      {/* Dev showcase — always accessible for development */}
+      <Route path="/showcase" element={<DevShowcase />} />
+      <Route path="/dev" element={<DevShowcase />} />
+
+      {/* Protected application routes — auth-gated + AppShell */}
       <Route
         path="*"
         element={
-          <AppShell>
-            <Routes>
-              <Route path="/" element={<DashboardPage />} />
-              <Route path="/showcase" element={<DevShowcase />} />
-              <Route path="/dev" element={<DevShowcase />} />
-              <Route path="/habits" element={<HabitsPage />} />
-              <Route path="/dailies" element={<DailiesPage />} />
-              <Route path="/quests" element={<QuestsPage />} />
-              <Route path="/shop" element={<ShopPage />} />
-              <Route path="/reflection" element={<ReflectionPage />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-            </Routes>
-          </AppShell>
+          <AuthGate>
+            <AppShell>
+              <Routes>
+                <Route path="/" element={<DashboardPage />} />
+                <Route path="/habits" element={<HabitsPage />} />
+                <Route path="/dailies" element={<DailiesPage />} />
+                <Route path="/quests" element={<QuestsPage />} />
+                <Route path="/shop" element={<ShopPage />} />
+                <Route path="/reflection" element={<ReflectionPage />} />
+              </Routes>
+            </AppShell>
+          </AuthGate>
         }
       />
     </Routes>

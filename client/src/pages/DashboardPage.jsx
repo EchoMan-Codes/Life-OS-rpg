@@ -41,7 +41,7 @@ export default function DashboardPage() {
   const isCompact = density === 'compact';
 
   return (
-    <div className={clsx('max-w-6xl mx-auto pb-16', isCompact ? 'space-y-6' : 'space-y-8')}>
+    <div className={clsx('max-w-6xl mx-auto pb-16', isCompact ? 'space-y-5 sm:space-y-6' : 'space-y-6 sm:space-y-8')}>
       {/* 1. Rest Mode Warning Banner (if burnout safety valve triggered) */}
       <RestModeBanner />
 

@@ -77,7 +77,7 @@ export function DashboardGreeting({
             )}
           </div>
 
-          <h1 className="text-display-md text-ink tracking-tight font-display">
+          <h1 className="text-xl sm:text-display-md text-ink tracking-tight font-display">
             {greeting}, <span className="text-ink font-bold">{displayName}</span>
           </h1>
         </div>
@@ -101,7 +101,7 @@ export function DashboardGreeting({
       </div>
 
       {/* 2. Today at a Glance Summary Metric Strip (Transparent real numbers, no arbitrary 0-100 score) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1: Tasks Due & Completed Today */}
         <div className="p-3.5 rounded-card bg-obsidian-900/60 border border-glass-border/70 flex flex-col justify-between min-h-[92px]">
           <div className="flex items-center justify-between text-caption text-ink-muted font-medium">

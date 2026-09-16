@@ -52,15 +52,24 @@ export function AppShell({ children }) {
         {/* Main content area */}
         <main
           className={clsx(
-            'min-h-screen pt-16 transition-[margin] duration-200',
+            'min-h-screen transition-[margin] duration-200',
             isDesktop
-              ? sidebarCollapsed
-                ? 'ml-20'
-                : 'ml-64'
-              : 'pb-20' // padding for bottom nav on mobile
+              ? clsx(
+                  'pt-16',
+                  sidebarCollapsed ? 'ml-20' : 'ml-64'
+                )
+              : clsx(
+                  // Mobile: 2-row HUD is taller (~60px), add bottom clearance for nav + safe area
+                  'pt-[60px] pb-24'
+                )
           )}
         >
-          <div className="p-4 md:p-6 lg:p-8">{children}</div>
+          {/* Mobile gets generous horizontal padding; desktop scales up */}
+          <div className={clsx(
+            isDesktop ? 'p-6 lg:p-8' : 'px-5 py-4'
+          )}>
+            {children}
+          </div>
         </main>
 
         {/* Mobile: Bottom nav */}

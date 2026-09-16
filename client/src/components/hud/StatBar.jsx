@@ -12,9 +12,10 @@ import { spring } from '@/lib/motionVariants';
  * @param {number} props.current - Current stat value
  * @param {number} props.max - Maximum stat capacity
  * @param {string} [props.label] - Bar identifier label
+ * @param {boolean} [props.compact=false] - Compact mode for mobile (shorter track, inline numbers)
  * @param {string} [props.className] - Additional wrapper classes
  */
-export function StatBar({ type, current, max, label, className }) {
+export function StatBar({ type, current, max, label, compact = false, className }) {
   const shouldReduceMotion = useReducedMotion();
   const safeMax = Math.max(1, max);
   const pct = Math.max(0, Math.min(100, Math.round((current / safeMax) * 100)));
@@ -25,6 +26,58 @@ export function StatBar({ type, current, max, label, className }) {
     fillClass = 'bg-mana';
   } else if (type === 'xp') {
     fillClass = 'bg-gradient-to-r from-xp to-gold';
+  }
+
+  if (compact) {
+    return (
+      <div className={clsx('flex flex-col gap-0.5 min-w-0 flex-1', className)}>
+        {/* Compact: label and value on single line */}
+        <div className="flex items-center justify-between">
+          <span className="text-ink-muted uppercase font-display text-[9px] font-medium tracking-wider">
+            {label || type}
+          </span>
+          <span className="text-ink text-[9px] font-mono font-semibold">
+            {current}
+            <span className="text-ink-muted font-normal">/{max}</span>
+          </span>
+        </div>
+
+        {/* Compact track — thinner */}
+        <div
+          className="bg-obsidian-700 rounded-chip h-1.5 overflow-hidden p-px relative shadow-inner"
+          role="progressbar"
+          aria-valuenow={current}
+          aria-valuemin={0}
+          aria-valuemax={max}
+          aria-label={`${label || type} progress`}
+        >
+          <motion.div
+            className={clsx(
+              'h-full rounded-chip relative',
+              fillClass,
+              isLowHp && !shouldReduceMotion && 'animate-pulse'
+            )}
+            initial={{ width: 0 }}
+            animate={{
+              width: `${pct}%`,
+              ...(isLowHp && !shouldReduceMotion
+                ? { opacity: [0.85, 1, 0.85] }
+                : { opacity: 1 }),
+            }}
+            transition={
+              shouldReduceMotion
+                ? { duration: 0 }
+                : {
+                    width: spring.gentle,
+                    opacity: isLowHp
+                      ? { repeat: Infinity, duration: 1.2, ease: 'easeInOut' }
+                      : { duration: 0.2 },
+                  }
+            }
+          />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -83,5 +136,6 @@ StatBar.propTypes = {
   current: PropTypes.number.isRequired,
   max: PropTypes.number.isRequired,
   label: PropTypes.string,
+  compact: PropTypes.bool,
   className: PropTypes.string,
 };

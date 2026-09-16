@@ -33,8 +33,8 @@ export function BottomNav() {
         'h-16 px-2',
         'bg-obsidian-900/95 backdrop-blur-glass',
         'border-t border-glass-border',
-        'safe-bottom'
       )}
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       {navItems.map(({ to, icon: Icon, label }) => (
         <NavLink

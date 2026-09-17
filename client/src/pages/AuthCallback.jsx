@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { Loader2, Sparkles, AlertCircle } from 'lucide-react';
+import { Sparkles, AlertCircle } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 
 import { refreshToken } from '@/features/auth/api';
@@ -19,20 +19,18 @@ export default function AuthCallback() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
-  const [errorMsg, setErrorMsg] = useState('');
   const shouldReduceMotion = useReducedMotion();
 
+  const authError = searchParams.get('auth_error');
+  const [errorMsg, setErrorMsg] = useState(() => {
+    if (!authError) return '';
+    return authError === 'google_not_configured'
+      ? 'Google sign-in is not available on this server.'
+      : 'Google sign-in could not be completed.';
+  });
+
   useEffect(() => {
-    // Check for error params from server redirect
-    const authError = searchParams.get('auth_error');
-    if (authError) {
-      setErrorMsg(
-        authError === 'google_not_configured'
-          ? 'Google sign-in is not available on this server.'
-          : 'Google sign-in could not be completed.'
-      );
-      return;
-    }
+    if (authError) return;
 
     async function completeAuth() {
       try {
@@ -44,7 +42,14 @@ export default function AuthCallback() {
         queryClient.invalidateQueries({ queryKey: ['habits'] });
         queryClient.invalidateQueries({ queryKey: ['dailies'] });
         queryClient.invalidateQueries({ queryKey: ['quests'] });
-        navigate('/', { replace: true });
+
+        const returnIntent = sessionStorage.getItem('lifeos_onboarding_return');
+        if (returnIntent === 'airplaneJourney') {
+          sessionStorage.removeItem('lifeos_onboarding_return');
+          navigate('/onboarding?returning=true', { replace: true });
+        } else {
+          navigate('/', { replace: true });
+        }
       } catch (err) {
         console.error('Failed to complete OAuth sign-in:', err);
         setErrorMsg('Sign in couldn\'t be completed. Your session may have expired.');
@@ -52,7 +57,7 @@ export default function AuthCallback() {
     }
 
     completeAuth();
-  }, [navigate, queryClient, searchParams]);
+  }, [navigate, queryClient, authError]);
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-obsidian p-6">

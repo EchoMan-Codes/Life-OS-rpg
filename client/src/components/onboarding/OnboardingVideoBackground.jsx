@@ -8,7 +8,7 @@ import { useReducedMotion } from 'framer-motion';
  * Renders an actual seamless looping HTML5 <video> element with WebM and MP4 fallback,
  * lightweight poster fallback, and gentle vignette gradient overlays for contrast.
  */
-export function OnboardingVideoBackground({ className = '', children }) {
+export function OnboardingVideoBackground({ className = '', blurred = false, children }) {
   const videoRef = useRef(null);
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -43,9 +43,10 @@ export function OnboardingVideoBackground({ className = '', children }) {
         src="/videos/onboarding-poster.webp"
         alt="LifeOS Landscape Poster"
         className={clsx(
-          'absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-1000 select-none pointer-events-none',
+          'absolute inset-0 w-full h-full object-cover object-center transition-all duration-1000 select-none pointer-events-none',
           videoLoaded && !shouldReduceMotion ? 'opacity-0' : 'opacity-100'
         )}
+        style={blurred ? { filter: 'blur(6px)', transition: 'filter 500ms ease' } : { filter: 'blur(0px)', transition: 'filter 500ms ease' }}
       />
 
       {/* 2. Seamless HTML5 Video Background */}
@@ -62,9 +63,10 @@ export function OnboardingVideoBackground({ className = '', children }) {
           onPlaying={() => setVideoLoaded(true)}
           onError={() => setHasError(true)}
           className={clsx(
-            'absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-1000 select-none pointer-events-none',
+            'absolute inset-0 w-full h-full object-cover object-center transition-all duration-1000 select-none pointer-events-none',
             videoLoaded ? 'opacity-100' : 'opacity-0'
           )}
+          style={blurred ? { filter: 'blur(6px)', transition: 'filter 500ms ease' } : { filter: 'blur(0px)', transition: 'filter 500ms ease' }}
         >
           <source src="/videos/onboarding-loop.webm" type="video/webm" />
           <source src="/videos/onboarding-loop.mp4" type="video/mp4" />
@@ -91,5 +93,6 @@ export function OnboardingVideoBackground({ className = '', children }) {
 
 OnboardingVideoBackground.propTypes = {
   className: PropTypes.string,
-  children: PropTypes.ReactNode,
+  blurred: PropTypes.bool,
+  children: PropTypes.node,
 };

@@ -81,7 +81,7 @@ function HabitForm({ habitToEdit, onClose }) {
           placeholder="e.g. Read 20 pages, Morning Jog, Meditate..."
           maxLength={200}
           required
-          className="w-full px-3.5 py-2.5 rounded-xl bg-obsidian-800 border border-glass-border text-ink placeholder:text-ink-muted/50 focus:outline-none focus:border-glass-border-strong focus:ring-1 focus:ring-glass-border transition-all"
+          className="w-full px-3.5 py-2.5 min-h-[44px] rounded-xl bg-obsidian-800 border border-glass-border text-ink placeholder:text-ink-muted/50 focus:outline-none focus:border-glass-border-strong focus:ring-1 focus:ring-glass-border transition-all"
         />
       </div>
 
@@ -113,7 +113,7 @@ function HabitForm({ habitToEdit, onClose }) {
               type="button"
               onClick={() => setDirection(dir.value)}
               className={clsx(
-                'flex flex-col items-start p-3 rounded-xl border text-left transition-all',
+                'flex flex-col items-start p-3 min-h-[44px] rounded-xl border text-left transition-all',
                 direction === dir.value
                   ? 'border-xp bg-xp/10 shadow-glass text-ink'
                   : 'border-glass-border bg-obsidian-800/60 text-ink-muted hover:border-glass-border-strong'
@@ -140,7 +140,7 @@ function HabitForm({ habitToEdit, onClose }) {
                 type="button"
                 onClick={() => setDifficulty(diff.value)}
                 className={clsx(
-                  'flex flex-col items-center justify-center p-2.5 rounded-xl border text-center transition-all',
+                  'flex flex-col items-center justify-center p-2.5 min-h-[44px] rounded-xl border text-center transition-all',
                   difficulty === diff.value
                     ? 'border-mana bg-mana/15 shadow-glass text-ink'
                     : 'border-glass-border bg-obsidian-800/60 text-ink-muted hover:border-glass-border-strong'
@@ -215,7 +215,7 @@ export function HabitModal({ isOpen, onClose, habitToEdit = null }) {
             initial="initial"
             animate="animate"
             exit="exit"
-            className="relative w-full max-w-lg p-6 rounded-2xl bg-obsidian-900 border border-glass-border shadow-glow text-ink z-10 my-8"
+            className="relative w-full max-w-lg px-5 py-6 sm:p-6 rounded-2xl bg-obsidian-900 border border-glass-border shadow-glow text-ink z-10 my-8"
           >
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-glass-border">

@@ -18,8 +18,10 @@ import { PasswordMeter } from './PasswordMeter';
  * @param {boolean} props.isOpen - Whether the modal is visible
  * @param {() => void} props.onClose - Called to dismiss the modal
  * @param {'login'|'register'} [props.initialMode='login'] - Initial mode
+ * @param {() => void} [props.onAuthSuccess] - If provided, called on successful login/register instead of onClose
+ * @param {() => void} [props.onGoogleAuthStart] - If provided, called just before Google OAuth redirect
  */
-export function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
+export function AuthModal({ isOpen, onClose, initialMode = 'login', onAuthSuccess, onGoogleAuthStart }) {
   const shouldReduceMotion = useReducedMotion();
   const [mode, setMode] = useState(initialMode);
   const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
@@ -85,7 +87,11 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
       }
       try {
         await register({ email, password, displayName });
-        onClose();
+        if (onAuthSuccess) {
+          onAuthSuccess();
+        } else {
+          onClose();
+        }
       } catch (err) {
         let errorMsg =
           err?.response?.data?.error?.message ||
@@ -102,7 +108,11 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
     } else {
       try {
         await login({ email, password });
-        onClose();
+        if (onAuthSuccess) {
+          onAuthSuccess();
+        } else {
+          onClose();
+        }
       } catch (err) {
         let errorMsg = err?.response?.data?.error?.message;
         if (!errorMsg) {
@@ -118,6 +128,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
   };
 
   const handleGoogleLogin = () => {
+    onGoogleAuthStart?.();
     const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
     window.location.href = `${apiBase}/auth/google`;
   };

@@ -33,42 +33,43 @@ export function OnboardingTopBar({
         </span>
       </div>
 
-      {/* Action: Skip or Sign In */}
+      {/* Action: Enter LifeOS (if logged in) or Sign In */}
       <div className="flex items-center gap-3">
-        {!isAuthenticated && onSignIn && (
-          <button
-            type="button"
-            onClick={onSignIn}
-            className={clsx(
-              'flex items-center gap-1.5 px-3.5 py-1.5 rounded-full',
-              'text-xs font-medium text-white/80 hover:text-white',
-              'bg-white/[0.06] hover:bg-white/[0.12] active:bg-white/[0.16]',
-              'border border-white/[0.10] backdrop-blur-md transition-all duration-150',
-              'min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 sm:py-1.5 sm:px-3',
-              'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/40'
-            )}
-            aria-label="Sign In"
-          >
-            <LogIn size={13} className="text-white/70" />
-            <span>Sign In</span>
-          </button>
-        )}
-
-        {onSkip && (
+        {isAuthenticated ? (
           <button
             type="button"
             onClick={onSkip}
             className={clsx(
-              'px-3.5 py-1.5 rounded-full',
-              'text-xs font-medium text-white/60 hover:text-white/90 active:text-white',
-              'hover:bg-white/[0.08] transition-all duration-150',
-              'min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center',
+              'flex items-center gap-1.5 px-4 py-1.5 rounded-full',
+              'text-xs font-semibold text-white tracking-wide',
+              'bg-white/[0.12] hover:bg-white/[0.20] active:bg-white/[0.25]',
+              'border border-white/25 backdrop-blur-md transition-all duration-150',
+              'min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 sm:py-1.5 sm:px-3.5',
               'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/40'
             )}
-            aria-label="Skip onboarding"
+            aria-label="Enter LifeOS Dashboard"
           >
-            Skip
+            <span>Enter LifeOS</span>
           </button>
+        ) : (
+          onSignIn && (
+            <button
+              type="button"
+              onClick={onSignIn}
+              className={clsx(
+                'flex items-center gap-1.5 px-3.5 py-1.5 rounded-full',
+                'text-xs font-medium text-white/90 hover:text-white',
+                'bg-white/[0.10] hover:bg-white/[0.16] active:bg-white/[0.22]',
+                'border border-white/[0.18] backdrop-blur-md transition-all duration-150',
+                'min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 sm:py-1.5 sm:px-3',
+                'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/40'
+              )}
+              aria-label="Sign In"
+            >
+              <LogIn size={13} className="text-white/80" />
+              <span>Sign In</span>
+            </button>
+          )
         )}
       </div>
     </motion.header>

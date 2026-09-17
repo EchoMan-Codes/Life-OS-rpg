@@ -30,7 +30,7 @@ function MorphableArrow({ morphed }) {
         <polyline points="12 5 19 12 12 19" />
       </motion.svg>
 
-      {/* Airplane state */}
+      {/* Airplane state (points right like the arrow it replaces) */}
       <motion.svg
         width="18"
         height="18"
@@ -41,10 +41,18 @@ function MorphableArrow({ morphed }) {
         transition={{ duration: 0.25 }}
         aria-hidden="true"
       >
-        <path
-          d="M2 16L28 4L18 16L28 28L2 16Z"
+        <polygon
+          points="28,16 4,4 12,16 4,28"
           fill="currentColor"
-          fillOpacity="0.9"
+          fillOpacity="0.95"
+        />
+        <line
+          x1="12"
+          y1="16"
+          x2="28"
+          y2="16"
+          stroke="rgba(255,255,255,0.8)"
+          strokeWidth="1"
         />
       </motion.svg>
     </span>

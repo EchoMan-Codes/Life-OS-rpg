@@ -10,10 +10,9 @@ import { useReducer, useCallback } from 'react';
  * Any action not listed for the current state is silently ignored (guard).
  */
 const TRANSITIONS = {
-  idle:           { LAUNCH: 'launching', SIGN_IN: 'authenticating' },
+  idle:           { LAUNCH: 'launching', SIGN_IN: 'authenticating', RETURN_DIRECT: 'returnJourney' },
   launching:      { FLY: 'flying', CANCEL: 'idle' },
-  flying:         { APPROACH: 'approaching', CANCEL: 'idle' },
-  approaching:    { SHOW_AUTH: 'authTransition', CANCEL: 'idle' },
+  flying:         { SHOW_AUTH: 'authTransition', CANCEL: 'idle' },
   authTransition: { SHOW_AUTH: 'authenticating', CANCEL: 'idle' },
   authenticating: { AUTH_SUCCESS: 'returnJourney', AUTH_CANCEL: 'idle' },
   returnJourney:  { LAND: 'landing' },

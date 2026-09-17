@@ -1,75 +1,107 @@
 import { memo } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
 import PropTypes from 'prop-types';
 
 /**
- * Elegant stylized paper-airplane SVG.
- * Violet-tinted to match the fantasy palette, with a subtle luminous glow.
- * All positioning/rotation is handled by the parent via style/animate props.
+ * High-fidelity 3D-styled folded paper airplane SVG.
+ * Strictly faces RIGHT (0 degrees) so tangent rotation lines up perfectly.
+ * Includes shaded facets for genuine paper fold dimensionality and a radiant magical glow.
  */
 function AirplaneSvg() {
   return (
     <svg
-      width="32"
-      height="32"
-      viewBox="0 0 32 32"
+      width="48"
+      height="48"
+      viewBox="0 0 48 48"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="block"
+      className="block filter drop-shadow-[0_0_14px_rgba(167,139,250,0.9)] drop-shadow-[0_0_30px_rgba(139,92,246,0.6)]"
       aria-hidden="true"
     >
-      {/* Main body — elegant folded paper airplane silhouette */}
-      <path
-        d="M2 16L28 4L18 16L28 28L2 16Z"
-        fill="url(#airplane-grad)"
-        fillOpacity="0.9"
-        stroke="rgba(167,139,250,0.6)"
-        strokeWidth="0.5"
+      <defs>
+        {/* Top wing facet gradient (illuminated from above) */}
+        <linearGradient id="plane-top-wing" x1="6" y1="8" x2="44" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#ede9fe" />
+          <stop offset="50%" stopColor="#c4b5fd" />
+          <stop offset="100%" stopColor="#a78bfa" />
+        </linearGradient>
+
+        {/* Bottom wing facet gradient (in shadow) */}
+        <linearGradient id="plane-bottom-wing" x1="6" y1="40" x2="44" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#7c3aed" />
+          <stop offset="60%" stopColor="#6d28d9" />
+          <stop offset="100%" stopColor="#5b21b6" />
+        </linearGradient>
+
+        {/* Underbody keel shadow */}
+        <linearGradient id="plane-keel" x1="16" y1="24" x2="44" y2="24" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#4c1d95" />
+          <stop offset="100%" stopColor="#8b5cf6" />
+        </linearGradient>
+
+        {/* Tail thruster glow */}
+        <radialGradient id="plane-thruster" cx="16" cy="24" r="6" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
+          <stop offset="60%" stopColor="#c084fc" stopOpacity="0.6" />
+          <stop offset="100%" stopColor="#a855f7" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+
+      {/* Underbody keel / center fold */}
+      <polygon points="16,24 44,24 6,29" fill="url(#plane-keel)" opacity="0.7" />
+
+      {/* Top Wing Facet (facing right: nose at (44, 24), tail at (6, 8), crease at (16, 24)) */}
+      <polygon
+        points="44,24 6,8 16,24"
+        fill="url(#plane-top-wing)"
+        stroke="rgba(255,255,255,0.7)"
+        strokeWidth="0.75"
         strokeLinejoin="round"
       />
-      {/* Wing fold line — adds depth */}
-      <path
-        d="M18 16L28 4"
-        stroke="rgba(255,255,255,0.25)"
-        strokeWidth="0.5"
+
+      {/* Bottom Wing Facet (nose at (44, 24), tail at (6, 40), crease at (16, 24)) */}
+      <polygon
+        points="44,24 16,24 6,40"
+        fill="url(#plane-bottom-wing)"
+        stroke="rgba(167,139,250,0.5)"
+        strokeWidth="0.75"
+        strokeLinejoin="round"
+      />
+
+      {/* Center Spine highlight line */}
+      <line
+        x1="16"
+        y1="24"
+        x2="44"
+        y2="24"
+        stroke="#ffffff"
+        strokeWidth="1.2"
         strokeLinecap="round"
       />
-      {/* Bottom wing shadow fold */}
-      <path
-        d="M18 16L28 28"
-        stroke="rgba(0,0,0,0.2)"
-        strokeWidth="0.5"
-        strokeLinecap="round"
-      />
-      <defs>
-        <linearGradient id="airplane-grad" x1="2" y1="16" x2="28" y2="16" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#c4b5fd" />
-          <stop offset="0.5" stopColor="#a78bfa" />
-          <stop offset="1" stopColor="#8b5cf6" />
-        </linearGradient>
-      </defs>
+
+      {/* Subtle magical thruster star at tail notch */}
+      <circle cx="16" cy="24" r="5" fill="url(#plane-thruster)" />
+      <circle cx="16" cy="24" r="1.5" fill="#ffffff" />
     </svg>
   );
 }
 
 /**
- * Positioned airplane component for the onboarding flight sequence.
+ * Live foreground Airplane component.
+ * Positioned using exact viewport-relative percentages (vw/vh).
  *
  * @param {object} props
  * @param {boolean} props.visible - Whether to render
  * @param {number} props.x - Viewport-relative X position (vw %)
  * @param {number} props.y - Viewport-relative Y position (vh %)
- * @param {number} props.rotation - Degrees of rotation (from tangent)
+ * @param {number} props.rotation - Degrees of rotation (from trajectory tangent)
  * @param {number} props.scale - Depth-based scale factor
  * @param {number} [props.opacity=1] - Opacity for fade in/out
  */
 function OnboardingAirplaneBase({ visible, x, y, rotation, scale, opacity = 1 }) {
-  const shouldReduceMotion = useReducedMotion();
-
   if (!visible) return null;
 
   return (
-    <motion.div
+    <div
       className="fixed pointer-events-none z-30"
       style={{
         left: `${x}vw`,
@@ -77,17 +109,11 @@ function OnboardingAirplaneBase({ visible, x, y, rotation, scale, opacity = 1 })
         transform: `translate(-50%, -50%) rotate(${rotation}deg) scale(${scale})`,
         opacity,
         willChange: 'transform, opacity',
-        filter: 'drop-shadow(0 0 8px rgba(167,139,250,0.4)) drop-shadow(0 0 20px rgba(139,92,246,0.2))',
+        transition: 'opacity 150ms ease-out',
       }}
-      initial={false}
-      animate={
-        shouldReduceMotion
-          ? {}
-          : undefined
-      }
     >
       <AirplaneSvg />
-    </motion.div>
+    </div>
   );
 }
 

@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useReducedMotion } from 'framer-motion';
 import { useAuth } from '@/features/auth/hooks';
 import { AuthModal } from '@/features/auth/components/AuthModal';
 import { OnboardingVideoBackground } from '@/components/onboarding/OnboardingVideoBackground';
@@ -27,7 +26,6 @@ export default function OnboardingPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated } = useAuth();
-  const shouldReduceMotion = useReducedMotion();
 
   // Check if returning from Google OAuth redirect
   const isReturningFromOAuth = searchParams.get('returning') === 'true';
@@ -103,12 +101,13 @@ export default function OnboardingPage() {
   // ── Step 1: User clicks "Get Started" ──────────────────────────────
   const handleGetStarted = useCallback(() => {
     if (isAuthenticated) {
-      navigate('/', { replace: true });
+      // If already authenticated, play return journey into the dashboard
+      dispatch('RETURN_DIRECT');
       return;
     }
     setAuthMode('register');
     dispatch('LAUNCH');
-  }, [isAuthenticated, navigate, dispatch]);
+  }, [isAuthenticated, dispatch]);
 
   // ── Top Bar Handlers ──────────────────────────────────────────────
   const handleSkip = useCallback(() => {
@@ -133,35 +132,19 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (journeyState !== 'launching') return;
 
-    if (shouldReduceMotion) {
-      const timer = setTimeout(() => {
-        dispatch('FLY');
-        dispatch('APPROACH');
-        dispatch('SHOW_AUTH');
-        dispatch('SHOW_AUTH');
-      }, 150);
-      return () => clearTimeout(timer);
-    }
-
-    // Wait ~600ms for arrow morph to complete, then take flight
+    // Wait ~550ms for arrow morph to complete, then take flight
     const timer = setTimeout(() => {
       dispatch('FLY');
-    }, 600);
+    }, 550);
 
     return () => clearTimeout(timer);
-  }, [journeyState, shouldReduceMotion, dispatch]);
+  }, [journeyState, dispatch]);
 
-  // ── Step 3: "flying" and "approaching" states (outbound flight) ────
+  // ── Step 3: "flying" state (uninterrupted outbound Bézier flight) ──
   useEffect(() => {
     if (journeyState !== 'flying') return;
 
-    if (shouldReduceMotion) {
-      dispatch('APPROACH');
-      dispatch('SHOW_AUTH');
-      return;
-    }
-
-    const startPos = launchPosRef.current;
+    const startPos = launchPosRef.current || { x: 50, y: 85 };
     const basePath = getFlightPath(isMobile);
     // Anchor first segment to arrow position
     const path = basePath.map((seg, idx) =>
@@ -171,7 +154,6 @@ export default function OnboardingPage() {
     const durations = getFlightDurations(isMobile);
     const totalDuration = durations.outbound * 1000;
     const startTime = performance.now();
-    let approachDispatched = false;
 
     const tick = (now) => {
       const elapsed = now - startTime;
@@ -187,16 +169,10 @@ export default function OnboardingPage() {
         opacity: 1,
       });
 
-      // Around 65% progress, switch to "approaching" (turns toward foreground)
-      if (progress >= 0.65 && !approachDispatched) {
-        approachDispatched = true;
-        dispatch('APPROACH');
-      }
-
       if (progress < 1) {
         rafRef.current = requestAnimationFrame(tick);
       } else {
-        // Reached foreground
+        // Reached foreground — transition into authentication
         dispatch('SHOW_AUTH');
       }
     };
@@ -206,7 +182,7 @@ export default function OnboardingPage() {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [journeyState, isMobile, shouldReduceMotion, dispatch]);
+  }, [journeyState, isMobile, dispatch]);
 
   // ── Step 4: "authTransition" state (light sweep & backdrop) ──────
   useEffect(() => {
@@ -215,21 +191,18 @@ export default function OnboardingPage() {
     // Fade out airplane as auth overlay covers it
     const fadeTimer = setTimeout(() => {
       setAirplaneState((prev) => ({ ...prev, opacity: 0 }));
-    }, 0);
+    }, 50);
 
-    const finishTimer = setTimeout(
-      () => {
-        setAirplaneState((prev) => ({ ...prev, visible: false }));
-        dispatch('SHOW_AUTH');
-      },
-      shouldReduceMotion ? 100 : 500
-    );
+    const finishTimer = setTimeout(() => {
+      setAirplaneState((prev) => ({ ...prev, visible: false }));
+      dispatch('SHOW_AUTH');
+    }, 450);
 
     return () => {
       clearTimeout(fadeTimer);
       clearTimeout(finishTimer);
     };
-  }, [journeyState, shouldReduceMotion, dispatch]);
+  }, [journeyState, dispatch]);
 
   // ── Step 5: Auth success & Google start callbacks ──────────────────
   const handleAuthSuccess = useCallback(() => {
@@ -253,19 +226,10 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (journeyState !== 'returnJourney') return;
 
-    if (shouldReduceMotion) {
-      const timer = setTimeout(() => {
-        dispatch('LAND');
-        dispatch('ARRIVED');
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-
     const returnPath = getReturnPath(isMobile);
     const durations = getFlightDurations(isMobile);
     const totalDuration = durations.return * 1000;
     const startTime = performance.now();
-    let landDispatched = false;
 
     const tickReturn = (now) => {
       const elapsed = now - startTime;
@@ -281,13 +245,10 @@ export default function OnboardingPage() {
         opacity: progress > 0.9 ? Math.max(0, 1 - (progress - 0.9) * 10) : 1,
       });
 
-      if (progress >= 0.85 && !landDispatched) {
-        landDispatched = true;
-        dispatch('LAND');
-      }
-
       if (progress < 1) {
         rafRef.current = requestAnimationFrame(tickReturn);
+      } else {
+        dispatch('LAND');
       }
     };
 
@@ -296,22 +257,19 @@ export default function OnboardingPage() {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [journeyState, isMobile, shouldReduceMotion, dispatch]);
+  }, [journeyState, isMobile, dispatch]);
 
   // ── Step 7: "landing" state (settle & complete) ────────────────────
   useEffect(() => {
     if (journeyState !== 'landing') return;
 
-    const timer = setTimeout(
-      () => {
-        setAirplaneState((prev) => ({ ...prev, visible: false }));
-        dispatch('ARRIVED');
-      },
-      shouldReduceMotion ? 150 : 600
-    );
+    const timer = setTimeout(() => {
+      setAirplaneState((prev) => ({ ...prev, visible: false }));
+      dispatch('ARRIVED');
+    }, 500);
 
     return () => clearTimeout(timer);
-  }, [journeyState, shouldReduceMotion, dispatch]);
+  }, [journeyState, dispatch]);
 
   // ── Step 8: "complete" state (navigate to dashboard) ──────────────
   useEffect(() => {
@@ -323,9 +281,7 @@ export default function OnboardingPage() {
   const isVideoBlurred = journeyState === 'authTransition' || journeyState === 'authenticating';
   const showFlightEffects =
     airplaneState.visible &&
-    (journeyState === 'flying' ||
-      journeyState === 'approaching' ||
-      journeyState === 'returnJourney');
+    (journeyState === 'flying' || journeyState === 'returnJourney');
 
   return (
     <main className="relative w-screen h-screen overflow-hidden select-none bg-obsidian">

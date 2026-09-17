@@ -146,12 +146,13 @@ function OnboardingFlightEffectsBase({ active, x, y, isMobile = false }) {
           <path
             d={trailPath}
             fill="none"
-            stroke="url(#trail-grad)"
-            strokeWidth="0.3"
+            stroke="#c4b5fd"
+            strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"
+            strokeOpacity="0.7"
             vectorEffect="non-scaling-stroke"
-            style={{ filter: 'blur(0.5px)' }}
+            style={{ filter: 'drop-shadow(0 0 8px rgba(167,139,250,0.9))' }}
           />
         )}
 
@@ -161,9 +162,10 @@ function OnboardingFlightEffectsBase({ active, x, y, isMobile = false }) {
             key={p.id}
             cx={p.cx}
             cy={p.cy}
-            r={p.r}
-            fill="#c4b5fd"
-            opacity={p.opacity}
+            r={p.r * 2.5}
+            fill="#e9d5ff"
+            opacity={p.opacity * 1.5}
+            style={{ filter: 'drop-shadow(0 0 4px rgba(192,132,252,0.9))' }}
           />
         ))}
       </svg>

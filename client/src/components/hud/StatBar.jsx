@@ -36,7 +36,7 @@ export function StatBar({ type, current, max, label, compact = false, className 
           <span className="text-ink-muted uppercase font-display text-[9px] font-medium tracking-wider">
             {label || type}
           </span>
-          <span className="text-ink text-[9px] font-mono font-semibold">
+          <span className="text-ink text-[9px] font-mono font-semibold tabular-nums">
             {current}
             <span className="text-ink-muted font-normal">/{max}</span>
           </span>
@@ -44,7 +44,7 @@ export function StatBar({ type, current, max, label, compact = false, className 
 
         {/* Compact track — thinner */}
         <div
-          className="bg-obsidian-700 rounded-chip h-1.5 overflow-hidden p-px relative shadow-inner"
+          className="bg-obsidian-700/80 rounded-chip h-1.5 overflow-hidden p-px relative shadow-inner"
           role="progressbar"
           aria-valuenow={current}
           aria-valuemin={0}
@@ -52,17 +52,11 @@ export function StatBar({ type, current, max, label, compact = false, className 
           aria-label={`${label || type} progress`}
         >
           <motion.div
-            className={clsx(
-              'h-full rounded-chip relative',
-              fillClass,
-              isLowHp && !shouldReduceMotion && 'animate-pulse'
-            )}
+            className={clsx('h-full rounded-chip relative', fillClass)}
             initial={{ width: 0 }}
             animate={{
               width: `${pct}%`,
-              ...(isLowHp && !shouldReduceMotion
-                ? { opacity: [0.85, 1, 0.85] }
-                : { opacity: 1 }),
+              opacity: isLowHp && !shouldReduceMotion ? [0.65, 1, 0.65] : 1,
             }}
             transition={
               shouldReduceMotion
@@ -70,7 +64,7 @@ export function StatBar({ type, current, max, label, compact = false, className 
                 : {
                     width: spring.gentle,
                     opacity: isLowHp
-                      ? { repeat: Infinity, duration: 1.2, ease: 'easeInOut' }
+                      ? { repeat: Infinity, duration: 1.5, ease: 'easeInOut' }
                       : { duration: 0.2 },
                   }
             }
@@ -87,7 +81,7 @@ export function StatBar({ type, current, max, label, compact = false, className 
         <span className="text-ink-muted uppercase font-display text-[10px] sm:text-xs">
           {label || type}
         </span>
-        <span className="text-ink text-[10px] sm:text-xs font-mono font-semibold">
+        <span className="text-ink text-[10px] sm:text-xs font-mono font-semibold tabular-nums">
           {current}
           <span className="text-ink-muted font-normal">/{max}</span>
         </span>
@@ -95,7 +89,7 @@ export function StatBar({ type, current, max, label, compact = false, className 
 
       {/* Track */}
       <div
-        className="bg-obsidian-700 rounded-chip h-2.5 overflow-hidden p-[1px] relative shadow-inner"
+        className="bg-obsidian-700/80 rounded-chip h-2 overflow-hidden p-[1px] relative shadow-inner"
         role="progressbar"
         aria-valuenow={current}
         aria-valuemin={0}
@@ -103,17 +97,11 @@ export function StatBar({ type, current, max, label, compact = false, className 
         aria-label={`${label || type} progress`}
       >
         <motion.div
-          className={clsx(
-            'h-full rounded-chip relative',
-            fillClass,
-            isLowHp && !shouldReduceMotion && 'animate-pulse'
-          )}
+          className={clsx('h-full rounded-chip relative', fillClass)}
           initial={{ width: 0 }}
           animate={{
             width: `${pct}%`,
-            ...(isLowHp && !shouldReduceMotion
-              ? { opacity: [0.85, 1, 0.85] }
-              : { opacity: 1 }),
+            opacity: isLowHp && !shouldReduceMotion ? [0.65, 1, 0.65] : 1,
           }}
           transition={
             shouldReduceMotion
@@ -121,7 +109,7 @@ export function StatBar({ type, current, max, label, compact = false, className 
               : {
                   width: spring.gentle,
                   opacity: isLowHp
-                    ? { repeat: Infinity, duration: 1.2, ease: 'easeInOut' }
+                    ? { repeat: Infinity, duration: 1.5, ease: 'easeInOut' }
                     : { duration: 0.2 },
                 }
           }

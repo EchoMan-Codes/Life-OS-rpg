@@ -275,8 +275,13 @@ export function QuestCard({ quest, onEdit }) {
           )}
         </div>
 
-        {itemsExpanded && (
-          <div className="flex flex-col gap-1.5">
+        <div
+          className={clsx(
+            'grid transition-all duration-200 ease-out',
+            itemsExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'
+          )}
+        >
+          <div className="overflow-hidden flex flex-col gap-1.5">
             {items.map((item) => (
               <QuestItemRow
                 key={item.id}
@@ -300,14 +305,14 @@ export function QuestCard({ quest, onEdit }) {
                 <button
                   type="submit"
                   disabled={!newItemTitle.trim() || addItemMutation.isPending}
-                  className="px-3 py-2 text-xs font-semibold rounded-lg bg-attr-intelligence text-obsidian-950 disabled:opacity-50 min-h-[40px]"
+                  className="px-3 py-2 text-xs font-semibold rounded-lg bg-attr-intelligence text-obsidian-950 disabled:opacity-50 min-h-[40px] hit-area-expand"
                 >
                   Add
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsAddingItem(false)}
-                  className="px-2 py-2 text-xs text-ink-muted hover:text-ink min-h-[40px]"
+                  className="px-2 py-2 text-xs text-ink-muted hover:text-ink min-h-[40px] hit-area-expand"
                 >
                   Cancel
                 </button>
@@ -320,7 +325,7 @@ export function QuestCard({ quest, onEdit }) {
               </p>
             )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* ── Bottom Status / Complete CTA ── */}

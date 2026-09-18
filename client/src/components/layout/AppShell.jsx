@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import clsx from 'clsx';
+import PropTypes from 'prop-types';
 
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { AuthModal } from '@/features/auth/components/AuthModal';
@@ -7,75 +8,63 @@ import { PlayerHud, FloatingTextContainer } from '@/components/hud';
 import { ToastProvider } from '@/components/ui/Toast';
 import { LevelUpModal } from '@/components/celebration/LevelUpModal';
 import { LootDropPopup } from '@/components/celebration/LootDropPopup';
-import { Sidebar } from './Sidebar';
+import { DesktopNav } from './DesktopNav';
 import { BottomNav } from './BottomNav';
 
 /**
- * App shell — desktop sidebar + mobile bottom nav + persistent top player HUD.
- * Responsive swap at md breakpoint (768px).
+ * AppShell — Phase 2 Premium Operating Environment.
+ * Combines iOS-level polish, cinematic atmospheric depth, and subtle RPG chrome:
+ * - Desktop: Floating 3-Zone Command Chrome (incorporating identity, route navigation, and telemetry)
+ * - Mobile: Detached Floating Top HUD + Detached Floating Bottom Pill Navigation
+ * - Centered Content Stage with authored max-width and breathing room, prepared for Phase 3 transitions
  *
  * @param {object} props
- * @param {React.ReactNode} props.children - Main content area
+ * @param {React.ReactNode} props.children - Main page content
  */
 export function AppShell({ children }) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
   return (
     <ToastProvider>
-      <div className="min-h-screen bg-obsidian">
-        {/* Desktop: Sidebar */}
-        {isDesktop && (
-          <Sidebar
-            collapsed={sidebarCollapsed}
-            onToggle={() => setSidebarCollapsed((prev) => !prev)}
-            onOpenAuth={() => setAuthModalOpen(true)}
-          />
-        )}
+      <div className="min-h-screen bg-shell-ambient text-ink selection:bg-accent-primary/20 selection:text-ink relative overflow-x-hidden">
+        {/* ── Desktop: Floating 3-Zone Command Chrome ── */}
+        <div className="hidden md:block">
+          <DesktopNav onOpenAuth={() => setAuthModalOpen(true)} />
+        </div>
 
-        {/* Persistent Top Player HUD */}
-        <PlayerHud
-          sidebarCollapsed={sidebarCollapsed}
-          isDesktop={isDesktop}
-        />
+        {/* ── Player HUD (Floating 2-row on Mobile, Drawer provider on Desktop) ── */}
+        <PlayerHud isDesktop={isDesktop} />
 
-        {/* Floating Combat Text Portal */}
+        {/* ── Floating Combat Text Portal ── */}
         <FloatingTextContainer />
 
-        {/* Global Level-Up Celebration Modal */}
+        {/* ── Global Level-Up Celebration Modal ── */}
         <LevelUpModal />
 
-        {/* Global Loot Drop Popup */}
+        {/* ── Global Loot Drop Popup ── */}
         <LootDropPopup />
 
-        {/* Main content area */}
+        {/* ── Main Content Stage: Centered with authored breathing room ── */}
         <main
           className={clsx(
-            'min-h-screen transition-[margin] duration-200',
-            isDesktop
-              ? clsx(
-                  'pt-16',
-                  sidebarCollapsed ? 'ml-20' : 'ml-64'
-                )
-              : clsx(
-                  // Mobile: 2-row HUD is taller (~60px), add bottom clearance for nav + safe area
-                  'pt-[60px] pb-24'
-                )
+            'min-h-screen w-full transition-[padding] duration-200',
+            'pt-28 pb-32 px-4 sm:px-5',
+            'md:pt-24 md:pb-16 md:max-w-7xl md:mx-auto md:px-8'
           )}
         >
-          {/* Mobile gets generous horizontal padding; desktop scales up */}
-          <div className={clsx(
-            isDesktop ? 'p-6 lg:p-8' : 'px-5 py-4'
-          )}>
+          {/* Transition stage container prepared for Phase 3 spatial navigation */}
+          <div id="page-stage" className="relative w-full">
             {children}
           </div>
         </main>
 
-        {/* Mobile: Bottom nav */}
-        {!isDesktop && <BottomNav onOpenAuth={() => setAuthModalOpen(true)} />}
+        {/* ── Mobile: Detached Floating Bottom Pill Navigation ── */}
+        <div className="md:hidden">
+          <BottomNav />
+        </div>
 
-        {/* Centralized Authentication Modal */}
+        {/* ── Centralized Authentication Modal ── */}
         <AuthModal
           isOpen={authModalOpen}
           onClose={() => setAuthModalOpen(false)}
@@ -84,3 +73,7 @@ export function AppShell({ children }) {
     </ToastProvider>
   );
 }
+
+AppShell.propTypes = {
+  children: PropTypes.node,
+};

@@ -90,7 +90,7 @@ export function HabitCard({ habit, onEdit }) {
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.15}
         onDragEnd={handleDragEnd}
-        layout
+        layout="position"
         transition={shouldReduceMotion ? { duration: 0 } : spring.snappy}
         className={clsx(
           'relative flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 p-4 rounded-2xl',

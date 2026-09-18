@@ -1,35 +1,66 @@
-import { useMemo, useEffect } from 'react';
-import { ZxcvbnFactory } from '@zxcvbn-ts/core';
-import { translations, dictionary } from '@zxcvbn-ts/language-en';
+import { useState, useEffect } from 'react';
 import clsx from 'clsx';
+import PropTypes from 'prop-types';
 
-const zxcvbnValidator = new ZxcvbnFactory({
-  translations,
-  dictionary,
-});
+let validatorPromise = null;
 
 /**
- * Live password strength meter component.
+ * Lazy loads ZxcvbnFactory and English dictionary on demand,
+ * completely deferring the ~800 kB dictionary out of the initial application bundle.
+ */
+function getZxcvbnValidator() {
+  if (!validatorPromise) {
+    validatorPromise = Promise.all([
+      import('@zxcvbn-ts/core'),
+      import('@zxcvbn-ts/language-en'),
+    ]).then(([{ ZxcvbnFactory }, { translations, dictionary }]) => {
+      return new ZxcvbnFactory({
+        translations,
+        dictionary,
+      });
+    });
+  }
+  return validatorPromise;
+}
+
+/**
+ * Live password strength meter component with deferred dictionary loading.
  *
  * @param {object} props
  * @param {string} props.password - Current password string
  * @param {(result: { score: number, isValid: boolean }) => void} [props.onChange] - Callback reporting score and validity
  */
 export function PasswordMeter({ password = '', onChange }) {
-  const result = useMemo(() => {
-    if (!password) {
-      return { score: 0, feedback: { warning: null, suggestions: [] } };
-    }
-    return zxcvbnValidator.check(password);
-  }, [password]);
+  const [result, setResult] = useState({
+    score: 0,
+    feedback: { warning: null, suggestions: [] },
+  });
 
-  // Report back to parent form when score or password changes
   useEffect(() => {
-    onChange?.({
-      score: result.score,
-      isValid: result.score >= 2 && password.length >= 8,
+    if (!password) {
+      setResult({ score: 0, feedback: { warning: null, suggestions: [] } });
+      onChange?.({ score: 0, isValid: false });
+      return;
+    }
+
+    let isMounted = true;
+
+    getZxcvbnValidator().then((validator) => {
+      if (!isMounted) return;
+      const checkResult = validator.check(password);
+      setResult(checkResult);
+      onChange?.({
+        score: checkResult.score,
+        isValid: checkResult.score >= 2 && password.length >= 8,
+      });
+    }).catch((err) => {
+      console.warn('Failed to load password validator:', err);
     });
-  }, [result.score, password.length, onChange]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [password, onChange]);
 
   if (!password) return null;
 
@@ -61,15 +92,28 @@ export function PasswordMeter({ password = '', onChange }) {
         ))}
       </div>
 
-      {/* Suggestion or requirement notice in sentence case */}
-      <div className="flex items-center justify-between text-xs">
+      {/* Text feedback */}
+      <div className="flex justify-between items-center text-xs">
         <span className="text-ink-muted">
-          {suggestion || (score >= 2 ? 'Strong password' : 'Password is too weak')}
+          {score === 0 && 'Very weak'}
+          {score === 1 && 'Weak'}
+          {score === 2 && 'Fair (min requirement)'}
+          {score === 3 && 'Good'}
+          {score === 4 && 'Strong'}
         </span>
-        <span className="text-ink-muted text-[11px]">
-          {password.length < 8 ? 'Min 8 characters' : ''}
-        </span>
+        {password.length < 8 && (
+          <span className="text-attr-strength font-medium">Min 8 characters</span>
+        )}
       </div>
+
+      {suggestion && (
+        <p className="text-xs text-ink-muted/80 italic">{suggestion}</p>
+      )}
     </div>
   );
 }
+
+PasswordMeter.propTypes = {
+  password: PropTypes.string,
+  onChange: PropTypes.func,
+};

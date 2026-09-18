@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 
@@ -12,18 +13,24 @@ import { DesktopNav } from './DesktopNav';
 import { BottomNav } from './BottomNav';
 
 /**
- * AppShell — Phase 2 Premium Operating Environment.
+ * AppShell — Phase 2/3 Premium Operating Environment.
  * Combines iOS-level polish, cinematic atmospheric depth, and subtle RPG chrome:
  * - Desktop: Floating 3-Zone Command Chrome (incorporating identity, route navigation, and telemetry)
  * - Mobile: Detached Floating Top HUD + Detached Floating Bottom Pill Navigation
- * - Centered Content Stage with authored max-width and breathing room, prepared for Phase 3 transitions
+ * - Centered Content Stage with authored max-width and breathing room, hosting Phase 3 transitions
  *
  * @param {object} props
  * @param {React.ReactNode} props.children - Main page content
  */
 export function AppShell({ children }) {
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const location = useLocation();
   const isDesktop = useMediaQuery('(min-width: 768px)');
+
+  // Close modal immediately on route navigation (§12)
+  useEffect(() => {
+    setAuthModalOpen(false);
+  }, [location.pathname]);
 
   return (
     <ToastProvider>
@@ -54,7 +61,7 @@ export function AppShell({ children }) {
           )}
         >
           {/* Transition stage container prepared for Phase 3 spatial navigation */}
-          <div id="page-stage" className="relative w-full">
+          <div id="page-stage" className="relative w-full overflow-x-clip">
             {children}
           </div>
         </main>

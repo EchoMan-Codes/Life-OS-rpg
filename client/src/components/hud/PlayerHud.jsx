@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Coins, Moon, Swords, User as UserIcon } from 'lucide-react';
 import PropTypes from 'prop-types';
@@ -26,10 +27,17 @@ import { BattleActivityDrawer } from './BattleActivityDrawer';
 export function PlayerHud({ isDesktop: _isDesktop = false }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [battleLogOpen, setBattleLogOpen] = useState(false);
+  const location = useLocation();
   const shouldReduceMotion = useReducedMotion();
   const { data: character = {} } = useCharacter();
   const { user } = useAuth();
   const { data: restStatus } = useRestModeStatus();
+
+  // Close open drawers immediately on route navigation (§12)
+  useEffect(() => {
+    setDrawerOpen(false);
+    setBattleLogOpen(false);
+  }, [location.pathname]);
 
   useEffect(() => {
     const handleOpenAttrs = () => setDrawerOpen(true);

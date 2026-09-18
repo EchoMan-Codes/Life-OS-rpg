@@ -1,8 +1,11 @@
 import { lazy, Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 
 import { AppShell } from '@/components/layout';
 import { AuthGate } from '@/components/auth/AuthGate';
+import { NavigationTransitionProvider } from '@/context/NavigationTransitionContext';
+import { PageTransition } from '@/components/transitions';
 import OnboardingPage from '@/pages/OnboardingPage';
 import AuthCallback from '@/pages/AuthCallback';
 
@@ -22,7 +25,7 @@ const TokenGalleryPage = lazy(() => import('@/pages/TokenGalleryPage'));
  */
 function PageSkeleton() {
   return (
-    <div className="w-full max-w-6xl mx-auto p-4 md:p-6 space-y-6 animate-pulse">
+    <div className="w-full max-w-6xl mx-auto p-4 md:p-6 space-y-6 animate-pulse" aria-busy="true" aria-label="Loading page content">
       <div className="h-10 w-48 rounded-control bg-obsidian-800 border border-glass-border" />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="h-32 rounded-card bg-obsidian-900 border border-glass-border" />
@@ -34,24 +37,43 @@ function PageSkeleton() {
   );
 }
 
+/**
+ * Protected application routes wrapped in persistent AppShell and spatial AnimatePresence.
+ */
+function ProtectedAppContent() {
+  const location = useLocation();
+
+  return (
+    <NavigationTransitionProvider>
+      <AppShell>
+        <AnimatePresence mode="popLayout" initial={false}>
+          <PageTransition key={location.pathname}>
+            <Suspense fallback={<PageSkeleton />}>
+              <Routes location={location}>
+                <Route path="/" element={<DashboardPage />} />
+                <Route path="/dashboard" element={<Navigate to="/" replace />} />
+                <Route path="/habits" element={<HabitsPage />} />
+                <Route path="/dailies" element={<DailiesPage />} />
+                <Route path="/quests" element={<QuestsPage />} />
+                <Route path="/shop" element={<ShopPage />} />
+                <Route path="/focus" element={<FocusChamberPage />} />
+                <Route path="/reflection" element={<ReflectionPage />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
+          </PageTransition>
+        </AnimatePresence>
+      </AppShell>
+    </NavigationTransitionProvider>
+  );
+}
+
 export default function App() {
   return (
     <Routes>
       {/* Public routes — eager loaded to guarantee immediate response & no auth race condition */}
       <Route path="/onboarding" element={<OnboardingPage />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
-
-      {/* Full-screen focus — auth-gated but no AppShell chrome */}
-      <Route
-        path="/focus"
-        element={
-          <AuthGate>
-            <Suspense fallback={<PageSkeleton />}>
-              <FocusChamberPage />
-            </Suspense>
-          </AuthGate>
-        }
-      />
 
       {/* Dev showcase & Token gallery routes (dev-only exploration) */}
       <Route
@@ -79,23 +101,12 @@ export default function App() {
         }
       />
 
-      {/* Protected application routes — auth-gated + AppShell */}
+      {/* Protected application routes — auth-gated + spatial page transitions in AppShell */}
       <Route
         path="*"
         element={
           <AuthGate>
-            <AppShell>
-              <Suspense fallback={<PageSkeleton />}>
-                <Routes>
-                  <Route path="/" element={<DashboardPage />} />
-                  <Route path="/habits" element={<HabitsPage />} />
-                  <Route path="/dailies" element={<DailiesPage />} />
-                  <Route path="/quests" element={<QuestsPage />} />
-                  <Route path="/shop" element={<ShopPage />} />
-                  <Route path="/reflection" element={<ReflectionPage />} />
-                </Routes>
-              </Suspense>
-            </AppShell>
+            <ProtectedAppContent />
           </AuthGate>
         }
       />

@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Check, Flame, Calendar } from 'lucide-react';
 import clsx from 'clsx';
+import { ForgePanel, ForgeChamber } from '@/components/habits/RitualFrame';
 
 /**
  * Parses YYYY-MM-DD into human weekday and day number safely.
@@ -16,9 +17,13 @@ function parseDateLabel(dateStr) {
 }
 
 /**
- * WeeklyConsistencyModule — 7-day local calendar ritual cadence.
- * Renders the exact 7 calendar days returned by the server, with mathematically
- * truthful positive completion counts and glowing plasma node indicators.
+ * WeeklyConsistencyModule — Structural Holographic 7-Day Calendar Ritual Cadence.
+ *
+ * Implements the Structural Object Mandate:
+ * - Angular structural rails with animated energy seams and center crest emitter
+ * - Segmented side pylons and mechanical corner brackets
+ * - Inset dark-glass plane with framed internal chambers
+ * - Mathematically truthful 7 local calendar days from PostgreSQL
  */
 export function WeeklyConsistencyModule({
   calendarDays = [],
@@ -33,49 +38,51 @@ export function WeeklyConsistencyModule({
   const activeDaysCount = calendarDays.filter((d) => (dailyCompletions[d] || 0) > 0).length;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-glass-border bg-obsidian-900/80 backdrop-blur-xl p-5 sm:p-6 shadow-glass">
+    <ForgePanel
+      variant="neutral"
+      hasCrest={true}
+      innerClassName="p-5 sm:p-6"
+    >
       {/* Background Arcane Gradient */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl h-24 bg-cyan-500/5 rounded-full blur-2xl pointer-events-none" />
 
-      {/* Cybernetic Corner Brackets */}
-      <div className="absolute top-2 left-2 text-cyan-400/40 text-[10px] font-mono select-none pointer-events-none">┌</div>
-      <div className="absolute top-2 right-2 text-cyan-400/40 text-[10px] font-mono select-none pointer-events-none">┐</div>
-      <div className="absolute bottom-2 left-2 text-cyan-400/40 text-[10px] font-mono select-none pointer-events-none">└</div>
-      <div className="absolute bottom-2 right-2 text-cyan-400/40 text-[10px] font-mono select-none pointer-events-none">┘</div>
-
-      {/* Module Header */}
+      {/* ══════════════════════════════════════════════════
+          CHAMBER 1: CADENCE TELEMETRY & ALIGNMENT HEADER
+          ══════════════════════════════════════════════════ */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-cyan-400" />
             <span className="text-[11px] font-mono font-bold tracking-widest text-cyan-400 uppercase">
-              [ 7-DAY RITUAL CADENCE ]
+              [ 7-DAY CADENCE // CELESTIAL ALIGNMENT ]
             </span>
           </div>
-          <h2 className="text-base sm:text-lg font-bold text-ink mt-0.5">
+          <h2 className="text-base sm:text-lg font-bold text-ink mt-0.5 tracking-tight">
             Weekly Discipline Alignment
           </h2>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <span className="px-2.5 py-1 rounded-full bg-obsidian-950/80 border border-glass-border text-xs font-mono text-ink-muted">
-            <strong className="text-cyan-300 font-semibold">{activeDaysCount}</strong>/7 active days
-          </span>
-          <span className="px-2.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-xs font-mono text-cyan-300">
-            <strong className="text-cyan-400 font-bold">{weeklyTotal}</strong> total reps
-          </span>
+          <ForgeChamber variant="inset" className="py-1 px-2.5 text-xs font-mono text-ink-muted flex items-center gap-1">
+            <strong className="text-cyan-300 font-bold">{activeDaysCount}</strong>/7 active days
+          </ForgeChamber>
+          <div className="px-2.5 py-1 rounded-xl bg-cyan-500/15 border border-cyan-400/40 text-xs font-mono text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.2)]">
+            <strong className="text-cyan-300 font-bold">{weeklyTotal}</strong> total reps
+          </div>
         </div>
       </div>
 
-      {/* 7-Day Cadence Node Strip */}
+      {/* ══════════════════════════════════════════════════
+          CHAMBER 2: 7-DAY CAPACITOR STRIP
+          ══════════════════════════════════════════════════ */}
       {isLoading ? (
         <div className="py-8 text-center text-xs font-mono text-ink-muted animate-pulse">
-          Synchronizing cadence from PostgreSQL...
+          Synchronizing cadence matrix from PostgreSQL...
         </div>
       ) : (
-        <div className="relative">
-          {/* Connector Line behind nodes */}
-          <div className="hidden sm:block absolute top-[38px] left-[6%] right-[6%] h-0.5 bg-obsidian-800 border-t border-cyan-500/20 z-0 pointer-events-none" />
+        <ForgeChamber variant="inset" className="p-3 sm:p-4 relative">
+          {/* Connector Conduit Line behind nodes */}
+          <div className="hidden sm:block absolute top-[44px] left-[6%] right-[6%] h-0.5 bg-obsidian-800 border-t border-cyan-500/25 z-0 pointer-events-none" />
 
           <div className="grid grid-cols-7 gap-1.5 sm:gap-3 relative z-10">
             {calendarDays.map((dayStr, idx) => {
@@ -93,21 +100,21 @@ export function WeeklyConsistencyModule({
                   <span
                     className={clsx(
                       'text-[10px] sm:text-xs font-mono uppercase tracking-wider mb-2 transition-colors',
-                      isToday ? 'text-cyan-400 font-bold' : 'text-ink-muted'
+                      isToday ? 'text-cyan-300 font-bold' : 'text-ink-muted'
                     )}
                   >
                     {weekday}
                   </span>
 
-                  {/* Circle Node Indicator */}
+                  {/* Celestial Capacitor Node */}
                   <motion.div
                     whileHover={shouldReduceMotion ? {} : { scale: 1.08 }}
                     className={clsx(
                       'relative w-10 h-10 sm:w-12 sm:h-12 rounded-full flex flex-col items-center justify-center transition-all duration-300 border select-none',
-                      isToday && 'ring-2 ring-cyan-400/50 ring-offset-2 ring-offset-obsidian-950',
+                      isToday && 'ring-2 ring-cyan-400/60 ring-offset-2 ring-offset-obsidian-950 shadow-[0_0_12px_rgba(6,182,212,0.3)]',
                       isCleared
-                        ? 'bg-cyan-500/15 border-cyan-400/50 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.25)]'
-                        : 'bg-obsidian-950/80 border-glass-border text-ink-muted hover:border-glass-border-strong'
+                        ? 'bg-cyan-500/20 border-cyan-400/60 text-cyan-200 shadow-[0_0_16px_rgba(6,182,212,0.3)]'
+                        : 'bg-obsidian-950/80 border-white/10 text-ink-muted hover:border-white/20'
                     )}
                   >
                     {isCleared ? (
@@ -127,7 +134,7 @@ export function WeeklyConsistencyModule({
 
                     {/* Today Marker Dot */}
                     {isToday && (
-                      <span className="absolute -top-1 right-0 w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_6px_#22d3ee]" />
+                      <span className="absolute -top-1 right-0 w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee]" />
                     )}
                   </motion.div>
 
@@ -146,9 +153,9 @@ export function WeeklyConsistencyModule({
               );
             })}
           </div>
-        </div>
+        </ForgeChamber>
       )}
-    </div>
+    </ForgePanel>
   );
 }
 
@@ -159,3 +166,4 @@ WeeklyConsistencyModule.propTypes = {
   weeklyTotal: PropTypes.number,
   isLoading: PropTypes.bool,
 };
+

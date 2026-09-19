@@ -10,6 +10,7 @@ import { HabitActivityModule } from '@/components/habits/HabitActivityModule';
 import { HabitCard } from '@/components/habits/HabitCard';
 import { HabitModal } from '@/components/habits/HabitModal';
 import { HabitsAtmosphere } from '@/components/habits/HabitsAtmosphere';
+import { ForgePanel, ForgeChamber } from '@/components/habits/RitualFrame';
 import { RpgButton } from '@/components/rpg/RpgButton';
 
 export default function HabitsPage() {
@@ -91,33 +92,36 @@ export default function HabitsPage() {
         </div>
 
         {isHabitsLoading ? (
-          <div className="py-16 text-center text-xs font-mono text-ink-muted animate-pulse rounded-2xl bg-obsidian-900/40 border border-glass-border">
+          <ForgePanel variant="neutral" hasCrest={false} innerClassName="py-16 text-center text-xs font-mono text-ink-muted animate-pulse">
             Loading ritual matrix from PostgreSQL...
-          </div>
+          </ForgePanel>
         ) : isHabitsError ? (
-          <div className="py-12 text-center text-xs font-mono text-rose-400 rounded-2xl bg-obsidian-900/40 border border-rose-500/30">
+          <ForgePanel variant="neutral" hasCrest={false} innerClassName="py-12 text-center text-xs font-mono text-rose-400">
             Failed to synchronize rituals. Please check network connection.
-          </div>
+          </ForgePanel>
         ) : filteredHabits.length === 0 ? (
-          <div className="p-10 sm:p-12 text-center rounded-2xl bg-obsidian-900/60 border border-dashed border-glass-border shadow-glass">
-            <div className="w-12 h-12 mx-auto rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-3 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
-              <Sparkles className="w-6 h-6" />
-            </div>
-            <h3 className="text-base font-bold font-mono text-ink">No Rituals In Current Filter</h3>
-            <p className="text-xs text-ink-muted max-w-sm mx-auto mt-1.5 mb-5 leading-relaxed">
-              {activeFilter === 'all'
-                ? 'Begin forging your daily discipline character by registering your first tracked ritual.'
-                : `No disciplines currently match the "${activeFilter}" filter.`}
-            </p>
-            <RpgButton
-              variant="primary"
-              size="md"
-              icon={Plus}
-              onClick={handleOpenCreate}
-            >
-              <span>+ Forge First Ritual</span>
-            </RpgButton>
-          </div>
+          <ForgePanel variant="neutral" hasCrest={true} innerClassName="p-8 sm:p-12 text-center">
+            <ForgeChamber variant="inset" className="max-w-md mx-auto p-6 sm:p-8 flex flex-col items-center">
+              <div className="w-12 h-12 rounded-full bg-cyan-500/10 border border-cyan-400/40 flex items-center justify-center text-cyan-400 mb-3 shadow-[0_0_15px_rgba(6,182,212,0.25)]">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-bold font-mono text-ink tracking-tight">No Rituals In Current Filter</h3>
+              <p className="text-xs text-ink-muted max-w-sm mx-auto mt-1.5 mb-5 leading-relaxed">
+                {activeFilter === 'all'
+                  ? 'Begin forging your daily discipline character by registering your first tracked ritual.'
+                  : `No disciplines currently match the "${activeFilter}" filter.`}
+              </p>
+              <RpgButton
+                variant="primary"
+                size="md"
+                icon={Plus}
+                onClick={handleOpenCreate}
+                className="shadow-[0_0_15px_rgba(6,182,212,0.2)]"
+              >
+                <span>+ Forge First Ritual</span>
+              </RpgButton>
+            </ForgeChamber>
+          </ForgePanel>
         ) : (
           <div className="space-y-3">
             <AnimatePresence mode="popLayout">

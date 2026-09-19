@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import PropTypes from 'prop-types';
 import { useReducedMotion } from 'framer-motion';
 
@@ -20,60 +20,86 @@ function isWebGLAvailable() {
 
 /**
  * Lightweight, high-performance CSS/SVG Celestial Aura fallback.
- * Rendered when WebGL is unavailable, on mobile devices, or when prefers-reduced-motion is active.
+ * Rendered when WebGL is unavailable, on mobile devices (<768px), or when prefers-reduced-motion is active.
+ * Features an original procedural abstract guardian silhouette, violet/cyan portal glow, and floating embers.
  */
 function CelestialAuraFallback({ hasActiveStreaks = false }) {
   return (
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden" aria-hidden="true">
-      {/* Radial Atmospheric Glow */}
+      {/* Radial Obsidian Portal Lighting Glow */}
       <div className="absolute w-[500px] h-[500px] rounded-full bg-radial from-cyan-500/10 via-purple-900/10 to-transparent blur-3xl" />
+      <div className="absolute w-[350px] h-[350px] rounded-full bg-radial from-purple-600/10 to-transparent blur-2xl -translate-y-8" />
       {hasActiveStreaks && (
-        <div className="absolute w-[350px] h-[350px] rounded-full bg-radial from-amber-500/10 to-transparent blur-2xl animate-pulse" />
+        <div className="absolute w-[320px] h-[320px] rounded-full bg-radial from-amber-500/15 to-transparent blur-2xl animate-pulse" />
       )}
 
-      {/* Procedural Celestial SVG Rings */}
+      {/* Procedural Celestial SVG Guardian & Arcane Rings */}
       <svg
         viewBox="0 0 400 400"
-        className="w-[320px] h-[320px] opacity-40 text-cyan-400"
+        className="w-[340px] h-[340px] opacity-45 text-cyan-400"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        {/* Outer Ring */}
+        {/* Outer Celestial Ring */}
         <circle
           cx="200"
           cy="200"
-          r="160"
+          r="165"
           stroke="currentColor"
           strokeWidth="1"
           strokeDasharray="4 8"
-          className="opacity-50"
+          className="opacity-40"
         />
-        {/* Middle Ring */}
+
+        {/* Middle Violet Arcane Ring */}
         <circle
           cx="200"
           cy="200"
-          r="120"
+          r="125"
           stroke="#c084fc"
           strokeWidth="1.2"
           strokeDasharray="8 6"
-          className="opacity-60"
+          className="opacity-50"
         />
-        {/* Inner Ring */}
-        <circle
-          cx="200"
-          cy="200"
-          r="75"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          className="opacity-75"
-        />
-        {/* Central Rhombus Core */}
+
+        {/* Abstract Guardian Monolith Silhouette (Faceted Pylon) */}
         <polygon
-          points="200,160 240,200 200,240 160,200"
+          points="200,105 245,280 155,280"
           stroke="#38bdf8"
-          strokeWidth="1.5"
-          fill="rgba(109, 40, 217, 0.2)"
+          strokeWidth="1.2"
+          fill="rgba(9, 13, 22, 0.7)"
+          className="opacity-70"
         />
+        <line x1="200" y1="105" x2="200" y2="280" stroke="#38bdf8" strokeWidth="0.75" strokeDasharray="3 3" className="opacity-40" />
+
+        {/* Central Faceted Crystal Heart Core */}
+        <polygon
+          points="200,150 230,185 200,220 170,185"
+          stroke="#a855f7"
+          strokeWidth="1.5"
+          fill="rgba(109, 40, 217, 0.25)"
+          className="drop-shadow-[0_0_8px_#a855f7]"
+        />
+
+        {/* Inner Diamond Emitter */}
+        <polygon
+          points="200,165 215,185 200,205 185,185"
+          stroke="#38bdf8"
+          strokeWidth="1"
+          fill="rgba(56, 189, 248, 0.3)"
+        />
+        <circle cx="200" cy="185" r="2.5" fill="#ffffff" />
+
+        {/* Satellite Floating Shards */}
+        <polygon points="120,170 130,155 135,175 125,180" stroke="#38bdf8" strokeWidth="1" fill="rgba(6, 182, 212, 0.3)" className="opacity-60" />
+        <polygon points="280,160 270,145 265,165 275,170" stroke="#c084fc" strokeWidth="1" fill="rgba(168, 85, 247, 0.3)" className="opacity-60" />
+        <polygon points="195,75 205,75 200,60" stroke="#38bdf8" strokeWidth="1" fill="rgba(56, 189, 248, 0.4)" className="opacity-60" />
+
+        {/* Ambient Ember Sparks */}
+        <circle cx="150" cy="130" r="1.5" fill="#38bdf8" className="opacity-70" />
+        <circle cx="255" cy="120" r="1.5" fill="#c084fc" className="opacity-70" />
+        <circle cx="165" cy="240" r="1.2" fill="#f59e0b" className="opacity-60" />
+        <circle cx="240" cy="235" r="1.2" fill="#38bdf8" className="opacity-60" />
       </svg>
     </div>
   );

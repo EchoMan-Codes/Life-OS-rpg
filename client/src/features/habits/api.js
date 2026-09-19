@@ -63,3 +63,17 @@ export async function scoreHabit(habitId, direction) {
   const response = await api.post(`/habits/${habitId}/score`, { direction });
   return response.data.data;
 }
+
+/**
+ * Fetch habit activity summary and recent history.
+ *
+ * @param {object} [params]
+ * @param {number} [params.recentLimit=10]
+ * @returns {Promise<object>}
+ */
+export async function fetchHabitActivity({ recentLimit = 10 } = {}) {
+  const response = await api.get('/habits/activity', {
+    params: { recentLimit },
+  });
+  return response.data.data;
+}

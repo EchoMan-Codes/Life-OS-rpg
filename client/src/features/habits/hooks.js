@@ -8,6 +8,7 @@ import {
   updateHabit,
   archiveHabit,
   scoreHabit,
+  fetchHabitActivity,
 } from './api';
 import { calculateHabitReward } from './rewardTable';
 import { checkAndTriggerCelebrations } from '@/features/celebration/celebrationEvents';
@@ -21,6 +22,20 @@ export function useHabits({ includeArchived = false } = {}) {
   return useQuery({
     queryKey: ['habits', { includeArchived }],
     queryFn: () => fetchHabits({ includeArchived }),
+    staleTime: 30 * 1000,
+    enabled: isAuthenticated,
+  });
+}
+
+/**
+ * Hook to retrieve mathematically complete habit weekly consistency and recent activity.
+ */
+export function useHabitActivity({ recentLimit = 10 } = {}) {
+  const { isAuthenticated } = useAuth();
+
+  return useQuery({
+    queryKey: ['habit-activity', { recentLimit }],
+    queryFn: () => fetchHabitActivity({ recentLimit }),
     staleTime: 30 * 1000,
     enabled: isAuthenticated,
   });
@@ -90,6 +105,7 @@ export function useArchiveHabit() {
     mutationFn: (habitId) => archiveHabit(habitId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['habits'] });
+      queryClient.invalidateQueries({ queryKey: ['habit-activity'] });
       showToast({
         title: 'Habit Archived',
         message: 'Habit removed from active list.',
@@ -175,9 +191,11 @@ export function useScoreHabit(habitId, habit) {
     onMutate: async (direction) => {
       await queryClient.cancelQueries({ queryKey: ['habits'] });
       await queryClient.cancelQueries({ queryKey: ['character'] });
+      await queryClient.cancelQueries({ queryKey: ['habit-activity'] });
 
       const prevHabits = queryClient.getQueryData(['habits', { includeArchived: false }]);
       const prevChar = queryClient.getQueryData(['character']);
+      const prevActivities = queryClient.getQueriesData({ queryKey: ['habit-activity'] });
 
       // Optimistically update habit list
       queryClient.setQueryData(['habits', { includeArchived: false }], (old) =>
@@ -189,7 +207,21 @@ export function useScoreHabit(habitId, habit) {
         bumpCharacterOptimistically(old, habit, direction)
       );
 
-      return { prevHabits, prevChar };
+      // Optimistically update completedHabitIdsToday and weeklyTotal if positive
+      if (direction === 'positive') {
+        queryClient.setQueriesData({ queryKey: ['habit-activity'] }, (old) => {
+          if (!old) return old;
+          const currentIds = old.completedHabitIdsToday || [];
+          const alreadyCompleted = currentIds.includes(habitId);
+          return {
+            ...old,
+            completedHabitIdsToday: alreadyCompleted ? currentIds : [...currentIds, habitId],
+            weeklyTotal: (old.weeklyTotal || 0) + 1,
+          };
+        });
+      }
+
+      return { prevHabits, prevChar, prevActivities };
     },
     onError: (err, _vars, ctx) => {
       // Rollback to prior snapshot
@@ -198,6 +230,11 @@ export function useScoreHabit(habitId, habit) {
       }
       if (ctx?.prevChar !== undefined) {
         queryClient.setQueryData(['character'], ctx.prevChar);
+      }
+      if (ctx?.prevActivities) {
+        ctx.prevActivities.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
       }
 
       showToast({
@@ -209,11 +246,13 @@ export function useScoreHabit(habitId, habit) {
     onSuccess: (res) => {
       checkAndTriggerCelebrations(res?.data);
       queryClient.invalidateQueries({ queryKey: ['battle-events'] });
+      queryClient.invalidateQueries({ queryKey: ['habit-activity'] });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['habits'] });
       queryClient.invalidateQueries({ queryKey: ['character'] });
       queryClient.invalidateQueries({ queryKey: ['battle-events'] });
+      queryClient.invalidateQueries({ queryKey: ['habit-activity'] });
     },
   });
 }

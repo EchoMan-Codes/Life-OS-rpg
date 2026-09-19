@@ -1,6 +1,8 @@
 import { query, withTransaction } from '../db/pool.js';
 import { applyReward, xpRequiredFor } from './progression.service.js';
 import { calculateHabitReward } from './reward-table.js';
+import { getUserLocalDate } from './daily-reset.service.js';
+import { isValidTimezone } from './auth.service.js';
 
 /**
  * Format a raw PostgreSQL habits row into an API-ready object.
@@ -321,6 +323,105 @@ export class HabitService {
         progression,
       };
     });
+  }
+
+  /**
+   * Retrieves mathematically complete weekly consistency across 7 local calendar days,
+   * along with a separately bounded recent activity feed and positive completion state.
+   *
+   * @param {string} userId - User UUID
+   * @param {object} [options]
+   * @param {number} [options.recentLimit=10]
+   * @param {Date} [options.now=new Date()]
+   * @returns {Promise<object>}
+   */
+  async getHabitActivity(userId, { recentLimit = 10, now = new Date() } = {}) {
+    const userRes = await query('SELECT timezone FROM users WHERE id = $1', [userId]);
+    const rawTz = userRes.rows[0]?.timezone;
+    const tz = rawTz && isValidTimezone(rawTz) ? rawTz : 'UTC';
+
+    const anchorDate = now instanceof Date && !isNaN(now.getTime()) ? now : new Date();
+    const todayStr = getUserLocalDate(anchorDate, tz);
+    const [year, month, day] = todayStr.split('-').map(Number);
+    const todayNoonUtc = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+
+    // Exactly seven calendar days: 6 days before today through today
+    const calendarDays = [];
+    for (let i = 6; i >= 0; i--) {
+      const dayUtc = new Date(todayNoonUtc.getTime() - i * 24 * 60 * 60 * 1000);
+      calendarDays.push(getUserLocalDate(dayUtc, tz));
+    }
+
+    // 1. Mathematically complete positive completions across the 7 local calendar days
+    // Parameterized start-of-window anchored at local midnight of (today - 6 days)
+    const aggregateRes = await query(
+      `SELECT hl.habit_id as "habitId", hl.created_at as "createdAt"
+       FROM habit_logs hl
+       WHERE hl.user_id = $1
+         AND hl.direction = 'positive'
+         AND hl.created_at >= (date_trunc('day', $3::timestamptz AT TIME ZONE $2) - make_interval(days => 6)) AT TIME ZONE $2
+       ORDER BY hl.created_at ASC`,
+      [userId, tz, anchorDate.toISOString()]
+    );
+
+    const dailyCompletions = {};
+    calendarDays.forEach((d) => {
+      dailyCompletions[d] = 0;
+    });
+
+    const todayCompletedSet = new Set();
+    let weeklyTotal = 0;
+
+    for (const row of aggregateRes.rows) {
+      const logDateStr = getUserLocalDate(new Date(row.createdAt), tz);
+      if (dailyCompletions[logDateStr] !== undefined) {
+        dailyCompletions[logDateStr] += 1;
+        weeklyTotal += 1;
+      }
+      if (logDateStr === todayStr) {
+        todayCompletedSet.add(row.habitId);
+      }
+    }
+
+    // 2. Separately bounded recent activity feed (1-50 items, default 10)
+    const safeRecentLimit = Math.max(1, Math.min(50, parseInt(recentLimit, 10) || 10));
+    const recentRes = await query(
+      `SELECT hl.id,
+              hl.habit_id as "habitId",
+              hl.direction,
+              hl.xp_awarded as "xpAwarded",
+              hl.gold_awarded as "goldAwarded",
+              hl.hp_change as "hpChange",
+              hl.created_at as "createdAt",
+              COALESCE(h.title, 'Archived Ritual') as "habitTitle",
+              (h.id IS NULL OR h.archived_at IS NOT NULL) as "isArchived"
+       FROM habit_logs hl
+       LEFT JOIN habits h ON h.id = hl.habit_id
+       WHERE hl.user_id = $1
+       ORDER BY hl.created_at DESC
+       LIMIT $2`,
+      [userId, safeRecentLimit]
+    );
+
+    return {
+      timezone: tz,
+      todayDate: todayStr,
+      calendarDays,
+      dailyCompletions,
+      completedHabitIdsToday: Array.from(todayCompletedSet),
+      weeklyTotal,
+      recentLogs: recentRes.rows.map((r) => ({
+        id: r.id,
+        habitId: r.habitId,
+        habitTitle: r.habitTitle,
+        isArchived: Boolean(r.isArchived),
+        direction: r.direction,
+        xpAwarded: r.xpAwarded,
+        goldAwarded: r.goldAwarded,
+        hpChange: r.hpChange,
+        createdAt: new Date(r.createdAt).toISOString(),
+      })),
+    };
   }
 }
 

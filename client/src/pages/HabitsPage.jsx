@@ -1,24 +1,26 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Plus, Filter, Sparkles } from 'lucide-react';
-import clsx from 'clsx';
+import { Sparkles, Plus } from 'lucide-react';
 
-import { useHabits } from '@/features/habits/hooks';
+import { useHabits, useHabitActivity } from '@/features/habits/hooks';
+import { HabitsHero } from '@/components/habits/HabitsHero';
+import { HabitsTelemetryStrip } from '@/components/habits/HabitsTelemetryStrip';
+import { WeeklyConsistencyModule } from '@/components/habits/WeeklyConsistencyModule';
+import { HabitActivityModule } from '@/components/habits/HabitActivityModule';
 import { HabitCard } from '@/components/habits/HabitCard';
 import { HabitModal } from '@/components/habits/HabitModal';
-
-const FILTERS = [
-  { id: 'all', label: 'All' },
-  { id: 'positive', label: 'Positive' },
-  { id: 'both', label: 'Both (+ / -)' },
-  { id: 'negative', label: 'Negative' },
-];
+import { HabitsAtmosphere } from '@/components/habits/HabitsAtmosphere';
+import { RpgButton } from '@/components/rpg/RpgButton';
 
 export default function HabitsPage() {
-  const { data: habits = [], isLoading, isError } = useHabits();
+  const { data: habits = [], isLoading: isHabitsLoading, isError: isHabitsError } = useHabits();
+  const { data: activityData, isLoading: isActivityLoading } = useHabitActivity({ recentLimit: 10 });
+
   const [activeFilter, setActiveFilter] = useState('all');
   const [modalOpen, setModalOpen] = useState(false);
   const [habitToEdit, setHabitToEdit] = useState(null);
+
+  const completedHabitIdsToday = activityData?.completedHabitIdsToday || [];
 
   const filteredHabits = useMemo(() => {
     if (activeFilter === 'all') return habits;
@@ -28,6 +30,10 @@ export default function HabitsPage() {
   const bestOverallStreak = useMemo(() => {
     if (!habits.length) return 0;
     return Math.max(...habits.map((h) => h.bestStreak || 0), 0);
+  }, [habits]);
+
+  const activeStreaksCount = useMemo(() => {
+    return habits.filter((h) => (h.currentStreak || 0) >= 1).length;
   }, [habits]);
 
   const handleOpenCreate = () => {
@@ -41,114 +47,107 @@ export default function HabitsPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-display-md text-ink flex items-center gap-2.5">
-            <Flame className="w-7 h-7 text-xp fill-xp" />
-            <span>Habits & Streaks</span>
-          </h1>
-          <p className="text-body-sm text-ink-muted mt-1">
-            Build disciplines through daily momentum. Swipe right to reward, swipe left to log slips.
-          </p>
-        </div>
+    <div className="relative min-h-screen pb-16 space-y-6 max-w-6xl mx-auto px-4 sm:px-6">
+      {/* Route-Scoped Celestial Atmosphere with 3D Core & Fallback */}
+      <HabitsAtmosphere hasActiveStreaks={activeStreaksCount > 0} />
 
-        <button
-          type="button"
-          onClick={handleOpenCreate}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-xp to-gold text-obsidian-950 font-semibold text-body-xs hover:opacity-90 active:scale-95 transition-all shadow-glass self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
-          <span>New Habit</span>
-        </button>
-      </div>
+      {/* 1. Hero Deck */}
+      <HabitsHero
+        totalHabits={habits.length}
+        completedTodayCount={completedHabitIdsToday.length}
+        activeFilter={activeFilter}
+        onSelectFilter={setActiveFilter}
+        onOpenCreateModal={handleOpenCreate}
+      />
 
-      {/* Stats Ribbon */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <div className="p-3.5 rounded-xl bg-obsidian-900/60 border border-glass-border shadow-glass">
-          <span className="text-body-2xs uppercase tracking-wider text-ink-muted">Total Habits</span>
-          <p className="text-display-xs text-ink mt-0.5">{habits.length}</p>
-        </div>
-        <div className="p-3.5 rounded-xl bg-obsidian-900/60 border border-glass-border shadow-glass">
-          <span className="text-body-2xs uppercase tracking-wider text-ink-muted">Best Streak</span>
-          <p className="text-display-xs text-xp mt-0.5 flex items-center gap-1">
-            <Flame className="w-5 h-5 fill-xp text-xp inline" />
-            <span>{bestOverallStreak}</span>
-          </p>
-        </div>
-        <div className="col-span-2 sm:col-span-1 p-3.5 rounded-xl bg-obsidian-900/60 border border-glass-border shadow-glass">
-          <span className="text-body-2xs uppercase tracking-wider text-ink-muted">Tactile Gesture</span>
-          <p className="text-body-xs text-mana mt-1">Swipe card $\pm 80$px to score</p>
-        </div>
-      </div>
+      {/* 2. Telemetry Metrics Strip */}
+      <HabitsTelemetryStrip
+        totalHabits={habits.length}
+        completedTodayCount={completedHabitIdsToday.length}
+        bestOverallStreak={bestOverallStreak}
+        activeStreaksCount={activeStreaksCount}
+      />
 
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        <Filter className="w-4 h-4 text-ink-muted shrink-0 mr-1" />
-        {FILTERS.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setActiveFilter(tab.id)}
-            className={clsx(
-              'px-3.5 py-1.5 rounded-xl text-body-xs font-medium transition-all whitespace-nowrap',
-              activeFilter === tab.id
-                ? 'bg-glass-border-strong text-ink shadow-glass'
-                : 'text-ink-muted hover:text-ink hover:bg-glass/40'
-            )}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      {/* 3. Mathematically Complete 7-Day Consistency Cadence */}
+      <WeeklyConsistencyModule
+        calendarDays={activityData?.calendarDays || []}
+        dailyCompletions={activityData?.dailyCompletions || {}}
+        todayDate={activityData?.todayDate || ''}
+        weeklyTotal={activityData?.weeklyTotal || 0}
+        isLoading={isActivityLoading}
+      />
 
-      {/* Content Area */}
-      {isLoading ? (
-        <div className="py-16 text-center text-ink-muted text-body-sm animate-pulse">
-          Loading habits from PostgreSQL...
-        </div>
-      ) : isError ? (
-        <div className="py-12 text-center text-attr-strength text-body-sm">
-          Failed to load habits. Please check your connection.
-        </div>
-      ) : filteredHabits.length === 0 ? (
-        <div className="p-12 text-center rounded-2xl bg-obsidian-900/40 border border-glass-border shadow-glass">
-          <div className="w-12 h-12 mx-auto rounded-full bg-xp/10 flex items-center justify-center text-xp mb-3">
-            <Sparkles className="w-6 h-6" />
+      {/* 4. Active Rituals Card Grid */}
+      <section aria-labelledby="rituals-list-heading" className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-mono font-bold tracking-widest text-cyan-400 uppercase">
+              [ ACTIVE RITUAL MATRIX ]
+            </span>
           </div>
-          <h3 className="text-display-xs text-ink">No habits found</h3>
-          <p className="text-body-xs text-ink-muted max-w-sm mx-auto mt-1 mb-4">
-            {activeFilter === 'all'
-              ? 'Start building your character stats by tracking your first daily discipline.'
-              : `No habits found matching the "${activeFilter}" filter.`}
-          </p>
-          <button
-            type="button"
-            onClick={handleOpenCreate}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-xp to-gold text-obsidian-950 font-semibold text-body-xs hover:opacity-90 active:scale-95 transition-all shadow-glass"
-          >
-            Create First Habit
-          </button>
+          <span className="text-xs font-mono text-ink-muted">
+            {filteredHabits.length} discipline{filteredHabits.length === 1 ? '' : 's'} displayed
+          </span>
         </div>
-      ) : (
-        <div className="space-y-3">
-          <AnimatePresence mode="popLayout">
-            {filteredHabits.map((habit) => (
-              <motion.div
-                key={habit.id}
-                layout
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-              >
-                <HabitCard habit={habit} onEdit={handleOpenEdit} />
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-      )}
+
+        {isHabitsLoading ? (
+          <div className="py-16 text-center text-xs font-mono text-ink-muted animate-pulse rounded-2xl bg-obsidian-900/40 border border-glass-border">
+            Loading ritual matrix from PostgreSQL...
+          </div>
+        ) : isHabitsError ? (
+          <div className="py-12 text-center text-xs font-mono text-rose-400 rounded-2xl bg-obsidian-900/40 border border-rose-500/30">
+            Failed to synchronize rituals. Please check network connection.
+          </div>
+        ) : filteredHabits.length === 0 ? (
+          <div className="p-10 sm:p-12 text-center rounded-2xl bg-obsidian-900/60 border border-dashed border-glass-border shadow-glass">
+            <div className="w-12 h-12 mx-auto rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-3 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+              <Sparkles className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-bold font-mono text-ink">No Rituals In Current Filter</h3>
+            <p className="text-xs text-ink-muted max-w-sm mx-auto mt-1.5 mb-5 leading-relaxed">
+              {activeFilter === 'all'
+                ? 'Begin forging your daily discipline character by registering your first tracked ritual.'
+                : `No disciplines currently match the "${activeFilter}" filter.`}
+            </p>
+            <RpgButton
+              variant="primary"
+              size="md"
+              icon={Plus}
+              onClick={handleOpenCreate}
+            >
+              <span>+ Forge First Ritual</span>
+            </RpgButton>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <AnimatePresence mode="popLayout">
+              {filteredHabits.map((habit) => (
+                <motion.div
+                  key={habit.id}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <HabitCard
+                    habit={habit}
+                    onEdit={handleOpenEdit}
+                    isCompletedToday={completedHabitIdsToday.includes(habit.id)}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+      </section>
+
+      {/* 5. Discipline Momentum & Recent Scoring Audit */}
+      <HabitActivityModule
+        habits={habits}
+        recentLogs={activityData?.recentLogs || []}
+        isLoading={isActivityLoading}
+      />
 
       {/* Habit Creation & Edit Modal */}
       <HabitModal

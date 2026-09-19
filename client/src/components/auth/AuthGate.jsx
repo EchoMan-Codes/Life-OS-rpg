@@ -24,7 +24,7 @@ export function AuthGate({ children }) {
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-obsidian gap-4">
         <motion.div
-          className="w-14 h-14 rounded-2xl bg-gradient-to-br from-attr-willpower/30 via-glass to-attr-perception/30 border border-white/20 flex items-center justify-center shadow-glow-willpower"
+          className="w-14 h-14 rounded-2xl bg-linear-to-br from-attr-willpower/30 via-glass to-attr-perception/30 border border-white/20 flex items-center justify-center shadow-glow-willpower"
           animate={
             shouldReduceMotion
               ? {}

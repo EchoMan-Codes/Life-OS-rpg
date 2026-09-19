@@ -14,6 +14,7 @@ import {
 import { StatBar } from './StatBar';
 import { AttributesDrawer } from './AttributesDrawer';
 import { BattleActivityDrawer } from './BattleActivityDrawer';
+import { PrismaticGlow } from '@/components/ui';
 
 /**
  * Purpose-built Mobile Player HUD (floating 2-row header) & Global Drawer Host.
@@ -84,26 +85,28 @@ export function PlayerHud({ isDesktop: _isDesktop = false }) {
                 title="View Hero Attributes"
                 className="flex items-center gap-2 shrink-0 p-0.5 -m-0.5 rounded-control hit-area-expand cursor-pointer focus-visible:outline-2 focus-visible:outline-accent-primary"
               >
-                <div className="relative">
-                  {avatarUrl ? (
-                    <img
-                      src={avatarUrl}
-                      alt={displayName}
-                      className="w-8 h-8 rounded-full object-cover border border-gold/40 shadow-sm"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-obsidian-800 border border-gold/40 flex items-center justify-center text-gold shadow-sm">
-                      <UserIcon size={16} />
-                    </div>
-                  )}
-                  {/* Level Badge */}
-                  <span className="absolute -bottom-1 -right-1 bg-obsidian-900 text-gold border border-gold/50 rounded-full px-1 text-[8px] font-mono font-bold leading-tight shadow">
-                    {level}
-                  </span>
-                </div>
+                <PrismaticGlow variant="circle">
+                  <div className="relative">
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt={displayName}
+                        className="w-8 h-8 rounded-full object-cover border border-white/20 shadow-sm"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-obsidian-800 border border-white/20 flex items-center justify-center text-gold shadow-sm">
+                        <UserIcon size={16} />
+                      </div>
+                    )}
+                    {/* Level Badge */}
+                    <span className="absolute -bottom-1 -right-1 bg-obsidian-900 text-gold border border-gold/50 rounded-full px-1 text-[8px] font-mono font-bold leading-tight shadow z-20">
+                      {level}
+                    </span>
+                  </div>
+                </PrismaticGlow>
 
                 <div className="flex flex-col text-left">
-                  <span className="text-xs font-semibold text-ink truncate max-w-[84px] leading-tight">
+                  <span className="text-xs font-semibold text-ink truncate max-w-21 leading-tight">
                     {displayName}
                   </span>
                   <span className="text-[10px] text-ink-muted leading-none font-mono">
@@ -148,7 +151,7 @@ export function PlayerHud({ isDesktop: _isDesktop = false }) {
                 type="button"
                 onClick={() => setBattleLogOpen(true)}
                 whileTap={shouldReduceMotion ? undefined : { scale: 0.90 }}
-                className="w-7 h-7 rounded-control border border-white/10 bg-white/[0.04] text-gold flex items-center justify-center hit-area-expand cursor-pointer shrink-0"
+                className="w-7 h-7 rounded-control border border-white/10 bg-white/4 text-gold flex items-center justify-center hit-area-expand cursor-pointer shrink-0"
                 title="Battle Feed"
                 aria-label="Open Battle Activity Feed"
               >

@@ -2,6 +2,8 @@ import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { Sparkles, ShieldAlert, Zap, Flame, HeartPulse } from 'lucide-react';
 
+import { Card } from '@/components/ui/Card';
+
 const INSIGHT_STYLES = {
   success: {
     bg: 'bg-emerald-950/20 border-emerald-800/40 text-emerald-200',
@@ -31,8 +33,7 @@ const INSIGHT_STYLES = {
 };
 
 /**
- * Real Data-Driven LifeOS Insights.
- * Zero fabricated numbers: derived strictly from database state.
+ * LifeOSInsightsSection — Real Data-Driven Tactical Intelligence.
  */
 export function LifeOSInsightsSection({
   insights = [],
@@ -41,42 +42,51 @@ export function LifeOSInsightsSection({
   if (insights.length === 0) return null;
 
   return (
-    <section className={clsx('space-y-3', className)}>
-      <div className="flex items-center justify-between pb-1">
-        <h2 className="text-display-xs text-ink font-display font-semibold flex items-center gap-2">
-          <Sparkles size={18} className="text-gold" />
-          <span>LifeOS Insights & Signals</span>
-        </h2>
-        <span className="text-caption font-mono text-ink-muted">Authoritative Data</span>
+    <section className={clsx('space-y-3.5 select-none', className)}>
+      <div className="flex items-center justify-between gap-2 pb-1">
+        <div className="flex items-center gap-2">
+          <h2 className="text-display-xs text-ink font-display font-bold flex items-center gap-2">
+            <Sparkles size={16} className="text-gold shrink-0" />
+            <span>TACTICAL INTELLIGENCE</span>
+          </h2>
+          <span className="px-2 py-0.5 rounded-full text-[11px] font-mono font-medium bg-obsidian-800 text-ink-muted border border-glass-border">
+            [SYS SIGNALS]
+          </span>
+        </div>
+        <span className="hidden sm:inline-block text-[11px] font-mono text-ink-muted">AUTHORITATIVE TELEMETRY</span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
         {insights.map((insight) => {
           const style = INSIGHT_STYLES[insight.type] || INSIGHT_STYLES.neutral;
           const Icon = style.icon;
 
           return (
-            <div
+            <Card
               key={insight.id}
+              variant="surface"
               className={clsx(
-                'p-3.5 rounded-card border transition-all flex flex-col justify-between gap-2',
+                'p-4 flex flex-col justify-between gap-2.5 transition-all relative overflow-hidden group',
                 style.bg
               )}
             >
-              <div className="flex items-start gap-2.5">
-                <div className="p-1 rounded-chip bg-obsidian-900/80 border border-glass-border shrink-0 mt-0.5">
+              {/* Top specular line */}
+              <div className="absolute top-0 inset-x-0 h-px bg-linear-to-r from-transparent via-white/10 to-transparent" />
+
+              <div className="flex items-start gap-3">
+                <div className="p-1.5 rounded-chip bg-obsidian-950/80 border border-glass-border shrink-0 mt-0.5 shadow-sm">
                   <Icon size={14} className={style.iconColor} />
                 </div>
-                <div>
-                  <h3 className="text-xs font-semibold text-ink leading-tight">
+                <div className="space-y-1 min-w-0 flex-1">
+                  <h3 className="text-xs font-display font-bold text-ink leading-snug">
                     {insight.title}
                   </h3>
-                  <p className="text-caption text-ink-muted/90 mt-1 leading-normal">
+                  <p className="text-caption text-ink-muted leading-relaxed">
                     {insight.description}
                   </p>
                 </div>
               </div>
-            </div>
+            </Card>
           );
         })}
       </div>

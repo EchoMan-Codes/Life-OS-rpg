@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 
 import { spring } from '@/lib/motion';
+import { PrismaticGlow } from '@/components/ui';
 import { useAuth } from '@/features/auth/hooks';
 import { useCharacter } from '@/features/character/hooks';
 import { useRestModeStatus } from '@/features/rest-mode/hooks';
@@ -88,7 +89,7 @@ export function DesktopNav({ onOpenAuth }) {
             title="LifeOS Home"
             aria-label="LifeOS Home"
           >
-            <div className="w-8 h-8 rounded-control bg-gradient-to-br from-accent-primary/20 via-accent-secondary/15 to-transparent border border-white/10 flex items-center justify-center text-accent-primary shadow-inner group-hover:border-accent-primary/40 transition-colors">
+            <div className="w-8 h-8 rounded-control bg-linear-to-br from-accent-primary/20 via-accent-secondary/15 to-transparent border border-white/10 flex items-center justify-center text-accent-primary shadow-inner group-hover:border-accent-primary/40 transition-colors">
               <Sparkles size={16} className="transition-transform duration-200 group-hover:scale-110" />
             </div>
             <span className="hidden xl:inline font-display font-bold text-sm tracking-tight text-ink group-hover:text-white transition-colors">
@@ -105,32 +106,34 @@ export function DesktopNav({ onOpenAuth }) {
             whileTap={shouldReduceMotion ? undefined : { scale: 0.94 }}
             className={clsx(
               'flex items-center gap-2 group p-1 -m-1 rounded-control hit-area-expand cursor-pointer',
-              'hover:bg-white/[0.04] transition-colors',
+              'hover:bg-white/4 transition-colors',
               'focus-visible:outline-2 focus-visible:outline-accent-primary'
             )}
             title="View Hero Attributes & Skills"
             aria-label={`View attributes for ${displayName}, Level ${level}`}
           >
-            <div className="relative">
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt={displayName}
-                  className="w-8 h-8 rounded-full object-cover border border-gold/40 shadow-sm"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-obsidian-800 border border-gold/40 flex items-center justify-center text-gold shadow-sm">
-                  <UserIcon size={16} />
-                </div>
-              )}
-              {/* Level Chip */}
-              <span className="absolute -bottom-1 -right-1.5 bg-obsidian-900 text-gold border border-gold/50 rounded-full px-1 text-[9px] font-mono font-bold leading-none shadow">
-                {level}
-              </span>
-            </div>
+            <PrismaticGlow variant="circle">
+              <div className="relative">
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt={displayName}
+                    className="w-8 h-8 rounded-full object-cover border border-white/20 shadow-sm"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-obsidian-800 border border-white/20 flex items-center justify-center text-gold shadow-sm">
+                    <UserIcon size={16} />
+                  </div>
+                )}
+                {/* Level Chip */}
+                <span className="absolute -bottom-1 -right-1.5 bg-obsidian-900 text-gold border border-gold/50 rounded-full px-1 text-[9px] font-mono font-bold leading-none shadow z-20">
+                  {level}
+                </span>
+              </div>
+            </PrismaticGlow>
 
             <div className="hidden lg:flex flex-col text-left">
-              <span className="text-caption font-semibold text-ink leading-tight truncate max-w-[100px] xl:max-w-[130px]">
+              <span className="text-caption font-semibold text-ink leading-tight truncate max-w-25 xl:max-w-32.5">
                 {displayName}
               </span>
               <span className="text-[10px] text-ink-muted leading-none font-mono">
@@ -164,12 +167,12 @@ export function DesktopNav({ onOpenAuth }) {
               to={to}
               className={({ isActive }) =>
                 clsx(
-                  'relative min-h-[38px] px-3 py-1.5 rounded-full flex items-center gap-1.5 text-xs font-medium transition-colors duration-150',
+                  'relative min-h-9.5 px-3 py-1.5 rounded-full flex items-center gap-1.5 text-xs font-medium transition-colors duration-150',
                   'hit-area-expand cursor-pointer select-none',
                   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary',
                   isActive
                     ? 'text-ink font-semibold'
-                    : 'text-ink-muted hover:text-ink hover:bg-white/[0.04]'
+                    : 'text-ink-muted hover:text-ink hover:bg-white/4'
                 )
               }
             >
@@ -179,7 +182,7 @@ export function DesktopNav({ onOpenAuth }) {
                   {isActive && (
                     <motion.span
                       layoutId={shouldReduceMotion ? undefined : 'desktopNavActivePill'}
-                      className="absolute inset-0 bg-white/[0.09] border border-white/10 rounded-full shadow-elevation-subtle -z-10"
+                      className="absolute inset-0 bg-white/9 border border-white/10 rounded-full shadow-elevation-subtle -z-10"
                       transition={shouldReduceMotion ? { duration: 0 } : spring.snappy}
                     />
                   )}
@@ -206,7 +209,7 @@ export function DesktopNav({ onOpenAuth }) {
             </div>
             <div className="bg-obsidian-700/80 rounded-full h-1.5 overflow-hidden p-px shadow-inner">
               <motion.div
-                className="h-full bg-gradient-to-r from-xp to-gold rounded-full"
+                className="h-full bg-linear-to-r from-xp to-gold rounded-full"
                 initial={{ width: 0 }}
                 animate={{ width: `${xpPct}%` }}
                 transition={shouldReduceMotion ? { duration: 0 } : spring.gentle}
@@ -252,7 +255,7 @@ export function DesktopNav({ onOpenAuth }) {
             onClick={openBattleLogDrawer}
             whileTap={shouldReduceMotion ? undefined : { scale: 0.94 }}
             className={clsx(
-              'w-8 h-8 rounded-control border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] text-ink-muted hover:text-ink',
+              'w-8 h-8 rounded-control border border-white/10 bg-white/3 hover:bg-white/8 text-ink-muted hover:text-ink',
               'flex items-center justify-center hit-area-expand cursor-pointer transition-colors',
               'focus-visible:outline-2 focus-visible:outline-accent-primary'
             )}
@@ -268,7 +271,7 @@ export function DesktopNav({ onOpenAuth }) {
             onClick={openAttributesDrawer}
             whileTap={shouldReduceMotion ? undefined : { scale: 0.94 }}
             className={clsx(
-              'w-8 h-8 rounded-control border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] text-ink-muted hover:text-ink',
+              'w-8 h-8 rounded-control border border-white/10 bg-white/3 hover:bg-white/8 text-ink-muted hover:text-ink',
               'flex items-center justify-center hit-area-expand cursor-pointer transition-colors',
               'focus-visible:outline-2 focus-visible:outline-accent-primary'
             )}
@@ -286,7 +289,7 @@ export function DesktopNav({ onOpenAuth }) {
               disabled={isLoggingOut}
               whileTap={shouldReduceMotion ? undefined : { scale: 0.94 }}
               className={clsx(
-                'w-8 h-8 rounded-control border border-white/10 bg-white/[0.03] hover:bg-attr-strength/20 hover:border-attr-strength/40 text-ink-muted hover:text-attr-strength',
+                'w-8 h-8 rounded-control border border-white/10 bg-white/3 hover:bg-attr-strength/20 hover:border-attr-strength/40 text-ink-muted hover:text-attr-strength',
                 'flex items-center justify-center hit-area-expand cursor-pointer transition-colors',
                 'focus-visible:outline-2 focus-visible:outline-accent-primary'
               )}

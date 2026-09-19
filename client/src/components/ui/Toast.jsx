@@ -80,7 +80,7 @@ export function ToastProvider({ children }) {
                     <h4 className="text-body-sm font-semibold text-ink truncate">{toast.title}</h4>
                   )}
                   {toast.message && (
-                    <p className="text-body-xs text-ink-muted break-words">{toast.message}</p>
+                    <p className="text-body-xs text-ink-muted wrap-break-word">{toast.message}</p>
                   )}
                 </div>
                 {/* Dismiss button with 44px hit-target expander */}

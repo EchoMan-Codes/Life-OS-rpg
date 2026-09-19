@@ -179,6 +179,10 @@ export function useDashboardMetrics() {
     const topHabits = [...positiveHabits]
       .sort((a, b) => (b.streak || 0) - (a.streak || 0))
       .slice(0, 4);
+    const totalHabitsCount = positiveHabits.length;
+    const completedHabitsCount = habits.filter(
+      (h) => h.lastScoredAt && h.lastScoredAt.slice(0, 10) === todayDateStr
+    ).length;
 
     // 7. Today At A Glance Summary
     const totalDailiesDueCount = dueDailies.length;
@@ -360,6 +364,8 @@ export function useDashboardMetrics() {
       completedFocusSessionsToday,
       maxActiveStreak,
       topHabits,
+      totalHabitsCount,
+      completedHabitsCount,
       last7Days,
       timeline,
       insights,

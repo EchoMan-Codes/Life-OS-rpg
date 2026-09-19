@@ -224,7 +224,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onAuthSucces
                         'py-2.5 px-4 rounded-panel',
                         'bg-white/5 hover:bg-white/10 border border-glass-border',
                         'text-ink text-sm font-medium',
-                        'min-h-[44px]',
+                        'min-h-11',
                         'transition-colors duration-150',
                         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-glass-border'
                       )}
@@ -293,7 +293,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onAuthSucces
                                 className={clsx(
                                   'w-full pl-10 pr-4 py-2.5 rounded-panel',
                                   'bg-obsidian-900/90 border border-glass-border text-ink text-sm',
-                                  'min-h-[44px]',
+                                  'min-h-11',
                                   'focus:outline-none focus:border-attr-perception/60'
                                 )}
                               />
@@ -319,7 +319,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onAuthSucces
                               className={clsx(
                                 'w-full pl-10 pr-4 py-2.5 rounded-panel',
                                 'bg-obsidian-900/90 border border-glass-border text-ink text-sm',
-                                'min-h-[44px]',
+                                'min-h-11',
                                 'focus:outline-none focus:border-attr-perception/60'
                               )}
                             />
@@ -344,7 +344,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onAuthSucces
                               className={clsx(
                                 'w-full pl-10 pr-4 py-2.5 rounded-panel',
                                 'bg-obsidian-900/90 border border-glass-border text-ink text-sm',
-                                'min-h-[44px]',
+                                'min-h-11',
                                 'focus:outline-none focus:border-attr-perception/60'
                               )}
                             />
@@ -413,7 +413,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onAuthSucces
                 <div
                   className={clsx(
                     'hidden md:flex flex-col justify-between p-8',
-                    'bg-gradient-to-br from-obsidian-800 via-obsidian-900 to-obsidian',
+                    'bg-linear-to-br from-obsidian-800 via-obsidian-900 to-obsidian',
                     'border-l border-glass-border relative overflow-hidden'
                   )}
                 >
@@ -431,7 +431,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login', onAuthSucces
                   {/* Central RPG Visual Motif */}
                   <div className="relative z-10 my-auto py-8 text-center">
                     <motion.div
-                      className="w-20 h-20 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-attr-willpower/30 via-glass to-attr-perception/30 border border-white/20 flex items-center justify-center shadow-glow-willpower"
+                      className="w-20 h-20 mx-auto mb-5 rounded-2xl bg-linear-to-br from-attr-willpower/30 via-glass to-attr-perception/30 border border-white/20 flex items-center justify-center shadow-glow-willpower"
                       animate={
                         shouldReduceMotion
                           ? {}

@@ -75,7 +75,7 @@ export function StatBar({ type, current, max, label, compact = false, className 
   }
 
   return (
-    <div className={clsx('flex flex-col gap-1 min-w-[70px] sm:min-w-[100px] flex-1', className)}>
+    <div className={clsx('flex flex-col gap-1 min-w-17.5 sm:min-w-25 flex-1', className)}>
       {/* Label and numbers */}
       <div className="flex items-center justify-between text-caption font-medium tracking-wider">
         <span className="text-ink-muted uppercase font-display text-[10px] sm:text-xs">
@@ -89,7 +89,7 @@ export function StatBar({ type, current, max, label, compact = false, className 
 
       {/* Track */}
       <div
-        className="bg-obsidian-700/80 rounded-chip h-2 overflow-hidden p-[1px] relative shadow-inner"
+        className="bg-obsidian-700/80 rounded-chip h-2 overflow-hidden p-px relative shadow-inner"
         role="progressbar"
         aria-valuenow={current}
         aria-valuemin={0}

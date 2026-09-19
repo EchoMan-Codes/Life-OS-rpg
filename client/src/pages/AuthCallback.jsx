@@ -64,7 +64,7 @@ export default function AuthCallback() {
       {!errorMsg ? (
         <div className="flex flex-col items-center gap-4 text-center">
           <motion.div
-            className="w-14 h-14 rounded-2xl bg-gradient-to-br from-attr-willpower/30 via-glass to-attr-perception/30 border border-white/20 flex items-center justify-center shadow-glow-willpower"
+            className="w-14 h-14 rounded-2xl bg-linear-to-br from-attr-willpower/30 via-glass to-attr-perception/30 border border-white/20 flex items-center justify-center shadow-glow-willpower"
             animate={
               shouldReduceMotion
                 ? {}
@@ -94,14 +94,14 @@ export default function AuthCallback() {
                 const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
                 window.location.href = `${apiBase}/auth/google`;
               }}
-              className="px-4 py-2.5 rounded-panel bg-glass hover:bg-glass/80 border border-glass-border text-ink text-sm font-medium min-h-[44px] transition-colors"
+              className="px-4 py-2.5 rounded-panel bg-glass hover:bg-glass/80 border border-glass-border text-ink text-sm font-medium min-h-11 transition-colors"
             >
               Try Google Again
             </button>
             <button
               type="button"
               onClick={() => navigate('/onboarding', { replace: true })}
-              className="px-4 py-2.5 rounded-panel text-ink-muted hover:text-ink text-sm font-medium min-h-[44px] transition-colors"
+              className="px-4 py-2.5 rounded-panel text-ink-muted hover:text-ink text-sm font-medium min-h-11 transition-colors"
             >
               Back to LifeOS
             </button>

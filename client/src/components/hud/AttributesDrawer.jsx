@@ -228,7 +228,7 @@ export function AttributesDrawer({ isOpen, onClose, character = {} }) {
                       <div className="flex items-center gap-2.5">
                         <span
                           className={clsx(
-                            'font-mono font-bold text-base min-w-[20px] text-right',
+                            'font-mono font-bold text-base min-w-5 text-right',
                             attr.colorClass
                           )}
                         >

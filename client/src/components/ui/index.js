@@ -11,3 +11,4 @@ export { Toggle } from './Toggle';
 export { Avatar } from './Avatar';
 export { ToastProvider } from './Toast';
 export { useToast } from './useToast';
+export { PrismaticGlow } from './PrismaticGlow';

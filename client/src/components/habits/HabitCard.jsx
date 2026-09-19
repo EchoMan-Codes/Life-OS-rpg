@@ -156,7 +156,7 @@ export function HabitCard({ habit, onEdit }) {
               }}
               aria-label={`Score negative on ${habit.title}`}
               className={clsx(
-                'min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-xl',
+                'min-w-11 min-h-11 w-11 h-11 flex items-center justify-center rounded-xl',
                 'border border-attr-strength/40 bg-attr-strength/10 text-attr-strength',
                 'hover:bg-attr-strength/25 active:scale-95 transition-all',
                 'disabled:opacity-40 disabled:pointer-events-none'
@@ -177,7 +177,7 @@ export function HabitCard({ habit, onEdit }) {
               }}
               aria-label={`Score positive on ${habit.title}`}
               className={clsx(
-                'min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-xl',
+                'min-w-11 min-h-11 w-11 h-11 flex items-center justify-center rounded-xl',
                 'border border-attr-vitality/40 bg-attr-vitality/10 text-attr-vitality',
                 'hover:bg-attr-vitality/25 active:scale-95 transition-all',
                 'disabled:opacity-40 disabled:pointer-events-none'
@@ -196,7 +196,7 @@ export function HabitCard({ habit, onEdit }) {
                 setMenuOpen((prev) => !prev);
               }}
               aria-label="Habit options"
-              className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-xl text-ink-muted hover:text-ink hover:bg-glass/50 transition-colors"
+              className="min-w-11 min-h-11 w-11 h-11 flex items-center justify-center rounded-xl text-ink-muted hover:text-ink hover:bg-glass/50 transition-colors"
             >
               <MoreVertical className="w-4 h-4" />
             </button>

@@ -6,3 +6,4 @@ export { ProgressionBar } from './ProgressionBar';
 export { TelemetryCard } from './TelemetryCard';
 export { RpgButton } from './RpgButton';
 export { EnergyBorder } from './EnergyBorder';
+export { StructuralFrame, StructuralPanel, StructuralChamber } from './StructuralFrame';

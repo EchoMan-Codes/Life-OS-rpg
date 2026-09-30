@@ -122,7 +122,7 @@ export function ShopItemModal({ isOpen, onClose, initialData = null }) {
 
         {/* Title */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-ink-muted mb-1.5">
+          <label className="block text-xs font-semibold text-ink-muted mb-1.5">
             Reward Title <span className="text-attr-strength">*</span>
           </label>
           <input
@@ -132,13 +132,13 @@ export function ShopItemModal({ isOpen, onClose, initialData = null }) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g. 1 Hour Video Game Break"
-            className="w-full px-3.5 py-2.5 rounded-xl bg-obsidian-900/90 border border-glass-border text-ink placeholder:text-ink-muted/50 focus:border-gold focus:outline-none text-sm transition-colors"
+            className="w-full px-4 py-3 rounded-2xl bg-white/[0.04] border border-white/10 text-ink placeholder:text-ink-muted/40 focus:border-white/30 focus:bg-white/[0.07] focus:ring-2 focus:ring-white/10 backdrop-blur-md shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] focus:outline-none text-sm transition-all"
           />
         </div>
 
         {/* Description */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-ink-muted mb-1.5">
+          <label className="block text-xs font-semibold text-ink-muted mb-1.5">
             Description
           </label>
           <textarea
@@ -147,13 +147,13 @@ export function ShopItemModal({ isOpen, onClose, initialData = null }) {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Treat yourself after conquering your quests..."
-            className="w-full px-3.5 py-2.5 rounded-xl bg-obsidian-900/90 border border-glass-border text-ink placeholder:text-ink-muted/50 focus:border-gold focus:outline-none text-sm transition-colors resize-none"
+            className="w-full px-4 py-3 rounded-2xl bg-white/[0.04] border border-white/10 text-ink placeholder:text-ink-muted/40 focus:border-white/30 focus:bg-white/[0.07] focus:ring-2 focus:ring-white/10 backdrop-blur-md shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] focus:outline-none text-sm transition-all resize-none"
           />
         </div>
 
         {/* Gold Cost */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-ink-muted mb-1.5">
+          <label className="block text-xs font-semibold text-ink-muted mb-1.5">
             Cost in Gold <span className="text-attr-strength">*</span>
           </label>
           <div className="relative">
@@ -164,7 +164,7 @@ export function ShopItemModal({ isOpen, onClose, initialData = null }) {
               max={1000000}
               value={costGold}
               onChange={(e) => setCostGold(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-obsidian-900/90 border border-glass-border text-ink focus:border-gold focus:outline-none text-sm transition-colors"
+              className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white/[0.04] border border-white/10 text-ink focus:border-white/30 focus:bg-white/[0.07] focus:ring-2 focus:ring-white/10 backdrop-blur-md shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] focus:outline-none text-sm transition-all"
             />
             <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gold">
               <Coins size={16} />

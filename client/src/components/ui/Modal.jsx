@@ -58,7 +58,7 @@ export function Modal({ isOpen, onClose, className, children }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
           <motion.div
-            className="absolute inset-0 bg-obsidian/80 backdrop-blur-sm"
+            className="absolute inset-0 bg-obsidian-950/75 backdrop-blur-md"
             onClick={onClose}
             {...backdropMotion}
           />
@@ -71,9 +71,9 @@ export function Modal({ isOpen, onClose, className, children }) {
             tabIndex={-1}
             className={clsx(
               'relative z-10 w-full max-w-lg',
-              'bg-obsidian-800 border border-glass-border',
-              'backdrop-blur-glass rounded-panel shadow-glow',
-              'p-6',
+              'bg-obsidian-900/90 border border-white/15',
+              'backdrop-blur-2xl rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.65),inset_0_1px_1px_rgba(255,255,255,0.2)]',
+              'p-6 sm:p-7',
               'focus:outline-none',
               className
             )}

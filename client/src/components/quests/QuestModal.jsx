@@ -104,13 +104,13 @@ function QuestForm({ questToEdit, onClose }) {
           maxLength={200}
           required
           autoFocus
-          className="px-3.5 py-2.5 rounded-lg bg-obsidian-950/60 border border-glass-border text-ink placeholder:text-ink-muted focus:outline-none focus:border-attr-intelligence transition-colors text-body-sm"
+          className="px-4 py-3 rounded-2xl bg-white/[0.04] border border-white/10 text-ink placeholder:text-ink-muted/40 focus:outline-none focus:border-white/30 focus:bg-white/[0.07] focus:ring-2 focus:ring-white/10 backdrop-blur-md shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] transition-all text-sm"
         />
       </div>
 
       {/* Description / Lore */}
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="quest-description" className="text-body-sm font-semibold text-ink">
+        <label htmlFor="quest-description" className="text-xs font-semibold text-ink-muted">
           Description / Objectives
         </label>
         <textarea
@@ -120,13 +120,13 @@ function QuestForm({ questToEdit, onClose }) {
           placeholder="Describe your quest, victory conditions, and scope..."
           rows={3}
           maxLength={2000}
-          className="px-3.5 py-2.5 rounded-lg bg-obsidian-950/60 border border-glass-border text-ink placeholder:text-ink-muted focus:outline-none focus:border-attr-intelligence transition-colors text-body-sm resize-none"
+          className="px-4 py-3 rounded-2xl bg-white/[0.04] border border-white/10 text-ink placeholder:text-ink-muted/40 focus:outline-none focus:border-white/30 focus:bg-white/[0.07] focus:ring-2 focus:ring-white/10 backdrop-blur-md shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] transition-all text-sm resize-none"
         />
       </div>
 
       {/* Priority Pills */}
       <div className="flex flex-col gap-1.5">
-        <label className="text-body-sm font-semibold text-ink">Priority</label>
+        <label className="text-xs font-semibold text-ink-muted">Priority</label>
         <div className="grid grid-cols-4 gap-2">
           {PRIORITIES.map((p) => {
             const isSelected = priority === p.value;
@@ -136,10 +136,10 @@ function QuestForm({ questToEdit, onClose }) {
                 type="button"
                 onClick={() => setPriority(p.value)}
                 className={clsx(
-                  'py-2 px-2 rounded-lg text-xs font-semibold border transition-all text-center cursor-pointer',
+                  'py-2 px-2 rounded-2xl text-xs font-semibold border transition-all text-center cursor-pointer active:scale-95',
                   isSelected
-                    ? 'border-attr-intelligence bg-attr-intelligence/20 text-attr-intelligence shadow-glow'
-                    : 'border-glass-border bg-obsidian-950/40 text-ink-muted hover:border-glass-border/80'
+                    ? 'border-attr-intelligence/60 bg-attr-intelligence/20 text-attr-intelligence shadow-sm'
+                    : 'border-white/10 bg-white/[0.04] text-ink-muted hover:border-white/20'
                 )}
               >
                 {p.label}
@@ -151,7 +151,7 @@ function QuestForm({ questToEdit, onClose }) {
 
       {/* Difficulty & Reward Preview */}
       <div className="flex flex-col gap-1.5">
-        <label className="text-body-sm font-semibold text-ink">Difficulty & Reward</label>
+        <label className="text-xs font-semibold text-ink-muted">Difficulty & Reward</label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {DIFFICULTIES.map((d) => {
             const isSelected = difficulty === d.value;
@@ -161,10 +161,10 @@ function QuestForm({ questToEdit, onClose }) {
                 type="button"
                 onClick={() => setDifficulty(d.value)}
                 className={clsx(
-                  'flex flex-col items-center p-2.5 rounded-lg border transition-all cursor-pointer',
+                  'flex flex-col items-center p-2.5 rounded-2xl border transition-all cursor-pointer active:scale-95',
                   isSelected
-                    ? 'border-gold bg-gold/15 text-gold shadow-glow'
-                    : 'border-glass-border bg-obsidian-950/40 text-ink-muted hover:border-glass-border/80'
+                    ? 'border-gold/60 bg-gold/15 text-gold shadow-sm'
+                    : 'border-white/10 bg-white/[0.04] text-ink-muted hover:border-white/20'
                 )}
               >
                 <span className="text-xs font-bold">{d.label}</span>
@@ -177,7 +177,7 @@ function QuestForm({ questToEdit, onClose }) {
 
       {/* Due Date */}
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="quest-due-date" className="text-body-sm font-semibold text-ink">
+        <label htmlFor="quest-due-date" className="text-xs font-semibold text-ink-muted">
           Due Date (Optional)
         </label>
         <input
@@ -185,14 +185,14 @@ function QuestForm({ questToEdit, onClose }) {
           type="date"
           value={dueDate}
           onChange={(e) => setDueDate(e.target.value)}
-          className="px-3.5 py-2.5 rounded-lg bg-obsidian-950/60 border border-glass-border text-ink focus:outline-none focus:border-attr-intelligence transition-colors text-body-sm"
+          className="px-4 py-2.5 rounded-2xl bg-white/[0.04] border border-white/10 text-ink focus:outline-none focus:border-white/30 transition-colors text-sm backdrop-blur-md"
         />
       </div>
 
       {/* Initial Subtasks Checklist (Creation mode only) */}
       {!isEditing && (
         <div className="flex flex-col gap-2">
-          <label className="text-body-sm font-semibold text-ink">
+          <label className="text-xs font-semibold text-ink-muted">
             Checklist Subtasks ({items.length})
           </label>
 
@@ -202,7 +202,7 @@ function QuestForm({ questToEdit, onClose }) {
               {items.map((it, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-obsidian-950/60 border border-glass-border/40 text-xs text-ink"
+                  className="flex items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-ink backdrop-blur-md"
                 >
                   <span className="truncate">{it}</span>
                   <button
@@ -210,7 +210,7 @@ function QuestForm({ questToEdit, onClose }) {
                     onClick={() => handleRemoveInitialItem(idx)}
                     className="text-ink-muted hover:text-hp transition-colors p-1"
                   >
-                    <Trash2 className="w-3 h-3" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               ))}
@@ -230,15 +230,15 @@ function QuestForm({ questToEdit, onClose }) {
                 }
               }}
               placeholder="Add checklist subtask..."
-              className="flex-1 px-3 py-2 text-body-sm rounded-lg bg-obsidian-950/60 border border-glass-border text-ink placeholder:text-ink-muted focus:outline-none focus:border-attr-intelligence"
+              className="flex-1 px-4 py-2.5 text-sm rounded-2xl bg-white/[0.04] border border-white/10 text-ink placeholder:text-ink-muted/40 focus:outline-none focus:border-white/30 backdrop-blur-md"
             />
             <button
               type="button"
               onClick={handleAddInitialItem}
               disabled={!newItemInput.trim()}
-              className="px-3 py-2 text-xs font-semibold rounded-lg bg-glass/20 border border-glass-border text-ink hover:bg-glass/30 disabled:opacity-40 min-h-[40px] flex items-center gap-1"
+              className="px-3.5 py-2.5 text-xs font-semibold rounded-2xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/15 text-ink disabled:opacity-40 min-h-[42px] flex items-center gap-1 active:scale-95 transition-all"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-4 h-4" />
               <span>Add</span>
             </button>
           </div>
@@ -246,19 +246,19 @@ function QuestForm({ questToEdit, onClose }) {
       )}
 
       {/* Footer Buttons */}
-      <div className="flex items-center justify-end gap-3 pt-4 border-t border-glass-border">
+      <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
         <button
           type="button"
           onClick={onClose}
           disabled={isPending}
-          className="px-4 py-2 text-body-sm font-medium text-ink-muted hover:text-ink transition-colors cursor-pointer min-h-[44px]"
+          className="px-4 py-2.5 text-xs font-medium text-ink-muted hover:text-ink hover:bg-white/[0.05] rounded-2xl border border-white/10 transition-colors cursor-pointer min-h-[42px]"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isPending || !title.trim()}
-          className="px-5 py-2 rounded-lg bg-attr-intelligence text-obsidian-950 font-semibold text-body-sm hover:bg-attr-intelligence/90 shadow-glow disabled:opacity-50 transition-all cursor-pointer min-h-[44px]"
+          className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-attr-intelligence to-cyan-400 text-obsidian-950 font-bold text-xs hover:opacity-90 shadow-md disabled:opacity-50 transition-all cursor-pointer min-h-[42px] active:scale-95"
         >
           {isPending ? 'Saving...' : isEditing ? 'Update Quest' : 'Accept Quest'}
         </button>
@@ -285,7 +285,7 @@ export function QuestModal({ isOpen, onClose, questToEdit }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 bg-obsidian-950/80 backdrop-blur-sm"
+            className="fixed inset-0 bg-obsidian-950/75 backdrop-blur-md"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -294,23 +294,23 @@ export function QuestModal({ isOpen, onClose, questToEdit }) {
 
           {/* Modal Panel */}
           <motion.div
-            className="relative w-full max-w-lg rounded-panel p-6 bg-obsidian-900 border border-glass-border shadow-panel backdrop-blur-glass z-10 max-h-[90vh] overflow-y-auto"
+            className="relative w-full max-w-lg rounded-3xl p-6 sm:p-7 bg-obsidian-900/90 border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.65),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-2xl z-10 max-h-[90vh] overflow-y-auto"
             variants={shouldReduceMotion ? {} : modalPanel}
             initial="hidden"
             animate="visible"
             exit="exit"
           >
             {/* Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-glass-border mb-5">
+            <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-5">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-attr-intelligence/15 text-attr-intelligence">
-                  <Scroll className="w-5 h-5" />
+                <div className="w-8 h-8 rounded-xl bg-attr-intelligence/15 border border-attr-intelligence/30 text-attr-intelligence flex items-center justify-center shadow-inner">
+                  <Scroll className="w-4 h-4" />
                 </div>
                 <div>
-                  <h2 className="text-display-sm text-ink font-semibold">
+                  <h2 className="text-display-xs text-ink font-semibold">
                     {questToEdit ? 'Edit Quest' : 'Embark on Quest'}
                   </h2>
-                  <p className="text-xs text-ink-muted">
+                  <p className="text-[11px] text-ink-muted">
                     {questToEdit ? 'Adjust your quest objectives and rewards' : 'Establish objectives, checklist subtasks, and milestones'}
                   </p>
                 </div>
@@ -319,9 +319,9 @@ export function QuestModal({ isOpen, onClose, questToEdit }) {
                 type="button"
                 onClick={onClose}
                 aria-label="Close quest modal"
-                className="p-2 rounded-lg text-ink-muted hover:text-ink hover:bg-glass/10 transition-colors cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="p-1.5 rounded-full text-ink-muted hover:text-ink bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 

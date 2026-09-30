@@ -223,9 +223,10 @@ export function EveningReflectionCard({ className = '' }) {
             placeholder="What went well today? What drained your energy or felt heavy? Freeform journaling..."
             maxLength={2000}
             className={clsx(
-              'w-full px-3 py-2.5 rounded-panel text-xs text-ink placeholder:text-ink-muted/50',
-              'bg-obsidian-900/80 border border-obsidian-700/70',
-              'focus:outline-none focus:ring-1 focus:ring-obsidian-500 focus:border-obsidian-500'
+              'w-full px-4 py-3 rounded-2xl text-xs text-ink placeholder:text-ink-muted/40',
+              'bg-white/[0.03] border border-white/10',
+              'focus:outline-none focus:ring-2 focus:ring-white/10 focus:border-white/25 focus:bg-white/[0.06]',
+              'backdrop-blur-md transition-all resize-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)]'
             )}
           />
         </div>

@@ -70,7 +70,7 @@ function HabitForm({ habitToEdit, onClose }) {
 
       {/* Title */}
       <div>
-        <label htmlFor="habit-title" className="block text-body-xs font-medium text-ink-muted mb-1.5">
+        <label htmlFor="habit-title" className="block text-xs font-medium text-ink-muted mb-1.5">
           Habit Title *
         </label>
         <input
@@ -81,13 +81,13 @@ function HabitForm({ habitToEdit, onClose }) {
           placeholder="e.g. Read 20 pages, Morning Jog, Meditate..."
           maxLength={200}
           required
-          className="w-full px-3.5 py-2.5 rounded-xl bg-obsidian-800 border border-glass-border text-ink placeholder:text-ink-muted/50 focus:outline-none focus:border-glass-border-strong focus:ring-1 focus:ring-glass-border transition-all"
+          className="w-full px-4 py-3 rounded-2xl bg-white/[0.04] border border-white/10 text-ink placeholder:text-ink-muted/40 focus:outline-none focus:border-white/30 focus:bg-white/[0.07] focus:ring-2 focus:ring-white/10 backdrop-blur-md shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] transition-all text-sm"
         />
       </div>
 
       {/* Description */}
       <div>
-        <label htmlFor="habit-desc" className="block text-body-xs font-medium text-ink-muted mb-1.5">
+        <label htmlFor="habit-desc" className="block text-xs font-medium text-ink-muted mb-1.5">
           Description (Optional)
         </label>
         <textarea
@@ -97,13 +97,13 @@ function HabitForm({ habitToEdit, onClose }) {
           placeholder="Add context, rules, or motivations..."
           rows={2}
           maxLength={1000}
-          className="w-full px-3.5 py-2.5 rounded-xl bg-obsidian-800 border border-glass-border text-ink placeholder:text-ink-muted/50 focus:outline-none focus:border-glass-border-strong focus:ring-1 focus:ring-glass-border transition-all resize-none"
+          className="w-full px-4 py-3 rounded-2xl bg-white/[0.04] border border-white/10 text-ink placeholder:text-ink-muted/40 focus:outline-none focus:border-white/30 focus:bg-white/[0.07] focus:ring-2 focus:ring-white/10 backdrop-blur-md shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] transition-all text-sm resize-none"
         />
       </div>
 
       {/* Direction Selector */}
       <div>
-        <label className="block text-body-xs font-medium text-ink-muted mb-1.5">
+        <label className="block text-xs font-medium text-ink-muted mb-1.5">
           Habit Direction
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -113,14 +113,14 @@ function HabitForm({ habitToEdit, onClose }) {
               type="button"
               onClick={() => setDirection(dir.value)}
               className={clsx(
-                'flex flex-col items-start p-3 rounded-xl border text-left transition-all',
+                'flex flex-col items-start p-3 rounded-2xl border text-left transition-all active:scale-[0.98]',
                 direction === dir.value
-                  ? 'border-xp bg-xp/10 shadow-glass text-ink'
-                  : 'border-glass-border bg-obsidian-800/60 text-ink-muted hover:border-glass-border-strong'
+                  ? 'border-xp/50 bg-xp/15 shadow-sm text-ink'
+                  : 'border-white/10 bg-white/[0.04] text-ink-muted hover:border-white/20'
               )}
             >
-              <span className="text-body-xs font-semibold text-ink">{dir.label}</span>
-              <span className="text-body-2xs text-ink-muted mt-0.5 line-clamp-2">{dir.description}</span>
+              <span className="text-xs font-bold text-ink">{dir.label}</span>
+              <span className="text-[11px] text-ink-muted mt-0.5 line-clamp-2">{dir.description}</span>
             </button>
           ))}
         </div>
@@ -128,7 +128,7 @@ function HabitForm({ habitToEdit, onClose }) {
 
       {/* Difficulty Selector */}
       <div>
-        <label className="block text-body-xs font-medium text-ink-muted mb-1.5">
+        <label className="block text-xs font-medium text-ink-muted mb-1.5">
           Difficulty & Reward Preview
         </label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -140,14 +140,14 @@ function HabitForm({ habitToEdit, onClose }) {
                 type="button"
                 onClick={() => setDifficulty(diff.value)}
                 className={clsx(
-                  'flex flex-col items-center justify-center p-2.5 rounded-xl border text-center transition-all',
+                  'flex flex-col items-center justify-center p-2.5 rounded-2xl border text-center transition-all active:scale-[0.98]',
                   difficulty === diff.value
-                    ? 'border-mana bg-mana/15 shadow-glass text-ink'
-                    : 'border-glass-border bg-obsidian-800/60 text-ink-muted hover:border-glass-border-strong'
+                    ? 'border-mana/50 bg-mana/15 shadow-sm text-ink'
+                    : 'border-white/10 bg-white/[0.04] text-ink-muted hover:border-white/20'
                 )}
               >
-                <span className="text-body-xs font-semibold text-ink">{diff.label}</span>
-                <span className="text-body-2xs text-xp font-medium mt-1">
+                <span className="text-xs font-bold text-ink">{diff.label}</span>
+                <span className="text-[10px] text-xp font-mono font-medium mt-1">
                   +{rewards.xp} XP / +{rewards.gold} G
                 </span>
               </button>
@@ -157,18 +157,18 @@ function HabitForm({ habitToEdit, onClose }) {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center justify-end gap-3 pt-4 border-t border-glass-border">
+      <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
         <button
           type="button"
           onClick={onClose}
-          className="px-4 py-2.5 rounded-xl border border-glass-border text-ink-muted hover:text-ink hover:bg-glass/40 transition-colors text-body-xs font-medium"
+          className="px-4 py-2.5 rounded-2xl border border-white/10 text-ink-muted hover:text-ink hover:bg-white/[0.05] transition-colors text-xs font-medium min-h-[42px]"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isPending}
-          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-xp to-gold text-obsidian-950 font-semibold text-body-xs hover:opacity-90 active:scale-95 disabled:opacity-50 transition-all shadow-glass"
+          className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-xp to-gold text-obsidian-950 font-bold text-xs hover:opacity-90 active:scale-95 disabled:opacity-50 transition-all shadow-md min-h-[42px]"
         >
           {isPending ? 'Saving...' : habitToEdit ? 'Save Changes' : 'Create Habit'}
         </button>
@@ -206,7 +206,7 @@ export function HabitModal({ isOpen, onClose, habitToEdit = null }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-obsidian-950/80 backdrop-blur-sm"
+            className="fixed inset-0 bg-obsidian-950/75 backdrop-blur-md"
           />
 
           {/* Modal Card */}
@@ -215,13 +215,15 @@ export function HabitModal({ isOpen, onClose, habitToEdit = null }) {
             initial="initial"
             animate="animate"
             exit="exit"
-            className="relative w-full max-w-lg p-6 rounded-2xl bg-obsidian-900 border border-glass-border shadow-glow text-ink z-10 my-8"
+            className="relative w-full max-w-lg p-6 sm:p-7 rounded-3xl bg-obsidian-900/90 border border-white/15 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.65),inset_0_1px_1px_rgba(255,255,255,0.2)] text-ink z-10 my-8"
           >
             {/* Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-glass-border">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-xp" />
-                <h2 className="text-display-xs text-ink">
+            <div className="flex items-center justify-between pb-4 border-b border-white/10">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-gold/15 border border-gold/30 flex items-center justify-center text-gold shadow-inner">
+                  <Sparkles className="w-4 h-4 text-xp" />
+                </div>
+                <h2 className="text-display-xs text-ink font-semibold">
                   {habitToEdit ? 'Edit Habit' : 'Create New Habit'}
                 </h2>
               </div>
@@ -229,9 +231,9 @@ export function HabitModal({ isOpen, onClose, habitToEdit = null }) {
                 type="button"
                 onClick={onClose}
                 aria-label="Close modal"
-                className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-glass/50 transition-colors"
+                className="p-1.5 rounded-full text-ink-muted hover:text-ink bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 

@@ -57,8 +57,8 @@ const moreNavItems = [
 ];
 
 /**
- * Mobile bottom tab bar — fixed bottom, visible only below md.
- * Contains 4 primary tabs + expandable "More" hub for secondary features.
+ * Mobile iOS-inspired floating rounded glassy navbar.
+ * Elevated pill elevated above the screen edge with smooth spring tab transitions.
  */
 export function BottomNav({ onOpenAuth }) {
   const [moreOpen, setMoreOpen] = useState(false);
@@ -69,118 +69,148 @@ export function BottomNav({ onOpenAuth }) {
 
   return (
     <>
-      <nav
-        className={clsx(
-          'fixed bottom-0 inset-x-0 z-40',
-          'md:hidden',
-          'flex items-center justify-around',
-          'h-16 px-1',
-          'bg-obsidian-900/95 backdrop-blur-xl',
-          'border-t border-glass-border shadow-2xl',
-          'safe-bottom'
-        )}
-      >
-        {primaryNavItems.map(({ to, icon: Icon, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            onClick={() => setMoreOpen(false)}
-            className={({ isActive }) =>
-              clsx(
-                'flex flex-col items-center justify-center gap-0.5',
-                'flex-1 py-1',
-                'text-[10px] font-medium',
-                'min-h-[48px]',
-                'transition-colors duration-150',
-                'focus:outline-none',
-                isActive ? 'text-ink' : 'text-ink-muted'
-              )
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <div className="relative">
-                  <Icon size={20} className={isActive ? 'text-attr-perception' : ''} />
-                  {isActive && (
-                    <motion.div
-                      layoutId="mobile-nav-indicator"
-                      className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-attr-perception shadow-glow-perception"
-                    />
-                  )}
-                </div>
-                <span className={isActive ? 'font-semibold' : ''}>{label}</span>
-              </>
-            )}
-          </NavLink>
-        ))}
-
-        {/* More Hub Button */}
-        <button
-          type="button"
-          onClick={() => setMoreOpen((prev) => !prev)}
-          aria-label="Open more features menu"
+      <div className="fixed bottom-4 inset-x-3 sm:inset-x-6 max-w-md mx-auto z-40 md:hidden pointer-events-none">
+        <nav
           className={clsx(
-            'flex flex-col items-center justify-center gap-0.5',
-            'flex-1 py-1',
-            'text-[10px] font-medium',
-            'min-h-[48px]',
-            'transition-colors duration-150',
-            'focus:outline-none',
-            isMoreActive || moreOpen ? 'text-gold' : 'text-ink-muted'
+            'pointer-events-auto relative',
+            'flex items-center justify-around gap-1',
+            'h-16 px-2 py-1.5',
+            'rounded-full',
+            'bg-obsidian-950/80 backdrop-blur-2xl',
+            'border border-white/15',
+            'shadow-[0_12px_40px_rgba(0,0,0,0.65),inset_0_1px_1px_rgba(255,255,255,0.22)]'
           )}
         >
-          <div className="relative">
-            <Menu size={20} className={isMoreActive || moreOpen ? 'text-gold' : ''} />
-            {(isMoreActive || moreOpen) && (
-              <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-gold shadow-glow" />
-            )}
-          </div>
-          <span className={isMoreActive || moreOpen ? 'font-semibold text-gold' : ''}>Hub</span>
-        </button>
-      </nav>
+          {primaryNavItems.map(({ to, icon: Icon, label }) => {
+            const isActive = location.pathname === to;
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                onClick={() => setMoreOpen(false)}
+                className="relative flex-1 h-full flex flex-col items-center justify-center focus:outline-none select-none"
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="ios-active-nav-pill"
+                    className="absolute inset-1 rounded-full bg-white/[0.12] border border-white/15 shadow-sm"
+                    transition={spring.capsule}
+                  />
+                )}
+                <motion.div
+                  whileTap={{ scale: 0.88 }}
+                  transition={spring.capsule}
+                  className="relative z-10 flex flex-col items-center justify-center gap-0.5"
+                >
+                  <Icon
+                    size={19}
+                    className={clsx(
+                      'transition-colors duration-150',
+                      isActive ? 'text-attr-perception' : 'text-ink-muted/80'
+                    )}
+                  />
+                  <span
+                    className={clsx(
+                      'text-[10px] tracking-tight leading-tight transition-colors duration-150',
+                      isActive ? 'font-semibold text-ink' : 'font-medium text-ink-muted/70'
+                    )}
+                  >
+                    {label}
+                  </span>
+                </motion.div>
+              </NavLink>
+            );
+          })}
 
-      {/* Expandable Mobile Hub Drawer */}
+          {/* More Hub Capsule Tab */}
+          <button
+            type="button"
+            onClick={() => setMoreOpen((prev) => !prev)}
+            aria-label="Open more features menu"
+            className="relative flex-1 h-full flex flex-col items-center justify-center focus:outline-none select-none"
+          >
+            {(isMoreActive || moreOpen) && (
+              <motion.div
+                layoutId="ios-active-nav-pill"
+                className="absolute inset-1 rounded-full bg-gold/15 border border-gold/30 shadow-sm"
+                transition={spring.capsule}
+              />
+            )}
+            <motion.div
+              whileTap={{ scale: 0.88 }}
+              transition={spring.capsule}
+              className="relative z-10 flex flex-col items-center justify-center gap-0.5"
+            >
+              <Menu
+                size={19}
+                className={clsx(
+                  'transition-colors duration-150',
+                  isMoreActive || moreOpen ? 'text-gold' : 'text-ink-muted/80'
+                )}
+              />
+              <span
+                className={clsx(
+                  'text-[10px] tracking-tight leading-tight transition-colors duration-150',
+                  isMoreActive || moreOpen ? 'font-semibold text-gold' : 'font-medium text-ink-muted/70'
+                )}
+              >
+                Hub
+              </span>
+            </motion.div>
+          </button>
+        </nav>
+      </div>
+
+      {/* Expandable Mobile Hub Drawer (iOS Glassy Sheet) */}
       <AnimatePresence>
         {moreOpen && (
           <div className="fixed inset-0 z-50 md:hidden flex flex-col justify-end">
-            {/* Backdrop */}
+            {/* Frosted Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMoreOpen(false)}
-              className="fixed inset-0 bg-obsidian-950/80 backdrop-blur-sm"
+              className="fixed inset-0 bg-obsidian-950/75 backdrop-blur-md"
             />
 
-            {/* Bottom Sheet */}
+            {/* iOS Bottom Sheet */}
             <motion.div
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              transition={spring.snappy}
-              className="relative z-10 rounded-t-3xl bg-obsidian-900 border-t border-glass-border p-5 pb-8 shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto"
+              transition={spring.ios}
+              className="relative z-10 rounded-t-[36px] bg-obsidian-900/90 backdrop-blur-3xl border-t border-white/15 p-5 pb-8 shadow-[0_-12px_40px_rgba(0,0,0,0.65)] space-y-4 max-h-[85vh] overflow-y-auto"
             >
-              {/* Grabber bar & Header */}
+              {/* iOS Grabber Handle & Header */}
               <div className="flex flex-col items-center">
-                <div className="w-12 h-1 rounded-full bg-obsidian-700 mb-3" />
+                <div className="w-12 h-1.5 rounded-full bg-white/25 mb-3.5" />
                 <div className="w-full flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-gold/15 border border-gold/30 flex items-center justify-center text-gold font-bold text-xs">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-gold/15 border border-gold/30 flex items-center justify-center text-gold font-bold text-xs shadow-inner">
                       Ω
                     </div>
-                    <span className="text-sm font-bold font-display text-ink">Life OS Command Hub</span>
+                    <div>
+                      <span className="text-sm font-bold font-display text-ink block leading-tight">
+                        Life OS Command Hub
+                      </span>
+                      <span className="text-[10px] text-ink-muted leading-tight">
+                        Secondary Chambers & Arsenal
+                      </span>
+                    </div>
                   </div>
                   <button
                     onClick={() => setMoreOpen(false)}
-                    className="p-1.5 text-ink-muted hover:text-ink rounded-lg bg-glass min-h-[36px] min-w-[36px] flex items-center justify-center"
+                    aria-label="Close menu"
+                    className="p-1.5 text-ink-muted hover:text-ink rounded-full bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 min-h-[36px] min-w-[36px] flex items-center justify-center transition-colors"
                   >
-                    <X size={18} />
+                    <X size={17} />
                   </button>
                 </div>
               </div>
 
-              {/* Navigation Grid */}
-              <div className="space-y-2 pt-1">
+              {/* Navigation Grid (Frosted Glass Tiles) */}
+              <div className="space-y-2.5 pt-1">
                 {moreNavItems.map(({ to, icon: Icon, label, desc, color, bg }) => (
                   <NavLink
                     key={to}
@@ -188,15 +218,16 @@ export function BottomNav({ onOpenAuth }) {
                     onClick={() => setMoreOpen(false)}
                     className={({ isActive }) =>
                       clsx(
-                        'flex items-center gap-3.5 p-3 rounded-2xl border transition-all min-h-[56px]',
+                        'flex items-center gap-3.5 p-3.5 rounded-2xl border transition-all duration-200 min-h-[58px]',
+                        'backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.08)] active:scale-[0.98]',
                         isActive
-                          ? 'bg-glass border-glass-border text-ink'
-                          : 'bg-obsidian-800/80 border-glass-border/60 hover:bg-glass text-ink-muted hover:text-ink'
+                          ? 'bg-white/[0.10] border-white/25 text-ink'
+                          : 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08] text-ink-muted hover:text-ink'
                       )
                     }
                   >
-                    <div className={clsx('w-10 h-10 rounded-xl border flex items-center justify-center shrink-0', bg, color)}>
-                      <Icon size={18} />
+                    <div className={clsx('w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 shadow-inner', bg, color)}>
+                      <Icon size={19} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="text-xs font-bold text-ink leading-tight">{label}</div>
@@ -207,17 +238,17 @@ export function BottomNav({ onOpenAuth }) {
               </div>
 
               {/* RPG Quick Utilities */}
-              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-glass-border">
+              <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-white/10">
                 <button
                   type="button"
                   onClick={() => {
                     setMoreOpen(false);
                     openAttributesDrawer();
                   }}
-                  className="flex items-center gap-2 p-2.5 rounded-xl bg-obsidian-800/60 border border-glass-border text-xs font-medium text-ink hover:bg-glass transition-colors min-h-[44px]"
+                  className="flex items-center gap-2.5 p-3 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] active:scale-[0.98] border border-white/10 text-xs font-medium text-ink transition-all min-h-[46px] backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
                 >
                   <Shield size={16} className="text-attr-willpower shrink-0" />
-                  <span>Attributes Radar</span>
+                  <span className="truncate">Attributes Radar</span>
                 </button>
 
                 <button
@@ -226,22 +257,22 @@ export function BottomNav({ onOpenAuth }) {
                     setMoreOpen(false);
                     openBattleLogDrawer();
                   }}
-                  className="flex items-center gap-2 p-2.5 rounded-xl bg-obsidian-800/60 border border-glass-border text-xs font-medium text-ink hover:bg-glass transition-colors min-h-[44px]"
+                  className="flex items-center gap-2.5 p-3 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] active:scale-[0.98] border border-white/10 text-xs font-medium text-ink transition-all min-h-[46px] backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
                 >
                   <Swords size={16} className="text-gold shrink-0" />
-                  <span>Battle Chronicles</span>
+                  <span className="truncate">Battle Chronicles</span>
                 </button>
               </div>
 
-              {/* Auth Session */}
+              {/* Auth Session Pill */}
               <div className="pt-2">
                 {isAuthenticated && user ? (
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-obsidian-800 border border-glass-border">
+                  <div className="flex items-center justify-between p-3 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
                     <div className="flex items-center gap-2.5 min-w-0">
                       {user.avatarUrl ? (
-                        <img src={user.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover border border-gold/40" />
+                        <img src={user.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover border border-gold/40 shadow-sm" />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-attr-perception/20 text-attr-perception flex items-center justify-center font-bold text-xs">
+                        <div className="w-8 h-8 rounded-full bg-attr-perception/20 text-attr-perception border border-attr-perception/30 flex items-center justify-center font-bold text-xs shadow-inner">
                           {user.displayName?.[0]?.toUpperCase() || 'H'}
                         </div>
                       )}
@@ -255,7 +286,7 @@ export function BottomNav({ onOpenAuth }) {
                         setMoreOpen(false);
                         logout();
                       }}
-                      className="p-2 text-ink-muted hover:text-hp rounded-lg min-h-[36px]"
+                      className="p-2 text-ink-muted hover:text-hp rounded-xl hover:bg-white/[0.06] transition-colors min-h-[36px]"
                       title="Log Out"
                     >
                       <LogOut size={16} />
@@ -267,10 +298,10 @@ export function BottomNav({ onOpenAuth }) {
                       setMoreOpen(false);
                       onOpenAuth?.();
                     }}
-                    className="w-full py-2.5 rounded-xl bg-attr-perception/20 text-attr-perception border border-attr-perception/40 text-xs font-semibold flex items-center justify-center gap-2 min-h-[44px]"
+                    className="w-full py-3 rounded-2xl bg-attr-perception/15 hover:bg-attr-perception/25 text-attr-perception border border-attr-perception/40 text-xs font-semibold flex items-center justify-center gap-2 min-h-[46px] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] active:scale-[0.98]"
                   >
                     <LogIn size={15} />
-                    <span>Sign In to Sync</span>
+                    <span>Sign In to Sync Progress</span>
                   </button>
                 )}
               </div>

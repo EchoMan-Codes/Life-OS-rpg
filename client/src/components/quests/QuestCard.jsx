@@ -111,10 +111,10 @@ export function QuestCard({ quest, onEdit }) {
       exit={{ opacity: 0, scale: 0.95 }}
       transition={shouldReduceMotion ? { duration: 0 } : spring.snappy}
       className={clsx(
-        'relative rounded-panel p-5 select-none transition-all duration-200',
-        'bg-obsidian-900/80 backdrop-blur-glass border border-glass-border',
-        'shadow-panel hover:border-glass-border/80 flex flex-col gap-4',
-        isCompleted && 'opacity-75 bg-obsidian-900/50'
+        'relative rounded-3xl p-5 select-none transition-all duration-200',
+        'bg-obsidian-900/60 backdrop-blur-2xl border border-white/10',
+        'shadow-[0_8px_32px_rgba(0,0,0,0.37),inset_0_1px_0_rgba(255,255,255,0.1)] hover:border-white/20 flex flex-col gap-4',
+        isCompleted && 'opacity-70 bg-obsidian-900/40'
       )}
     >
       {/* ── Top Header Row ── */}
@@ -295,19 +295,19 @@ export function QuestCard({ quest, onEdit }) {
                   onChange={(e) => setNewItemTitle(e.target.value)}
                   placeholder="Enter subtask title..."
                   autoFocus
-                  className="flex-1 px-3 py-2 text-body-sm rounded-lg bg-obsidian-950/60 border border-glass-border text-ink focus:outline-none focus:border-attr-intelligence"
+                  className="flex-1 px-3.5 py-2.5 text-sm rounded-2xl bg-white/[0.04] border border-white/10 text-ink placeholder:text-ink-muted/40 focus:outline-none focus:border-white/30 backdrop-blur-md"
                 />
                 <button
                   type="submit"
                   disabled={!newItemTitle.trim() || addItemMutation.isPending}
-                  className="px-3 py-2 text-xs font-semibold rounded-lg bg-attr-intelligence text-obsidian-950 disabled:opacity-50 min-h-[40px]"
+                  className="px-4 py-2.5 text-xs font-bold rounded-2xl bg-attr-intelligence text-obsidian-950 disabled:opacity-50 min-h-[42px] active:scale-95 transition-all shadow-sm"
                 >
                   Add
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsAddingItem(false)}
-                  className="px-2 py-2 text-xs text-ink-muted hover:text-ink min-h-[40px]"
+                  className="px-3 py-2 text-xs text-ink-muted hover:text-ink min-h-[42px] rounded-2xl transition-colors"
                 >
                   Cancel
                 </button>

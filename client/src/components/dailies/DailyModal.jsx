@@ -115,7 +115,7 @@ function DailyForm({ dailyToEdit, onClose }) {
           placeholder="e.g. 30 Minutes Cardio, Review Budget, Floss..."
           maxLength={200}
           required
-          className="w-full px-3.5 py-2.5 rounded-panel bg-obsidian-800 border border-glass-border text-ink placeholder:text-ink-muted/50 focus:outline-none focus:border-attr-perception/60 focus:ring-1 focus:ring-attr-perception transition-all min-h-[44px]"
+          className="w-full px-4 py-3 rounded-2xl bg-white/[0.04] border border-white/10 text-ink placeholder:text-ink-muted/40 focus:outline-none focus:border-white/30 focus:bg-white/[0.07] focus:ring-2 focus:ring-white/10 backdrop-blur-md shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] transition-all text-sm min-h-[46px]"
         />
       </div>
 
@@ -131,7 +131,7 @@ function DailyForm({ dailyToEdit, onClose }) {
           placeholder="Specific requirements or goals for this daily..."
           rows={2}
           maxLength={1000}
-          className="w-full px-3.5 py-2.5 rounded-panel bg-obsidian-800 border border-glass-border text-ink placeholder:text-ink-muted/50 focus:outline-none focus:border-attr-perception/60 focus:ring-1 focus:ring-attr-perception transition-all resize-none"
+          className="w-full px-4 py-3 rounded-2xl bg-white/[0.04] border border-white/10 text-ink placeholder:text-ink-muted/40 focus:outline-none focus:border-white/30 focus:bg-white/[0.07] focus:ring-2 focus:ring-white/10 backdrop-blur-md shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] transition-all text-sm resize-none"
         />
       </div>
 
@@ -180,10 +180,10 @@ function DailyForm({ dailyToEdit, onClose }) {
                 aria-pressed={isSelected}
                 aria-label={`Toggle ${full}`}
                 className={clsx(
-                  'py-2 rounded-panel text-xs font-semibold transition-all min-h-[44px] flex items-center justify-center',
+                  'py-2.5 rounded-2xl text-xs font-semibold transition-all min-h-[44px] flex items-center justify-center active:scale-95 border',
                   isSelected
-                    ? 'bg-attr-perception/20 text-attr-perception border border-attr-perception/50 shadow-glow-perception'
-                    : 'bg-obsidian-800/60 text-ink-muted/50 border border-glass-border hover:bg-obsidian-800 hover:text-ink'
+                    ? 'bg-attr-perception/20 text-attr-perception border-attr-perception/50 shadow-sm'
+                    : 'bg-white/[0.04] text-ink-muted/60 border-white/10 hover:bg-white/[0.08] hover:text-ink'
                 )}
               >
                 {label}
@@ -203,10 +203,10 @@ function DailyForm({ dailyToEdit, onClose }) {
               type="button"
               onClick={() => setDifficulty(d.value)}
               className={clsx(
-                'py-2 px-3 rounded-panel text-xs font-semibold capitalize transition-all min-h-[44px] border',
+                'py-2 px-3 rounded-2xl text-xs font-semibold capitalize transition-all min-h-[44px] border active:scale-95',
                 difficulty === d.value
-                  ? 'bg-attr-intelligence/20 text-attr-intelligence border-attr-intelligence/60'
-                  : 'bg-obsidian-800/40 text-ink-muted border-glass-border hover:bg-obsidian-800'
+                  ? 'bg-attr-intelligence/20 text-attr-intelligence border-attr-intelligence/60 shadow-sm'
+                  : 'bg-white/[0.04] text-ink-muted border-white/10 hover:bg-white/[0.08]'
               )}
             >
               {d.label}
@@ -216,31 +216,31 @@ function DailyForm({ dailyToEdit, onClose }) {
       </div>
 
       {/* Reward Preview */}
-      <div className="p-3 rounded-panel bg-obsidian-950/60 border border-glass-border flex items-center justify-between text-xs">
+      <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-between text-xs backdrop-blur-md">
         <span className="text-ink-muted flex items-center gap-1.5">
-          <Sparkles size={14} className="text-attr-vitality" />
+          <Sparkles size={14} className="text-gold" />
           <span>Reward upon completion:</span>
         </span>
-        <div className="flex items-center gap-3 font-semibold">
+        <div className="flex items-center gap-3 font-semibold font-mono">
           <span className="text-attr-perception">+{reward.xp} XP</span>
-          <span className="text-attr-vitality">+{reward.gold} Gold</span>
+          <span className="text-gold">+{reward.gold} Gold</span>
         </div>
       </div>
 
       {/* Actions */}
-      <div className="flex items-center justify-end gap-3 pt-2">
+      <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
         <button
           type="button"
           onClick={onClose}
           disabled={isPending}
-          className="px-4 py-2 text-xs font-medium text-ink-muted hover:text-ink hover:bg-glass rounded-panel transition-colors min-h-[44px]"
+          className="px-4 py-2.5 text-xs font-medium text-ink-muted hover:text-ink hover:bg-white/[0.05] rounded-2xl border border-white/10 transition-colors min-h-[42px]"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isPending}
-          className="px-5 py-2 text-xs font-semibold text-obsidian-950 bg-attr-perception hover:bg-attr-perception/90 rounded-panel transition-all min-h-[44px] shadow-glow-perception disabled:opacity-50"
+          className="px-5 py-2.5 text-xs font-bold text-obsidian-950 bg-gradient-to-r from-emerald-500 to-teal-400 rounded-2xl transition-all min-h-[42px] shadow-md hover:opacity-90 active:scale-95 disabled:opacity-50"
         >
           {isPending ? 'Saving...' : dailyToEdit ? 'Save Changes' : 'Create Ritual'}
         </button>
@@ -277,7 +277,7 @@ export function DailyModal({ isOpen, onClose, dailyToEdit }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-obsidian-950/80 backdrop-blur-sm"
+            className="fixed inset-0 bg-obsidian-950/75 backdrop-blur-md"
           />
 
           {/* Modal Card */}
@@ -289,19 +289,24 @@ export function DailyModal({ isOpen, onClose, dailyToEdit }) {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="relative w-full max-w-md p-6 rounded-2xl bg-obsidian-900 border border-glass-border shadow-modal z-10"
+            className="relative w-full max-w-md p-6 sm:p-7 rounded-3xl bg-obsidian-900/90 border border-white/15 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.65),inset_0_1px_1px_rgba(255,255,255,0.2)] z-10"
           >
-            <div className="flex items-center justify-between pb-4 border-b border-glass-border">
-              <h2 id="daily-modal-title" className="text-base font-semibold text-ink">
-                {dailyToEdit ? 'Edit Daily Ritual' : 'New Daily Ritual'}
-              </h2>
+            <div className="flex items-center justify-between pb-4 border-b border-white/10">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-attr-perception/15 border border-attr-perception/30 flex items-center justify-center text-attr-perception shadow-inner">
+                  <Calendar size={16} />
+                </div>
+                <h2 id="daily-modal-title" className="text-base font-semibold text-ink">
+                  {dailyToEdit ? 'Edit Daily Ritual' : 'New Daily Ritual'}
+                </h2>
+              </div>
               <button
                 type="button"
                 onClick={onClose}
                 aria-label="Close dialog"
-                className="p-1.5 text-ink-muted hover:text-ink rounded-panel hover:bg-glass transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
+                className="p-1.5 text-ink-muted hover:text-ink rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
               >
-                <X size={18} />
+                <X size={17} />
               </button>
             </div>
 

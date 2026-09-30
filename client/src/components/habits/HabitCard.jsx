@@ -85,11 +85,12 @@ export function HabitCard({ habit, onEdit }) {
         layout
         transition={shouldReduceMotion ? { duration: 0 } : spring.snappy}
         className={clsx(
-          'relative flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 p-4 rounded-2xl',
-          'bg-obsidian-900/80 backdrop-blur-xl border shadow-glass transition-colors duration-200 cursor-grab active:cursor-grabbing',
+          'relative flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 p-4 rounded-3xl',
+          'bg-obsidian-900/60 backdrop-blur-2xl border transition-all duration-200 cursor-grab active:cursor-grabbing',
+          'shadow-[0_8px_32px_rgba(0,0,0,0.37),inset_0_1px_0_rgba(255,255,255,0.1)]',
           flashBorder === 'positive' && 'border-attr-vitality ring-2 ring-attr-vitality/50',
           flashBorder === 'negative' && 'border-attr-strength ring-2 ring-attr-strength/50',
-          !flashBorder && 'border-glass-border hover:border-glass-border-strong'
+          !flashBorder && 'border-white/10 hover:border-white/20'
         )}
       >
         {/* Left Area: Title, Description, Difficulty & Streaks */}

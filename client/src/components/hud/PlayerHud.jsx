@@ -43,7 +43,8 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false, onOpenB
       <header
         className={clsx(
           'fixed top-0 right-0 z-40 h-16',
-          'bg-obsidian-900/90 backdrop-blur-2xl border-b border-glass-border shadow-glow',
+          'bg-obsidian-950/75 backdrop-blur-2xl border-b border-white/10',
+          'shadow-[0_4px_24px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.08)]',
           'transition-[left] duration-200',
           isDesktop
             ? sidebarCollapsed
@@ -60,8 +61,8 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false, onOpenB
             title="Open Character Attributes"
             aria-label="Open character attributes"
             className={clsx(
-              'flex items-center gap-2 group p-1 rounded-lg hover:bg-glass transition-colors shrink-0',
-              'focus:outline-none focus:ring-2 focus:ring-glass-border'
+              'flex items-center gap-2 group p-1 rounded-xl hover:bg-white/[0.06] active:scale-95 transition-all shrink-0',
+              'focus:outline-none focus:ring-2 focus:ring-white/20'
             )}
           >
             <div className="relative">
@@ -69,15 +70,15 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false, onOpenB
                 <img
                   src={avatarUrl}
                   alt={displayName}
-                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-chip object-cover border border-gold/40 shadow-sm"
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border border-gold/50 shadow-sm"
                 />
               ) : (
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-chip bg-obsidian-700 border border-gold/40 flex items-center justify-center text-gold shadow-sm">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-obsidian-800 border border-gold/40 flex items-center justify-center text-gold shadow-sm">
                   <UserIcon size={18} />
                 </div>
               )}
               {/* Level Badge overlaid */}
-              <span className="absolute -bottom-1 -right-1 bg-obsidian-900 text-gold border border-gold/50 rounded-chip px-1 text-[8px] sm:text-[10px] font-mono font-bold leading-tight shadow">
+              <span className="absolute -bottom-1 -right-1 bg-obsidian-950 text-gold border border-gold/60 rounded-full px-1.5 text-[8px] sm:text-[10px] font-mono font-bold leading-tight shadow">
                 {level}
               </span>
             </div>
@@ -103,7 +104,7 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false, onOpenB
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* Gold Counter */}
             <div
-              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 rounded-chip bg-obsidian-800 border border-gold/30 text-gold shadow-inner"
+              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-obsidian-900/80 border border-gold/30 text-gold shadow-inner"
               title={`${gold} Gold`}
             >
               <Coins size={14} className="text-gold shrink-0" />
@@ -120,10 +121,10 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false, onOpenB
                 aria-label="Open Battle Chronicles"
                 title="Battle Chronicles"
                 className={clsx(
-                  'p-1.5 sm:px-2 sm:py-1.5 rounded-lg border border-glass-border',
-                  'bg-glass hover:bg-glass/80 text-gold',
-                  'flex items-center gap-1 transition-colors min-h-[36px] min-w-[36px] justify-center',
-                  'focus:outline-none focus:ring-2 focus:ring-glass-border'
+                  'p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl border border-white/10',
+                  'bg-white/[0.04] hover:bg-white/[0.08] active:scale-95 text-gold',
+                  'flex items-center gap-1 transition-all min-h-[36px] min-w-[36px] justify-center',
+                  'focus:outline-none focus:ring-2 focus:ring-white/20'
                 )}
               >
                 <Swords size={15} className="shrink-0" />
@@ -137,10 +138,10 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false, onOpenB
               aria-label="View Attributes Radar Chart"
               title="View Attributes"
               className={clsx(
-                'p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg border border-glass-border',
-                'bg-glass hover:bg-glass/80 text-ink-muted hover:text-ink',
+                'p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl border border-white/10',
+                'bg-white/[0.04] hover:bg-white/[0.08] active:scale-95 text-ink-muted hover:text-ink',
                 'flex items-center gap-1.5 text-caption font-display font-medium',
-                'transition-colors focus:outline-none focus:ring-2 focus:ring-glass-border min-h-[36px]'
+                'transition-all focus:outline-none focus:ring-2 focus:ring-white/20 min-h-[36px]'
               )}
             >
               <Shield size={15} className="text-attr-willpower shrink-0" />

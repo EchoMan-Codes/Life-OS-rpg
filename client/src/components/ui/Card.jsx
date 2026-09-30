@@ -12,23 +12,36 @@ import clsx from 'clsx';
  * @param {string} [props.className] - Additional classes
  * @param {React.ReactNode} props.children
  */
-export function Card({ variant = 'default', className, children, ...props }) {
+export function Card({ variant = 'default', interactive = false, className, children, ...props }) {
   const variants = {
     default: clsx(
-      'bg-glass border border-glass-border',
-      'backdrop-blur-glass rounded-panel',
-      'shadow-glow'
+      'bg-obsidian-900/60 border border-white/[0.10]',
+      'backdrop-blur-2xl rounded-3xl',
+      'shadow-[0_8px_32px_rgba(0,0,0,0.37),inset_0_1px_0_rgba(255,255,255,0.12)]'
     ),
     hud: clsx(
-      'bg-white/[0.07] border border-white/[0.12]',
-      'backdrop-blur-[24px] rounded-panel',
-      'shadow-glow'
+      'bg-obsidian-900/80 border border-white/[0.16]',
+      'backdrop-blur-3xl rounded-3xl',
+      'shadow-[0_12px_40px_rgba(0,0,0,0.45),inset_0_1px_1px_rgba(255,255,255,0.2)]'
+    ),
+    minimal: clsx(
+      'bg-white/[0.04] border border-white/[0.08]',
+      'backdrop-blur-xl rounded-2xl',
+      'shadow-[0_4px_24px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.08)]'
     ),
   };
 
   return (
-    <div className={clsx(variants[variant], className)} {...props}>
+    <div
+      className={clsx(
+        variants[variant] || variants.default,
+        interactive && 'hover:border-white/25 active:scale-[0.98] transition-all duration-200 cursor-pointer',
+        className
+      )}
+      {...props}
+    >
       {children}
     </div>
   );
 }
+

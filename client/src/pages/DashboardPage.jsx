@@ -90,24 +90,28 @@ function DashboardDailyItem({ daily }) {
   };
 
   return (
-    <div
+    <motion.div
+      whileTap={{ scale: 0.98 }}
+      transition={spring.ios}
       onClick={handleToggle}
       className={clsx(
-        'group flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer min-h-[50px]',
+        'group flex items-center justify-between p-3 sm:p-3.5 rounded-2xl border transition-all cursor-pointer min-h-[52px]',
+        'backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.06)]',
         daily.isCompleteToday
-          ? 'bg-obsidian-900/40 border-glass-border/40 opacity-70'
-          : 'bg-obsidian-800/80 border-glass-border hover:border-attr-perception/50 hover:bg-glass'
+          ? 'bg-white/[0.02] border-white/5 opacity-60'
+          : 'bg-white/[0.04] border-white/10 hover:border-white/20 hover:bg-white/[0.06]'
       )}
     >
       <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-        <button
+        <motion.button
           type="button"
+          whileTap={{ scale: 0.86 }}
           disabled={daily.isCompleteToday || isPending}
           className={clsx(
-            'w-6 h-6 rounded-lg border flex items-center justify-center transition-all shrink-0',
+            'w-7 h-7 rounded-xl border flex items-center justify-center transition-all shrink-0',
             daily.isCompleteToday
-              ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
-              : 'border-obsidian-600 group-hover:border-attr-perception text-transparent'
+              ? 'bg-emerald-500/25 border-emerald-500/60 text-emerald-400 shadow-sm'
+              : 'border-white/20 bg-white/[0.04] group-hover:border-attr-perception text-transparent'
           )}
         >
           {daily.isCompleteToday ? (
@@ -115,7 +119,7 @@ function DashboardDailyItem({ daily }) {
           ) : (
             <Circle size={10} className="group-hover:text-attr-perception/40" />
           )}
-        </button>
+        </motion.button>
         <div className="min-w-0">
           <p
             className={clsx(
@@ -128,19 +132,19 @@ function DashboardDailyItem({ daily }) {
           <div className="flex items-center gap-2 mt-0.5">
             <span
               className={clsx(
-                'text-[9px] sm:text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.2 rounded',
+                'text-[9px] sm:text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border',
                 daily.difficulty === 'hard'
-                  ? 'bg-hp/15 text-hp'
+                  ? 'bg-hp/15 border-hp/30 text-hp'
                   : daily.difficulty === 'medium'
-                  ? 'bg-gold/15 text-gold'
-                  : 'bg-attr-perception/15 text-attr-perception'
+                  ? 'bg-gold/15 border-gold/30 text-gold'
+                  : 'bg-attr-perception/15 border-attr-perception/30 text-attr-perception'
               )}
             >
               {daily.difficulty || 'easy'}
             </span>
             {daily.currentStreak > 0 && (
               <span className="text-[10px] text-gold font-mono flex items-center gap-0.5">
-                <Flame size={10} className="fill-current" /> {daily.currentStreak}d streak
+                <Flame size={11} className="fill-current" /> {daily.currentStreak}d streak
               </span>
             )}
           </div>
@@ -150,7 +154,7 @@ function DashboardDailyItem({ daily }) {
       <div className="text-right shrink-0 pl-2">
         {daily.isCompleteToday ? (
           <span className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1 font-mono">
-            <CheckCircle2 size={12} /> Conquered
+            <CheckCircle2 size={13} /> Conquered
           </span>
         ) : (
           <span className="text-[11px] text-ink-muted group-hover:text-attr-perception transition-colors font-mono">
@@ -158,7 +162,7 @@ function DashboardDailyItem({ daily }) {
           </span>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -170,7 +174,15 @@ function DashboardHabitItem({ habit }) {
   const isPending = scoreMutation.isPending;
 
   return (
-    <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-obsidian-800/80 border border-glass-border hover:border-gold/40 hover:bg-glass transition-all min-h-[50px]">
+    <motion.div
+      whileTap={{ scale: 0.98 }}
+      transition={spring.ios}
+      className={clsx(
+        'flex items-center justify-between p-3 sm:p-3.5 rounded-2xl border transition-all min-h-[52px]',
+        'bg-white/[0.04] border-white/10 hover:border-white/20 hover:bg-white/[0.06] backdrop-blur-md',
+        'shadow-[0_4px_16px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.06)]'
+      )}
+    >
       <div className="min-w-0 flex-1 pr-2.5">
         <p className="text-xs sm:text-sm font-medium text-ink truncate">{habit.title}</p>
         <div className="flex items-center gap-2 mt-0.5">
@@ -185,59 +197,64 @@ function DashboardHabitItem({ habit }) {
         </div>
       </div>
 
-      <button
+      <motion.button
         type="button"
+        whileTap={{ scale: 0.88 }}
         onClick={() => !isPending && scoreMutation.mutate('positive')}
         disabled={isPending}
         className={clsx(
-          'w-8 h-8 rounded-lg bg-gold/15 hover:bg-gold/25 border border-gold/40 text-gold',
-          'flex items-center justify-center transition-all active:scale-95 shrink-0 min-h-[32px] min-w-[32px]',
+          'w-8 h-8 rounded-xl bg-gold/15 hover:bg-gold/25 border border-gold/40 text-gold',
+          'flex items-center justify-center transition-all shrink-0 min-h-[32px] min-w-[32px] shadow-sm',
           isPending && 'opacity-50'
         )}
         title="Score Habit (+)"
       >
         <Plus size={16} />
-      </button>
-    </div>
+      </motion.button>
+    </motion.div>
   );
 }
 
 /**
- * High-density Glance Metric Card with compact mobile styling.
+ * High-density Glance Metric Card with compact mobile styling and iOS glass.
  */
 function GlanceMetricCard({ icon: Icon, label, value, subtext, color, badge, onClick }) {
   return (
-    <div
+    <motion.div
+      whileTap={onClick ? { scale: 0.96 } : undefined}
+      transition={spring.ios}
       onClick={onClick}
       className={clsx(
-        'p-3 sm:p-4 rounded-2xl bg-obsidian-800/90 border border-glass-border shadow-sm flex flex-col justify-between transition-all min-w-0',
-        onClick && 'cursor-pointer hover:border-glass-border/80 hover:bg-glass active:scale-[0.99]'
+        'p-3.5 sm:p-4 rounded-3xl bg-obsidian-900/60 border border-white/10 backdrop-blur-2xl',
+        'shadow-[0_8px_32px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.1)]',
+        'flex flex-col justify-between transition-all min-w-0',
+        onClick && 'cursor-pointer hover:border-white/20 hover:bg-white/[0.04]'
       )}
     >
-      <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+      <div className="flex items-center justify-between mb-2">
         <div
-          className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0"
+          className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl flex items-center justify-center shrink-0 shadow-inner"
           style={{ backgroundColor: `${color}18`, border: `1px solid ${color}35` }}
         >
-          <Icon size={16} style={{ color }} />
+          <Icon size={17} style={{ color }} />
         </div>
         {badge && (
           <span
-            className="text-[9px] sm:text-[10px] font-mono font-semibold px-1.5 sm:px-2 py-0.2 rounded-full"
-            style={{ backgroundColor: `${color}20`, color }}
+            className="text-[9px] sm:text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full border"
+            style={{ backgroundColor: `${color}15`, borderColor: `${color}35`, color }}
           >
             {badge}
           </span>
         )}
       </div>
       <div>
-        <p className="text-lg sm:text-2xl font-bold font-display text-ink tracking-tight leading-tight">
+        <p className="text-xl sm:text-2xl font-bold font-display text-ink tracking-tight leading-tight">
           {value}
         </p>
         <p className="text-[11px] sm:text-xs text-ink-muted truncate font-medium mt-0.5">{label}</p>
         {subtext && <p className="text-[10px] sm:text-[11px] text-ink-muted/80 truncate mt-0.5 font-mono">{subtext}</p>}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -434,7 +451,7 @@ export default function DashboardPage() {
       transition={spring.snappy}
     >
       {/* ── 1. Hero Cockpit & RPG Tactical Header ── */}
-      <section className="relative rounded-3xl p-4 sm:p-7 bg-gradient-to-br from-obsidian-900/90 via-obsidian-900/70 to-obsidian-800/80 border border-glass-border shadow-2xl backdrop-blur-2xl overflow-hidden">
+      <section className="relative rounded-3xl p-4 sm:p-7 bg-gradient-to-br from-obsidian-900/85 via-obsidian-900/65 to-obsidian-800/75 border border-white/15 shadow-[0_16px_48px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-2xl overflow-hidden">
         {/* Ambient atmospheric glows */}
         <div className="absolute -top-24 right-10 w-72 h-72 bg-attr-perception/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 left-10 w-72 h-72 bg-gold/10 rounded-full blur-3xl pointer-events-none" />
@@ -454,7 +471,7 @@ export default function DashboardPage() {
                   Ω
                 </div>
               )}
-              <div className="absolute -bottom-1 -right-1 bg-obsidian-950 text-gold border border-gold/60 rounded-lg px-1.5 py-0.2 text-[9px] sm:text-[10px] font-mono font-bold shadow">
+              <div className="absolute -bottom-1 -right-1 bg-obsidian-950 text-gold border border-gold/60 rounded-full px-2 py-0.2 text-[9px] sm:text-[10px] font-mono font-bold shadow">
                 Lv.{character?.level || 1}
               </div>
             </div>
@@ -484,10 +501,10 @@ export default function DashboardPage() {
             <Link
               to="/focus"
               className={clsx(
-                'flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm min-h-[40px]',
+                'flex items-center gap-1.5 sm:gap-2 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-sm min-h-[42px] active:scale-95',
                 activeFocus
                   ? 'bg-mana text-obsidian-950 shadow-mana/30 animate-pulse'
-                  : 'bg-mana/15 hover:bg-mana/25 text-mana border border-mana/40'
+                  : 'bg-mana/15 hover:bg-mana/25 text-mana border border-mana/40 backdrop-blur-md'
               )}
             >
               <Clock size={15} />
@@ -496,7 +513,7 @@ export default function DashboardPage() {
 
             <Link
               to="/reflection"
-              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl bg-teal-500/15 hover:bg-teal-500/25 text-teal-300 border border-teal-500/40 text-xs font-bold transition-all min-h-[40px]"
+              className="flex items-center gap-1.5 sm:gap-2 px-3.5 py-2.5 rounded-2xl bg-teal-500/15 hover:bg-teal-500/25 text-teal-300 border border-teal-500/40 text-xs font-bold transition-all min-h-[42px] backdrop-blur-md active:scale-95"
             >
               <Moon size={15} />
               <span>{todayReflection ? 'Reflection' : 'Reflect'}</span>
@@ -505,7 +522,7 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={openBattleLogDrawer}
-              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl bg-gold/15 hover:bg-gold/25 text-gold border border-gold/40 text-xs font-bold transition-all min-h-[40px]"
+              className="flex items-center gap-1.5 sm:gap-2 px-3.5 py-2.5 rounded-2xl bg-gold/15 hover:bg-gold/25 text-gold border border-gold/40 text-xs font-bold transition-all min-h-[42px] backdrop-blur-md active:scale-95"
               title="Battle Chronicles"
             >
               <Swords size={15} />
@@ -515,9 +532,9 @@ export default function DashboardPage() {
         </div>
 
         {/* Tactical Advisory Pill */}
-        <div className="mt-3.5 pt-3 border-t border-glass-border/60 flex items-center justify-between gap-2.5 text-xs">
+        <div className="mt-3.5 pt-3 border-t border-white/10 flex items-center justify-between gap-2.5 text-xs">
           <div className="flex items-center gap-2 min-w-0">
-            <div className={clsx('p-1 rounded-md bg-obsidian-900 shrink-0', tacticalAdvisory.color)}>
+            <div className={clsx('p-1.5 rounded-xl bg-obsidian-950/70 border border-white/10 shrink-0 shadow-inner', tacticalAdvisory.color)}>
               <tacticalAdvisory.icon size={14} />
             </div>
             <span className="text-ink font-medium truncate text-[11px] sm:text-xs">{tacticalAdvisory.text}</span>
@@ -568,9 +585,9 @@ export default function DashboardPage() {
         />
       </section>
 
-      {/* ── 3. Dedicated Mobile Segmented Switcher (Visible ONLY on Mobile < 768px) ── */}
-      <div className="md:hidden sticky top-16 z-30 -mx-3 px-3 py-1.5 bg-obsidian-950/95 backdrop-blur-xl border-y border-glass-border">
-        <div className="grid grid-cols-4 gap-1 p-1 rounded-2xl bg-obsidian-900 border border-glass-border">
+      {/* ── 3. Dedicated Mobile Segmented Switcher (iOS Frosted Glass Capsule) ── */}
+      <div className="md:hidden sticky top-16 z-30 -mx-3 px-3 py-2 bg-obsidian-950/80 backdrop-blur-2xl border-y border-white/10">
+        <div className="grid grid-cols-4 gap-1 p-1 rounded-full bg-obsidian-900/80 border border-white/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] backdrop-blur-md">
           {[
             { id: 'actions', label: 'Actions', icon: Zap },
             { id: 'analytics', label: 'Analytics', icon: TrendingUp },
@@ -583,15 +600,35 @@ export default function DashboardPage() {
                 key={id}
                 type="button"
                 onClick={() => setMobileTab(id)}
-                className={clsx(
-                  'flex items-center justify-center gap-1 py-1.5 px-1 rounded-xl text-xs font-semibold transition-all min-h-[38px]',
-                  isActive
-                    ? 'bg-attr-perception/20 text-attr-perception border border-attr-perception/40 shadow-sm'
-                    : 'text-ink-muted hover:text-ink'
-                )}
+                className="relative py-1.5 px-1 rounded-full text-xs font-semibold min-h-[38px] flex items-center justify-center focus:outline-none select-none transition-colors"
               >
-                <Icon size={13} />
-                <span>{label}</span>
+                {isActive && (
+                  <motion.div
+                    layoutId="ios-dashboard-tab-pill"
+                    className="absolute inset-0 rounded-full bg-white/[0.14] border border-white/20 shadow-sm"
+                    transition={spring.capsule}
+                  />
+                )}
+                <motion.div
+                  whileTap={{ scale: 0.94 }}
+                  className="relative z-10 flex items-center justify-center gap-1"
+                >
+                  <Icon
+                    size={13}
+                    className={clsx(
+                      'transition-colors',
+                      isActive ? 'text-attr-perception' : 'text-ink-muted'
+                    )}
+                  />
+                  <span
+                    className={clsx(
+                      'transition-colors',
+                      isActive ? 'text-ink font-bold' : 'text-ink-muted'
+                    )}
+                  >
+                    {label}
+                  </span>
+                </motion.div>
               </button>
             );
           })}

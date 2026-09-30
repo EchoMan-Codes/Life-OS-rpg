@@ -62,7 +62,7 @@ export function AppShell({ children }) {
               ? sidebarCollapsed
                 ? 'ml-20'
                 : 'ml-64'
-              : 'pb-20' // padding for bottom nav on mobile
+              : 'pb-28 sm:pb-32' // clearance for floating capsule bottom nav on mobile
           )}
         >
           <div className="p-3 sm:p-5 md:p-6 lg:p-8 max-w-7xl mx-auto">{children}</div>

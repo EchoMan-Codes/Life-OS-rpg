@@ -10,6 +10,8 @@ export const spring = {
   snappy: { type: 'spring', stiffness: 500, damping: 32 },
   bouncy: { type: 'spring', stiffness: 300, damping: 15 },
   gentle: { type: 'spring', stiffness: 120, damping: 20 },
+  ios: { type: 'spring', stiffness: 380, damping: 28 },
+  capsule: { type: 'spring', stiffness: 420, damping: 32 },
 };
 
 export const pressable = {
@@ -18,8 +20,15 @@ export const pressable = {
   transition: spring.snappy,
 };
 
+export const pressableIos = {
+  whileTap: { scale: 0.92 },
+  whileHover: { scale: 1.02 },
+  transition: spring.ios,
+};
+
 export const modalPanel = {
   initial: { opacity: 0, scale: 0.96, y: 8 },
   animate: { opacity: 1, scale: 1, y: 0, transition: spring.snappy },
   exit: { opacity: 0, scale: 0.98, y: 4, transition: { duration: 0.12 } },
 };
+

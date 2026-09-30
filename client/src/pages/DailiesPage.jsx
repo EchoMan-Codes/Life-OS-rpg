@@ -1,16 +1,17 @@
 import { useState, useMemo } from 'react';
-import { AnimatePresence } from 'framer-motion';
-import { CalendarCheck, Plus, Filter, Sparkles, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CalendarCheck, Plus, Sparkles, CheckCircle2, Clock, Zap, ShieldAlert } from 'lucide-react';
 import clsx from 'clsx';
 
 import { useDailies } from '@/features/dailies/hooks';
 import { DailyCard } from '@/components/dailies/DailyCard';
 import { DailyModal } from '@/components/dailies/DailyModal';
+import { spring } from '@/lib/motionVariants';
 
 const FILTERS = [
-  { id: 'all', label: 'All' },
+  { id: 'all', label: 'All Dailies' },
   { id: 'due', label: 'Due Today' },
-  { id: 'completed', label: 'Completed' },
+  { id: 'completed', label: 'Conquered' },
   { id: 'pending', label: 'Pending' },
 ];
 
@@ -49,6 +50,8 @@ export default function DailiesPage() {
     return Math.max(...dailies.map((d) => d.streakBest || 0), 0);
   }, [dailies]);
 
+  const completionPercent = dueCount > 0 ? Math.round((completedCount / dueCount) * 100) : 100;
+
   const handleOpenCreate = () => {
     setDailyToEdit(null);
     setModalOpen(true);
@@ -66,122 +69,164 @@ export default function DailiesPage() {
   }).format(new Date());
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      {/* ── Page Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-attr-perception uppercase tracking-wider mb-1">
-            <span>{todayFormatted}</span>
-            <span>•</span>
-            <span>Local Midnight Reset</span>
+    <div className="max-w-5xl mx-auto space-y-6 pb-20">
+      {/* ── 1. Glassy iOS Cockpit Header (Emerald Vitality Theme) ── */}
+      <section className="relative rounded-3xl p-5 sm:p-7 bg-gradient-to-br from-obsidian-900/85 via-obsidian-900/65 to-obsidian-800/75 border border-white/15 shadow-[0_16px_48px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-2xl overflow-hidden">
+        {/* Ambient emerald & jade glow */}
+        <div className="absolute -top-24 -left-20 w-80 h-80 bg-emerald-500/15 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/2 -right-20 w-64 h-64 bg-teal-500/10 rounded-full blur-[100px] pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-mono font-semibold">
+              <Clock size={13} className="animate-spin text-emerald-400" style={{ animationDuration: '8s' }} />
+              <span>{todayFormatted.toUpperCase()} • RESETS AT 00:00</span>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight font-display">
+              Daily Rituals & Vows
+            </h1>
+
+            <p className="text-xs sm:text-sm text-ink-muted leading-relaxed max-w-xl">
+              Essential commitments refreshed each day. Conquering dailies safeguards your HP and awards consistent Gold & XP. Incomplete rituals risk daily damage.
+            </p>
           </div>
-          <h1 className="text-display-md text-ink flex items-center gap-2.5">
-            <CalendarCheck className="w-7 h-7 text-attr-perception" />
-            <span>Daily Rituals</span>
-          </h1>
-          <p className="text-body-sm text-ink-muted mt-1 max-w-2xl">
-            Binary rituals that refresh each night. Complete them before midnight to build streaks and protect your HP.
-          </p>
+
+          <motion.button
+            type="button"
+            onClick={handleOpenCreate}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.96 }}
+            transition={spring.snappy}
+            className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-obsidian font-bold text-xs sm:text-sm hover:from-emerald-400 hover:to-teal-300 transition-all shadow-[0_8px_24px_rgba(16,185,129,0.35)] self-start sm:self-auto min-h-[46px]"
+          >
+            <Plus size={16} strokeWidth={2.5} />
+            <span>New Daily</span>
+          </motion.button>
+        </div>
+      </section>
+
+      {/* ── 2. Unified iOS Glance Metric Strip ── */}
+      <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl shadow-sm space-y-1">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted">Due Today</span>
+          <p className="text-xl sm:text-2xl font-bold font-mono text-ink">{dueCount}</p>
+          <span className="text-[10px] text-ink-muted font-mono">{dailies.length} total enrolled</span>
         </div>
 
-        <button
-          type="button"
-          onClick={handleOpenCreate}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-panel bg-attr-perception text-obsidian-950 font-semibold text-xs hover:bg-attr-perception/90 active:scale-95 transition-all shadow-glow-perception self-start sm:self-auto min-h-[44px]"
-        >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
-          <span>New Daily</span>
-        </button>
-      </div>
-
-      {/* ── Stats Ribbon ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-3.5 rounded-panel bg-obsidian-900/80 border border-glass-border shadow-panel">
-          <span className="text-[11px] uppercase tracking-wider text-ink-muted font-medium">Due Today</span>
-          <p className="text-display-xs text-ink mt-0.5">{dueCount}</p>
-        </div>
-        <div className="p-3.5 rounded-panel bg-obsidian-900/80 border border-glass-border shadow-panel">
-          <span className="text-[11px] uppercase tracking-wider text-ink-muted font-medium">Completed</span>
-          <p className="text-display-xs text-attr-vitality mt-0.5 flex items-center gap-1.5">
-            <CheckCircle2 size={18} />
+        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl shadow-sm space-y-1">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted">Conquered</span>
+          <p className="text-xl sm:text-2xl font-bold font-mono text-emerald-400 flex items-center gap-1.5">
+            <CheckCircle2 size={20} className="text-emerald-400" />
             <span>{completedCount}</span>
           </p>
+          <span className="text-[10px] text-emerald-400/80 font-mono">
+            {dueCount - completedCount === 0 ? 'All cleared!' : `${dueCount - completedCount} remaining`}
+          </span>
         </div>
-        <div className="p-3.5 rounded-panel bg-obsidian-900/80 border border-glass-border shadow-panel">
-          <span className="text-[11px] uppercase tracking-wider text-ink-muted font-medium">Best Streak</span>
-          <p className="text-display-xs text-attr-strength mt-0.5">{bestOverallStreak}d</p>
+
+        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl shadow-sm space-y-1">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted">Highest Streak</span>
+          <p className="text-xl sm:text-2xl font-bold font-mono text-amber-400">{bestOverallStreak}d</p>
+          <span className="text-[10px] text-ink-muted font-mono">Consecutive days</span>
         </div>
-        <div className="p-3.5 rounded-panel bg-obsidian-900/80 border border-glass-border shadow-panel">
-          <span className="text-[11px] uppercase tracking-wider text-ink-muted font-medium">Day Progress</span>
-          <p className="text-display-xs text-attr-perception mt-0.5">
-            {dueCount > 0 ? `${Math.round((completedCount / dueCount) * 100)}%` : '100%'}
-          </p>
+
+        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl shadow-sm space-y-1">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted">Daily Victory</span>
+          <p className="text-xl sm:text-2xl font-bold font-mono text-emerald-300">{completionPercent}%</p>
+          <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden mt-1">
+            <div
+              className="bg-emerald-400 h-full rounded-full transition-all duration-500"
+              style={{ width: `${completionPercent}%` }}
+            />
+          </div>
         </div>
+      </section>
+
+      {/* ── 3. iOS Frosted Segmented Filter Capsule ── */}
+      <div className="flex items-center justify-between gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="p-1 rounded-full bg-obsidian-900/80 border border-white/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] backdrop-blur-md flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {FILTERS.map((tab) => {
+            const isActive = activeFilter === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveFilter(tab.id)}
+                className={clsx(
+                  'px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap',
+                  isActive
+                    ? 'bg-emerald-500 text-obsidian shadow-sm'
+                    : 'text-ink-muted hover:text-ink hover:bg-white/5'
+                )}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <span className="text-[11px] font-mono text-ink-faint hidden sm:inline">
+          Showing {filteredDailies.length} of {dailies.length} rituals
+        </span>
       </div>
 
-      {/* ── Filter Tabs ── */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        <Filter className="w-4 h-4 text-ink-muted shrink-0 mr-1" />
-        {FILTERS.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setActiveFilter(tab.id)}
-            className={clsx(
-              'px-3.5 py-1.5 rounded-panel text-xs font-medium transition-all whitespace-nowrap min-h-[36px]',
-              activeFilter === tab.id
-                ? 'bg-glass text-ink border border-glass-border shadow-panel'
-                : 'text-ink-muted hover:text-ink hover:bg-glass/40'
-            )}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* ── Dailies List ── */}
+      {/* ── 4. Dailies List / Empty State ── */}
       {isLoading ? (
-        <div className="p-12 text-center text-ink-muted text-sm animate-pulse">
-          Consulting the chronicles of daily rituals...
+        <div className="py-20 text-center text-ink-muted text-sm animate-pulse space-y-2">
+          <CalendarCheck size={28} className="mx-auto text-emerald-500 animate-bounce" />
+          <p>Consulting daily ritual chronicles...</p>
         </div>
       ) : isError ? (
-        <div className="p-4 rounded-panel bg-attr-strength/10 border border-attr-strength/30 text-attr-strength text-sm">
+        <div className="p-6 text-center text-red-400 text-sm rounded-2xl bg-red-500/10 border border-red-500/20">
           Failed to load daily rituals. Please verify your connection.
         </div>
       ) : filteredDailies.length === 0 ? (
-        <div className="p-12 rounded-panel border border-dashed border-glass-border text-center space-y-3 bg-obsidian-900/40">
-          <div className="w-12 h-12 rounded-full bg-attr-perception/10 text-attr-perception flex items-center justify-center mx-auto">
-            <Sparkles size={24} />
+        <div className="p-10 sm:p-14 text-center rounded-3xl bg-white/[0.02] border border-white/10 backdrop-blur-xl shadow-lg space-y-4">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <Sparkles size={26} />
           </div>
-          <h2 className="text-sm font-semibold text-ink">
-            {dailies.length === 0 ? 'No Daily Rituals Yet' : 'No Dailies Match Filter'}
-          </h2>
-          <p className="text-xs text-ink-muted max-w-sm mx-auto">
+          <h3 className="text-lg sm:text-xl font-bold text-ink">
+            {dailies.length === 0 ? 'No Daily Rituals Enrolled' : 'No Rituals Match Filter'}
+          </h3>
+          <p className="text-xs sm:text-sm text-ink-muted max-w-sm mx-auto leading-relaxed">
             {dailies.length === 0
-              ? 'Establish recurring rituals to protect your HP and gain XP/Gold every day.'
-              : 'Try selecting a different filter tab above to view your other rituals.'}
+              ? 'Establish recurring daily rituals to gain XP, secure Gold, and protect your HP from nighttime penalties.'
+              : 'Try selecting a different filter tab above to view other daily rituals.'}
           </p>
           {dailies.length === 0 && (
-            <button
+            <motion.button
               type="button"
               onClick={handleOpenCreate}
-              className="px-4 py-2 text-xs font-semibold text-obsidian-950 bg-attr-perception rounded-panel hover:bg-attr-perception/90 transition-colors min-h-[44px]"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="px-5 py-2.5 rounded-xl bg-emerald-500 text-obsidian font-bold text-xs hover:bg-emerald-400 transition-all shadow-md inline-flex items-center gap-1.5"
             >
-              Create First Daily
-            </button>
+              <Plus size={14} strokeWidth={2.5} />
+              <span>Create First Daily</span>
+            </motion.button>
           )}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3">
           <AnimatePresence initial={false}>
             {filteredDailies.map((daily) => (
-              <DailyCard key={daily.id} daily={daily} onEdit={handleOpenEdit} />
+              <motion.div
+                key={daily.id}
+                layout
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={spring.ios}
+              >
+                <DailyCard daily={daily} onEdit={handleOpenEdit} />
+              </motion.div>
             ))}
           </AnimatePresence>
         </div>
       )}
 
-      {/* ── Create / Edit Modal ── */}
+      {/* Daily Creation & Edit Modal */}
       <DailyModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}

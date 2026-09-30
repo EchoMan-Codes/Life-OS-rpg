@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Scroll,
   Plus,
@@ -9,13 +9,17 @@ import {
   Clock,
   CircleDot,
   LogIn,
+  Sparkles,
+  Zap,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 
 import { useAuth } from '@/features/auth/hooks';
 import { useQuests } from '@/features/quests/hooks';
 import { QuestCard } from '@/components/quests/QuestCard';
 import { QuestModal } from '@/components/quests/QuestModal';
+import { spring } from '@/lib/motionVariants';
 
 const STATUS_FILTERS = [
   { id: 'all', label: 'All Quests' },
@@ -54,10 +58,7 @@ export default function QuestsPage() {
     });
   }, [filteredQuests]);
 
-  // Board columns:
-  // 1. To Do: active quests with 0 subtasks completed
-  // 2. In Progress: active quests with >0 subtasks completed
-  // 3. Done: completed quests
+  // Board columns
   const boardColumns = useMemo(() => {
     const todo = [];
     const inProgress = [];
@@ -95,21 +96,39 @@ export default function QuestsPage() {
     setModalOpen(true);
   };
 
-  // Guest State
+  // Guest State with iOS Glassy Gateway
   if (!isAuthenticated) {
     return (
-      <div className="max-w-4xl mx-auto py-12 px-4 text-center">
-        <div className="p-8 rounded-panel bg-obsidian-900/80 border border-glass-border backdrop-blur-glass shadow-panel max-w-md mx-auto flex flex-col items-center gap-4">
-          <div className="p-3 rounded-full bg-attr-intelligence/10 text-attr-intelligence">
-            <Scroll className="w-8 h-8" />
+      <div className="max-w-xl mx-auto py-16 px-4 text-center">
+        <div className="p-8 rounded-3xl bg-white/[0.02] border border-white/10 backdrop-blur-2xl shadow-2xl space-y-6">
+          <div className="w-14 h-14 rounded-2xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center text-violet-400 mx-auto shadow-[0_0_30px_rgba(139,92,246,0.2)]">
+            <Scroll size={28} />
           </div>
-          <h2 className="text-display-sm text-ink font-semibold">Quests & Milestones</h2>
-          <p className="text-body-sm text-ink-muted">
-            Embark on multi-step campaigns, complete checklists, and hit milestone thresholds to earn powerful XP and Gold. Sign in to track your adventures.
-          </p>
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-glass/15 border border-glass-border text-ink text-body-sm">
-            <LogIn className="w-4 h-4 text-attr-intelligence" />
-            <span>Sign in from the menu to access your Quest Log</span>
+          <div className="space-y-2">
+            <span className="text-[11px] font-mono uppercase tracking-widest text-violet-400 font-semibold">
+              Campaign Sanctum
+            </span>
+            <h2 className="text-2xl font-extrabold text-ink tracking-tight font-display">
+              Quest Board & Milestones
+            </h2>
+            <p className="text-xs sm:text-sm text-ink-muted leading-relaxed">
+              Embark on multi-step campaigns, complete checklists, and hit 25% / 50% / 75% / 100% milestone thresholds to unlock immense XP and Gold.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <Link
+              to="/onboarding"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-ink text-obsidian font-semibold text-sm hover:bg-ink/90 transition-all shadow-lg min-h-[44px]"
+            >
+              <span>Initialize LifeOS</span>
+            </Link>
+            <Link
+              to="/login"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white/[0.05] hover:bg-white/[0.09] border border-white/10 text-ink font-semibold text-sm transition-all min-h-[44px]"
+            >
+              <LogIn size={15} />
+              <span>Sign In</span>
+            </Link>
           </div>
         </div>
       </div>
@@ -117,56 +136,83 @@ export default function QuestsPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      {/* ── Page Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-attr-intelligence uppercase tracking-wider mb-1">
-            <span>Multi-Step Campaigns</span>
-            <span>•</span>
-            <span>25% / 50% / 75% / 100% Milestones</span>
+    <div className="max-w-6xl mx-auto space-y-6 pb-20">
+      {/* ── 1. Glassy iOS Cockpit Header (Astral Violet Theme) ── */}
+      <section className="relative rounded-3xl p-5 sm:p-7 bg-gradient-to-br from-obsidian-900/85 via-obsidian-900/65 to-obsidian-800/75 border border-white/15 shadow-[0_16px_48px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-2xl overflow-hidden">
+        {/* Ambient violet & indigo glow */}
+        <div className="absolute -top-24 -left-20 w-80 h-80 bg-violet-500/15 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/2 -right-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/25 text-violet-300 text-xs font-mono font-semibold">
+              <Sparkles size={13} className="text-violet-400" />
+              <span>CAMPAIGN DECK • 25% / 50% / 75% / 100% THRESHOLDS</span>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight font-display">
+              Quest Log & Milestones
+            </h1>
+
+            <p className="text-xs sm:text-sm text-ink-muted leading-relaxed max-w-xl">
+              Break down complex projects into actionable checklists. Progressing through quest milestones yields proportional XP, character stat increments, and gold.
+            </p>
           </div>
-          <h1 className="text-display-md text-ink flex items-center gap-2.5">
-            <Scroll className="w-7 h-7 text-attr-intelligence" />
-            <span>Quest Board</span>
-          </h1>
+
+          <motion.button
+            type="button"
+            onClick={handleOpenCreate}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.96 }}
+            transition={spring.snappy}
+            className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-violet-500 to-indigo-500 text-ink font-bold text-xs sm:text-sm hover:from-violet-400 hover:to-indigo-400 transition-all shadow-[0_8px_24px_rgba(139,92,246,0.35)] self-start sm:self-auto min-h-[46px]"
+          >
+            <Plus size={16} strokeWidth={2.5} />
+            <span>New Quest</span>
+          </motion.button>
+        </div>
+      </section>
+
+      {/* ── 2. Unified iOS Glance Metric Strip ── */}
+      <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl shadow-sm space-y-1">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted">Total Campaigns</span>
+          <p className="text-xl sm:text-2xl font-bold font-mono text-ink">{stats.total}</p>
+          <span className="text-[10px] text-ink-muted font-mono">Enrolled in log</span>
         </div>
 
-        {/* New Quest CTA button (>= 44x44px target) */}
-        <button
-          type="button"
-          onClick={handleOpenCreate}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-attr-intelligence text-obsidian-950 font-semibold text-sm hover:bg-attr-intelligence/90 shadow-glow transition-all cursor-pointer min-h-[44px]"
-        >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
-          <span>New Quest</span>
-        </button>
-      </div>
+        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl shadow-sm space-y-1">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted">Active Missions</span>
+          <p className="text-xl sm:text-2xl font-bold font-mono text-violet-400 flex items-center gap-1.5">
+            <Clock size={18} className="text-violet-400" />
+            <span>{stats.active}</span>
+          </p>
+          <span className="text-[10px] text-violet-400/80 font-mono">In progress</span>
+        </div>
 
-      {/* ── Stats Ribbon ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-3.5 rounded-panel bg-obsidian-900/60 border border-glass-border flex flex-col">
-          <span className="text-xs text-ink-muted font-medium">Total Quests</span>
-          <span className="text-display-xs text-ink font-bold mt-1">{stats.total}</span>
+        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl shadow-sm space-y-1">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted">Conquered</span>
+          <p className="text-xl sm:text-2xl font-bold font-mono text-emerald-400 flex items-center gap-1.5">
+            <CheckCircle2 size={18} className="text-emerald-400" />
+            <span>{stats.completed}</span>
+          </p>
+          <span className="text-[10px] text-emerald-400/80 font-mono">100% completed</span>
         </div>
-        <div className="p-3.5 rounded-panel bg-obsidian-900/60 border border-glass-border flex flex-col">
-          <span className="text-xs text-attr-intelligence font-medium">Active Quests</span>
-          <span className="text-display-xs text-attr-intelligence font-bold mt-1">{stats.active}</span>
-        </div>
-        <div className="p-3.5 rounded-panel bg-obsidian-900/60 border border-glass-border flex flex-col">
-          <span className="text-xs text-attr-vitality font-medium">Completed</span>
-          <span className="text-display-xs text-attr-vitality font-bold mt-1">{stats.completed}</span>
-        </div>
-        <div className="p-3.5 rounded-panel bg-obsidian-900/60 border border-glass-border flex flex-col">
-          <span className="text-xs text-gold font-medium">Subtasks Conquered</span>
-          <span className="text-display-xs text-gold font-bold mt-1">{stats.subtasksDone}</span>
-        </div>
-      </div>
 
-      {/* ── Controls Bar: Filter Tabs & View Switcher ── */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-2 border-b border-glass-border/30">
-        {/* Status Filters */}
-        <div className="flex items-center gap-1.5 p-1 rounded-lg bg-obsidian-950/60 border border-glass-border self-start">
+        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl shadow-sm space-y-1">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted">Subtasks Cleared</span>
+          <p className="text-xl sm:text-2xl font-bold font-mono text-gold flex items-center gap-1.5">
+            <Zap size={18} className="text-gold" />
+            <span>{stats.subtasksDone}</span>
+          </p>
+          <span className="text-[10px] text-ink-muted font-mono">Checklist items</span>
+        </div>
+      </section>
+
+      {/* ── 3. iOS Frosted Segmented Controls Bar ── */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        {/* Status Filter Capsule */}
+        <div className="p-1 rounded-full bg-obsidian-900/80 border border-white/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] backdrop-blur-md flex items-center gap-1 self-start">
           {STATUS_FILTERS.map((f) => {
             const isActive = statusFilter === f.id;
             return (
@@ -175,10 +221,10 @@ export default function QuestsPage() {
                 type="button"
                 onClick={() => setStatusFilter(f.id)}
                 className={clsx(
-                  'px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer min-h-[36px]',
+                  'px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap',
                   isActive
-                    ? 'bg-glass/20 text-ink shadow-sm'
-                    : 'text-ink-muted hover:text-ink hover:bg-glass/10'
+                    ? 'bg-violet-500 text-ink shadow-sm'
+                    : 'text-ink-muted hover:text-ink hover:bg-white/5'
                 )}
               >
                 {f.label}
@@ -187,177 +233,168 @@ export default function QuestsPage() {
           })}
         </div>
 
-        {/* View Mode Toggle: Board vs List */}
-        <div className="flex items-center gap-1.5 p-1 rounded-lg bg-obsidian-950/60 border border-glass-border self-end sm:self-auto">
+        {/* View Mode Toggle Capsule (Board vs List) */}
+        <div className="p-1 rounded-full bg-obsidian-900/80 border border-white/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] backdrop-blur-md flex items-center gap-1 self-end sm:self-auto">
           <button
             type="button"
             onClick={() => setViewMode('board')}
             aria-label="Board view"
             className={clsx(
-              'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer min-h-[36px]',
+              'flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all',
               viewMode === 'board'
-                ? 'bg-attr-intelligence/20 text-attr-intelligence border border-attr-intelligence/40'
+                ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40 shadow-sm'
                 : 'text-ink-muted hover:text-ink'
             )}
           >
-            <LayoutGrid className="w-3.5 h-3.5" />
+            <LayoutGrid size={14} />
             <span className="hidden sm:inline">Board</span>
           </button>
           <button
             type="button"
             onClick={() => setViewMode('list')}
-            aria-label="List view"
+            aria-label="Priority List view"
             className={clsx(
-              'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer min-h-[36px]',
+              'flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all',
               viewMode === 'list'
-                ? 'bg-attr-intelligence/20 text-attr-intelligence border border-attr-intelligence/40'
+                ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40 shadow-sm'
                 : 'text-ink-muted hover:text-ink'
             )}
           >
-            <List className="w-3.5 h-3.5" />
+            <List size={14} />
             <span className="hidden sm:inline">Priority List</span>
           </button>
         </div>
       </div>
 
-      {/* ── Error Banner ── */}
-      {isError && (
-        <div className="p-4 rounded-panel bg-hp/10 border border-hp/30 text-hp text-body-sm">
-          Failed to load quests. Please check your connection.
-        </div>
-      )}
-
-      {/* ── Loading Skeleton ── */}
-      {isLoading && (
+      {/* ── 4. Quests Board / List Content ── */}
+      {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[1, 2, 3].map((n) => (
-            <div key={n} className="h-48 rounded-panel bg-obsidian-900/40 border border-glass-border animate-pulse" />
+            <div key={n} className="h-48 rounded-2xl bg-white/[0.02] border border-white/10 animate-pulse" />
           ))}
         </div>
-      )}
-
-      {/* ── Quests Content ── */}
-      {!isLoading && !isError && (
-        <>
-          {/* Empty State */}
-          {quests.length === 0 ? (
-            <div className="p-10 rounded-panel bg-obsidian-900/40 border border-glass-border text-center flex flex-col items-center gap-3">
-              <div className="p-3 rounded-full bg-glass/10 text-ink-muted">
-                <Scroll className="w-6 h-6" />
+      ) : isError ? (
+        <div className="p-6 text-center text-red-400 text-sm rounded-2xl bg-red-500/10 border border-red-500/20">
+          Failed to load quests. Please check your connection.
+        </div>
+      ) : quests.length === 0 ? (
+        <div className="p-10 sm:p-14 text-center rounded-3xl bg-white/[0.02] border border-white/10 backdrop-blur-xl shadow-lg space-y-4">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center text-violet-400">
+            <Scroll size={26} />
+          </div>
+          <h3 className="text-lg sm:text-xl font-bold text-ink">Your Quest Log is Empty</h3>
+          <p className="text-xs sm:text-sm text-ink-muted max-w-sm mx-auto leading-relaxed">
+            No active campaigns. Establish your first quest, define subtasks, and conquer milestones for substantial XP and Gold!
+          </p>
+          <motion.button
+            type="button"
+            onClick={handleOpenCreate}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="px-5 py-2.5 rounded-xl bg-violet-500 text-ink font-bold text-xs hover:bg-violet-400 transition-all shadow-md inline-flex items-center gap-1.5"
+          >
+            <Plus size={14} strokeWidth={2.5} />
+            <span>Embark on First Quest</span>
+          </motion.button>
+        </div>
+      ) : viewMode === 'board' ? (
+        /* ── Three-Column iOS Frosted Board View ── */
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
+          {/* Column 1: To Do */}
+          <div className="flex flex-col gap-3 rounded-3xl p-3.5 sm:p-4 bg-white/[0.02] border border-white/10 backdrop-blur-xl shadow-md">
+            <div className="flex items-center justify-between px-2 py-1">
+              <div className="flex items-center gap-2 text-xs font-bold text-ink">
+                <CircleDot size={15} className="text-ink-muted" />
+                <span>To Do</span>
               </div>
-              <h3 className="text-display-xs text-ink font-semibold">Your Quest Log is Empty</h3>
-              <p className="text-body-sm text-ink-muted max-w-sm">
-                No active quests. Establish your first quest campaign, define checklist subtasks, and hit milestones for massive rewards!
-              </p>
-              <button
-                type="button"
-                onClick={handleOpenCreate}
-                className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-attr-intelligence text-obsidian-950 font-semibold text-xs hover:bg-attr-intelligence/90 shadow-glow cursor-pointer min-h-[44px]"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Embark on First Quest</span>
-              </button>
+              <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-white/5 border border-white/10 text-ink-muted">
+                {boardColumns.todo.length}
+              </span>
             </div>
-          ) : viewMode === 'board' ? (
-            /* ── Three-Column Board View ── */
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
-              {/* Column 1: To Do */}
-              <div className="flex flex-col gap-3 rounded-panel p-3 bg-obsidian-950/40 border border-glass-border/40">
-                <div className="flex items-center justify-between px-2 py-1">
-                  <div className="flex items-center gap-2 text-body-sm font-semibold text-ink">
-                    <CircleDot className="w-4 h-4 text-ink-muted" />
-                    <span>To Do</span>
-                  </div>
-                  <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-obsidian-800 text-ink-muted">
-                    {boardColumns.todo.length}
-                  </span>
-                </div>
 
-                <div className="flex flex-col gap-3 min-h-[120px]">
-                  <AnimatePresence mode="popLayout">
-                    {boardColumns.todo.map((q) => (
-                      <QuestCard key={q.id} quest={q} onEdit={handleOpenEdit} />
-                    ))}
-                  </AnimatePresence>
-                  {boardColumns.todo.length === 0 && (
-                    <div className="p-6 text-center text-xs text-ink-muted italic border border-dashed border-glass-border/30 rounded-lg">
-                      No quests in To Do
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Column 2: In Progress */}
-              <div className="flex flex-col gap-3 rounded-panel p-3 bg-obsidian-950/40 border border-glass-border/40">
-                <div className="flex items-center justify-between px-2 py-1">
-                  <div className="flex items-center gap-2 text-body-sm font-semibold text-attr-intelligence">
-                    <Clock className="w-4 h-4" />
-                    <span>In Progress</span>
-                  </div>
-                  <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-attr-intelligence/15 text-attr-intelligence">
-                    {boardColumns.inProgress.length}
-                  </span>
-                </div>
-
-                <div className="flex flex-col gap-3 min-h-[120px]">
-                  <AnimatePresence mode="popLayout">
-                    {boardColumns.inProgress.map((q) => (
-                      <QuestCard key={q.id} quest={q} onEdit={handleOpenEdit} />
-                    ))}
-                  </AnimatePresence>
-                  {boardColumns.inProgress.length === 0 && (
-                    <div className="p-6 text-center text-xs text-ink-muted italic border border-dashed border-glass-border/30 rounded-lg">
-                      No quests currently in progress
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Column 3: Done */}
-              <div className="flex flex-col gap-3 rounded-panel p-3 bg-obsidian-950/40 border border-glass-border/40">
-                <div className="flex items-center justify-between px-2 py-1">
-                  <div className="flex items-center gap-2 text-body-sm font-semibold text-attr-vitality">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Done</span>
-                  </div>
-                  <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-attr-vitality/15 text-attr-vitality">
-                    {boardColumns.done.length}
-                  </span>
-                </div>
-
-                <div className="flex flex-col gap-3 min-h-[120px]">
-                  <AnimatePresence mode="popLayout">
-                    {boardColumns.done.map((q) => (
-                      <QuestCard key={q.id} quest={q} onEdit={handleOpenEdit} />
-                    ))}
-                  </AnimatePresence>
-                  {boardColumns.done.length === 0 && (
-                    <div className="p-6 text-center text-xs text-ink-muted italic border border-dashed border-glass-border/30 rounded-lg">
-                      No completed quests yet
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          ) : (
-            /* ── Flat Priority List View ── */
-            <div className="flex flex-col gap-3.5">
+            <div className="flex flex-col gap-3 min-h-[140px]">
               <AnimatePresence mode="popLayout">
-                {prioritySortedQuests.map((q) => (
+                {boardColumns.todo.map((q) => (
                   <QuestCard key={q.id} quest={q} onEdit={handleOpenEdit} />
                 ))}
               </AnimatePresence>
-              {prioritySortedQuests.length === 0 && (
-                <div className="p-8 text-center text-body-sm text-ink-muted border border-dashed border-glass-border rounded-panel">
-                  No quests match this filter.
+              {boardColumns.todo.length === 0 && (
+                <div className="p-8 text-center text-xs text-ink-muted italic border border-dashed border-white/10 rounded-2xl">
+                  No quests awaiting initiation
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Column 2: In Progress */}
+          <div className="flex flex-col gap-3 rounded-3xl p-3.5 sm:p-4 bg-white/[0.02] border border-white/10 backdrop-blur-xl shadow-md">
+            <div className="flex items-center justify-between px-2 py-1">
+              <div className="flex items-center gap-2 text-xs font-bold text-violet-300">
+                <Clock size={15} className="text-violet-400" />
+                <span>In Progress</span>
+              </div>
+              <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-violet-500/15 border border-violet-500/30 text-violet-300">
+                {boardColumns.inProgress.length}
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-3 min-h-[140px]">
+              <AnimatePresence mode="popLayout">
+                {boardColumns.inProgress.map((q) => (
+                  <QuestCard key={q.id} quest={q} onEdit={handleOpenEdit} />
+                ))}
+              </AnimatePresence>
+              {boardColumns.inProgress.length === 0 && (
+                <div className="p-8 text-center text-xs text-ink-muted italic border border-dashed border-white/10 rounded-2xl">
+                  No quests currently underway
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Column 3: Done */}
+          <div className="flex flex-col gap-3 rounded-3xl p-3.5 sm:p-4 bg-white/[0.02] border border-white/10 backdrop-blur-xl shadow-md">
+            <div className="flex items-center justify-between px-2 py-1">
+              <div className="flex items-center gap-2 text-xs font-bold text-emerald-300">
+                <CheckCircle2 size={15} className="text-emerald-400" />
+                <span>Conquered</span>
+              </div>
+              <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">
+                {boardColumns.done.length}
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-3 min-h-[140px]">
+              <AnimatePresence mode="popLayout">
+                {boardColumns.done.map((q) => (
+                  <QuestCard key={q.id} quest={q} onEdit={handleOpenEdit} />
+                ))}
+              </AnimatePresence>
+              {boardColumns.done.length === 0 && (
+                <div className="p-8 text-center text-xs text-ink-muted italic border border-dashed border-white/10 rounded-2xl">
+                  No conquered quests yet
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* ── Flat Priority List View ── */
+        <div className="flex flex-col gap-3.5">
+          <AnimatePresence mode="popLayout">
+            {prioritySortedQuests.map((q) => (
+              <QuestCard key={q.id} quest={q} onEdit={handleOpenEdit} />
+            ))}
+          </AnimatePresence>
+          {prioritySortedQuests.length === 0 && (
+            <div className="p-10 text-center text-xs text-ink-muted border border-dashed border-white/10 rounded-2xl">
+              No quests match this filter.
+            </div>
           )}
-        </>
+        </div>
       )}
 
-      {/* ── Create / Edit Modal ── */}
+      {/* Quest Creation & Edit Modal */}
       <QuestModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}

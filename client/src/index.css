@@ -35,9 +35,18 @@
   --color-xp: #F59E0B;
   --color-gold: #EAB308;
 
-  /* ── Typography ── */
-  --font-display: "Cabinet Grotesk", sans-serif;
-  --font-body: "Inter", sans-serif;
+  /* ── Feature Theme Accent Palettes ── */
+  --color-theme-habits: #F59E0B;
+  --color-theme-dailies: #10B981;
+  --color-theme-quests: #8B5CF6;
+  --color-theme-focus: #38BDF8;
+  --color-theme-reflection: #14B8A6;
+  --color-theme-shop: #EAB308;
+
+  /* ── Typography (Gamified, Motivating, High-Tech Apple/RPG feel) ── */
+  --font-display: "Outfit", "Cabinet Grotesk", sans-serif;
+  --font-body: "Plus Jakarta Sans", "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   /* ── Border radius ── */
   --radius-panel: 18px;
@@ -53,6 +62,7 @@
   --shadow-glow-vitality: 0 0 24px -6px rgba(52, 211, 153, 0.55);
   --shadow-glow-willpower: 0 0 24px -6px rgba(167, 139, 250, 0.55);
   --shadow-glow-perception: 0 0 24px -6px rgba(251, 191, 36, 0.55);
+  --shadow-ios-glass: 0 16px 48px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2);
 }
 
 /*
@@ -158,3 +168,43 @@ body {
   color: var(--color-ink-muted);
   line-height: 1.4;
 }
+
+/* ── iOS 18 Glassmorphism & Micro-Interaction Utilities ── */
+.glass-cockpit {
+  background: linear-gradient(135deg, rgba(15, 18, 28, 0.85) 0%, rgba(11, 13, 20, 0.70) 50%, rgba(18, 20, 29, 0.80) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 1.75rem;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 1.25rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.ios-segmented-capsule {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: 9999px;
+  background: rgba(11, 13, 20, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+

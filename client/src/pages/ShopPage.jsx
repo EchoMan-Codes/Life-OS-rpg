@@ -10,7 +10,9 @@ import {
   Sword,
   Search,
   LogIn,
+  ArrowRight,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 
 import { useAuth } from '@/features/auth/hooks';
@@ -25,11 +27,11 @@ import { ShopItemCard } from '@/components/shop/ShopItemCard';
 import { ShopItemModal } from '@/components/shop/ShopItemModal';
 import { ItemInspectionModal } from '@/components/shop/ItemInspectionModal';
 import { InventoryDrawer } from '@/components/shop/InventoryDrawer';
-import { Button } from '@/components/ui/Button';
+import { spring } from '@/lib/motionVariants';
 
 const CATEGORIES = [
   { id: 'all', label: 'All Items', icon: ShoppingBag },
-  { id: 'custom', label: 'Custom Rewards', icon: Sparkles },
+  { id: 'custom', label: 'Custom Treats', icon: Sparkles },
   { id: 'equipment', label: 'Equipment', icon: Sword },
   { id: 'streak_shield', label: 'Streak Shields', icon: Shield },
 ];
@@ -88,97 +90,107 @@ export default function ShopPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 pb-24 md:pb-12 space-y-7">
-      {/* ── Page Header ── */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-gold/15 border border-gold/30 flex items-center justify-center text-gold shadow-glow">
-              <ShoppingBag size={22} />
-            </div>
-            <div>
-              <h1 className="text-display-md text-ink font-semibold">Reward Shop</h1>
-              <p className="text-body-sm text-ink-muted">
-                Exchange hard-earned gold for custom treats, tactical shields, and legendary gear.
-              </p>
-            </div>
-          </div>
-        </div>
+    <div className="max-w-6xl mx-auto space-y-6 pb-20">
+      {/* ── 1. Glassy iOS Cockpit Header (Radiant Gold Theme) ── */}
+      <section className="relative rounded-3xl p-5 sm:p-7 bg-gradient-to-br from-obsidian-900/85 via-obsidian-900/65 to-obsidian-800/75 border border-white/15 shadow-[0_16px_48px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-2xl overflow-hidden">
+        {/* Ambient golden atmospheric glow */}
+        <div className="absolute -top-24 -left-20 w-80 h-80 bg-gold/15 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/2 -right-20 w-64 h-64 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none" />
 
-        {/* Right side controls: Gold balance, Inventory button, Add Custom button */}
-        <div className="flex items-center flex-wrap gap-2.5">
-          {/* Gold Counter Badge */}
-          <div
-            id="player-gold-counter"
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gold/10 border border-gold/30 text-gold shadow-glow"
-          >
-            <Coins size={18} className="animate-pulse text-gold" />
-            <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-              Gold:
-            </span>
-            <span className="text-sm font-bold tracking-tight text-gold font-mono">
-              {userGold.toLocaleString()}
-            </span>
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold/10 border border-gold/25 text-gold text-xs font-mono font-semibold">
+              <Coins size={13} className="text-gold" />
+              <span>THE EMPORIUM • HARD-WON SPOILS</span>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight font-display">
+              Reward Shop & Vault
+            </h1>
+
+            <p className="text-xs sm:text-sm text-ink-muted leading-relaxed max-w-xl">
+              Spend gold earned from dailies and quests. Unlock custom real-world rewards, tactical streak shields, and RPG equipment.
+            </p>
           </div>
 
-          {/* Inventory Drawer Trigger */}
-          <Button
-            id="open-inventory-btn"
-            variant="ghost"
-            onClick={() => setIsInventoryOpen(true)}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-obsidian-800/80 border border-glass-border hover:border-glass-border-hover text-ink text-xs font-semibold"
-          >
-            <Package size={16} className="text-ink-muted" />
-            <span>Inventory</span>
-            {totalInventoryCount > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-gold/20 text-gold border border-gold/30">
-                {totalInventoryCount}
-              </span>
-            )}
-          </Button>
-
-          {/* Create Custom Reward Button */}
-          {isAuthenticated && (
-            <Button
-              id="create-custom-reward-btn"
-              variant="primary"
-              onClick={() => {
-                setEditingItem(null);
-                setIsCreateModalOpen(true);
-              }}
-              className="flex items-center gap-1.5 bg-gold hover:bg-gold/90 text-obsidian font-semibold text-xs px-3.5 py-2 rounded-xl shadow-glow"
+          {/* Right side controls: Gold balance, Inventory button, Add Custom button */}
+          <div className="flex items-center flex-wrap gap-2.5">
+            {/* Gold Counter Frosted Capsule */}
+            <div
+              id="player-gold-counter"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gold/15 border border-gold/30 text-gold shadow-[0_0_20px_rgba(234,179,8,0.15)] backdrop-blur-md"
             >
-              <Plus size={16} />
-              <span>Custom Reward</span>
-            </Button>
-          )}
+              <Coins size={18} className="animate-pulse text-gold" />
+              <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted">
+                Balance:
+              </span>
+              <span className="text-base font-bold font-mono text-gold">
+                {userGold.toLocaleString()} GP
+              </span>
+            </div>
+
+            {/* Inventory Drawer Trigger */}
+            <motion.button
+              id="open-inventory-btn"
+              type="button"
+              onClick={() => setIsInventoryOpen(true)}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.96 }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-ink text-xs font-semibold backdrop-blur-md transition-all min-h-[44px]"
+            >
+              <Package size={16} className="text-ink-muted" />
+              <span>Inventory</span>
+              {totalInventoryCount > 0 && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-gold/20 text-gold border border-gold/30">
+                  {totalInventoryCount}
+                </span>
+              )}
+            </motion.button>
+
+            {/* Create Custom Reward Button */}
+            {isAuthenticated && (
+              <motion.button
+                id="create-custom-reward-btn"
+                type="button"
+                onClick={() => {
+                  setEditingItem(null);
+                  setIsCreateModalOpen(true);
+                }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.96 }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-gold to-amber-500 text-obsidian font-bold text-xs shadow-[0_8px_24px_rgba(234,179,8,0.35)] transition-all min-h-[44px]"
+              >
+                <Plus size={16} strokeWidth={2.5} />
+                <span>Custom Treat</span>
+              </motion.button>
+            )}
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* ── Unauthenticated State Notice ── */}
       {!isAuthenticated && (
-        <div className="p-6 rounded-panel bg-obsidian-800/60 border border-glass-border flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+        <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/10 backdrop-blur-xl shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
           <div className="space-y-1">
-            <h3 className="text-base font-semibold text-ink">Sign in to unlock the Reward Shop</h3>
+            <h3 className="text-base font-bold text-ink">Sign in to unlock the Reward Vault</h3>
             <p className="text-xs text-ink-muted">
-              Create an account or log in to customize your rewards, purchase gear, and protect your streaks.
+              Create an account or sign in to purchase rewards, store equipment, and protect your habits with shields.
             </p>
           </div>
-          <Button
-            variant="primary"
-            onClick={() => window.dispatchEvent(new CustomEvent('lifeos:open-auth'))}
-            className="flex items-center gap-2 bg-gold text-obsidian font-semibold text-xs"
+          <Link
+            to="/login"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gold text-obsidian font-bold text-xs hover:bg-gold/90 transition-all shadow-md min-h-[42px]"
           >
             <LogIn size={15} />
             <span>Sign In</span>
-          </Button>
+          </Link>
         </div>
       )}
 
-      {/* ── Controls: Category Tabs & Search ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-glass-border pb-4">
-        {/* Category Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+      {/* ── Controls: Category Tabs & Search (iOS Capsule) ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Category Tabs Capsule */}
+        <div className="p-1 rounded-full bg-obsidian-900/80 border border-white/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] backdrop-blur-md flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {CATEGORIES.map((cat) => {
             const Icon = cat.icon;
             const isSelected = selectedCategory === cat.id;
@@ -189,28 +201,28 @@ export default function ShopPage() {
                 id={`shop-tab-${cat.id}`}
                 onClick={() => setSelectedCategory(cat.id)}
                 className={clsx(
-                  'flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200',
+                  'flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200',
                   isSelected
-                    ? 'bg-gold/20 text-gold border border-gold/40 shadow-glow'
-                    : 'text-ink-muted hover:text-ink hover:bg-white/5 border border-transparent'
+                    ? 'bg-gold text-obsidian shadow-sm'
+                    : 'text-ink-muted hover:text-ink hover:bg-white/5'
                 )}
               >
-                <Icon size={15} />
+                <Icon size={14} />
                 <span>{cat.label}</span>
               </button>
             );
           })}
         </div>
 
-        {/* Search Bar */}
+        {/* Search Bar (iOS Frosted Input) */}
         <div className="relative w-full sm:w-64">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search rewards..."
-            className="w-full pl-9 pr-3.5 py-1.5 rounded-xl bg-obsidian-900/90 border border-glass-border text-ink placeholder:text-ink-muted/50 focus:border-gold focus:outline-none text-xs transition-colors"
+            placeholder="Search vault rewards..."
+            className="w-full pl-9 pr-3.5 py-2 rounded-2xl bg-white/[0.03] border border-white/10 text-ink placeholder:text-ink-muted/50 focus:border-gold focus:outline-none text-xs transition-colors backdrop-blur-md"
           />
         </div>
       </div>
@@ -221,77 +233,81 @@ export default function ShopPage() {
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
-              className="h-48 rounded-panel bg-obsidian-800/40 border border-glass-border/40 animate-pulse p-5"
+              className="h-48 rounded-3xl bg-white/[0.02] border border-white/10 animate-pulse p-5"
             />
           ))}
         </div>
       ) : isError ? (
-        <div className="p-12 text-center text-body-sm text-attr-strength border border-dashed border-attr-strength/30 rounded-panel bg-attr-strength/5">
-          Failed to load shop items. Please refresh or try again later.
+        <div className="p-8 text-center text-xs text-red-400 border border-red-500/20 rounded-2xl bg-red-500/10">
+          Failed to load shop items. Please verify your connection.
         </div>
       ) : filteredItems.length === 0 ? (
-        <div className="p-12 text-center space-y-3 border border-dashed border-glass-border rounded-panel bg-obsidian-900/40">
-          <div className="w-14 h-14 rounded-2xl bg-white/5 border border-glass-border flex items-center justify-center text-ink-muted mx-auto">
-            <ShoppingBag size={26} />
+        <div className="p-12 text-center rounded-3xl bg-white/[0.02] border border-white/10 backdrop-blur-xl shadow-lg space-y-3">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-gold/10 border border-gold/30 flex items-center justify-center text-gold">
+            <ShoppingBag size={24} />
           </div>
-          <h3 className="text-body-md font-semibold text-ink">No reward items found</h3>
-          <p className="text-body-sm text-ink-muted max-w-sm mx-auto">
+          <h3 className="text-lg font-bold text-ink">No spoils discovered</h3>
+          <p className="text-xs text-ink-muted max-w-sm mx-auto leading-relaxed">
             {searchQuery
-              ? 'No items match your search. Try a different keyword.'
-              : selectedCategory === 'custom'
-              ? 'You have not created any custom rewards yet. Add your favorite treats!'
-              : 'There are no items currently available in this category.'}
+              ? `No items match "${searchQuery}". Clear your search query.`
+              : 'Add your first personal treat reward to incentivize your hard work.'}
           </p>
-          {selectedCategory === 'custom' && isAuthenticated && (
-            <Button
-              variant="primary"
+          {isAuthenticated && (
+            <motion.button
+              type="button"
               onClick={() => {
                 setEditingItem(null);
                 setIsCreateModalOpen(true);
               }}
-              className="bg-gold text-obsidian text-xs font-semibold mt-2"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="px-5 py-2.5 rounded-xl bg-gold text-obsidian font-bold text-xs hover:bg-gold/90 transition-all shadow-md inline-flex items-center gap-1.5 mt-2"
             >
-              + Create Custom Reward
-            </Button>
+              <Plus size={14} strokeWidth={2.5} />
+              <span>Forge First Treat</span>
+            </motion.button>
           )}
         </div>
       ) : (
-        <motion.div
-          layout
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           <AnimatePresence mode="popLayout">
             {filteredItems.map((item) => (
-              <ShopItemCard
+              <motion.div
                 key={item.id}
-                item={item}
-                userGold={userGold}
-                onInspect={(itm) => setInspectingItem(itm)}
-                onEdit={handleOpenEdit}
-                onDelete={handleDelete}
-                onQuickBuy={handleQuickBuy}
-                isBuying={buyMutation.isPending && buyMutation.variables?.itemId === item.id}
-              />
+                layout
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={spring.ios}
+              >
+                <ShopItemCard
+                  item={item}
+                  userGold={userGold}
+                  onInspect={() => setInspectingItem(item)}
+                  onEdit={() => handleOpenEdit(item)}
+                  onDelete={() => handleDelete(item)}
+                  onQuickBuy={() => handleQuickBuy(item)}
+                  isBuying={buyMutation.isPending && buyMutation.variables?.itemId === item.id}
+                />
+              </motion.div>
             ))}
           </AnimatePresence>
-        </motion.div>
+        </div>
       )}
 
       {/* ── Modals & Drawers ── */}
       <ShopItemModal
         isOpen={isCreateModalOpen}
-        onClose={() => {
-          setIsCreateModalOpen(false);
-          setEditingItem(null);
-        }}
-        initialData={editingItem}
+        onClose={() => setIsCreateModalOpen(false)}
+        itemToEdit={editingItem}
       />
 
       <ItemInspectionModal
-        isOpen={Boolean(inspectingItem)}
-        onClose={() => setInspectingItem(null)}
         item={inspectingItem}
         userGold={userGold}
+        onClose={() => setInspectingItem(null)}
+        onBuy={(item) => handleQuickBuy(item)}
+        isBuying={buyMutation.isPending}
       />
 
       <InventoryDrawer

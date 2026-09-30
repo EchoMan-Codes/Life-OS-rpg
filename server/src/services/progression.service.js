@@ -8,6 +8,8 @@ export const CANONICAL_ATTRIBUTES = [
   'perception',
 ];
 
+export const VALID_BATTLE_SOURCES = ['habit', 'daily', 'quest', 'boss'];
+
 /**
  * Authoritative leveling curve formula per Phase 2.2 spec.
  *
@@ -21,7 +23,8 @@ export function xpRequiredFor(level) {
 /**
  * Applies an XP/Gold/HP/Mana delta atomically inside a transaction with
  * SELECT ... FOR UPDATE row locking, resolves level-ups (possibly several at once),
- * awards 2 unallocated points per level gained, and clamps stats within valid bounds.
+ * awards 2 unallocated points per level gained, clamps stats within valid bounds,
+ * and automatically logs a centralized battle_events record.
  *
  * Every caller in Phase 3/4 goes through this — nothing else is allowed to UPDATE character_stats directly.
  *
@@ -32,9 +35,25 @@ export function xpRequiredFor(level) {
  * @param {number} [deltas.gold=0] - Gold delta
  * @param {number} [deltas.hp=0] - HP delta
  * @param {number} [deltas.mana=0] - Mana delta
- * @returns {Promise<object>} Progression summary
+ * @param {'habit'|'daily'|'quest'|'boss'} [deltas.sourceType='habit'] - Source of the battle event
+ * @param {string} [deltas.sourceId=null] - UUID of the source habit/daily/quest
+ * @param {string} [deltas.lootItemId=null] - Optional UUID of a reward_item dropped as loot
+ * @returns {Promise<object>} Progression summary with battleEvent
  */
-export async function applyReward(client, userId, { xp = 0, gold = 0, hp = 0, mana = 0 }) {
+export async function applyReward(
+  client,
+  userId,
+  {
+    xp = 0,
+    gold = 0,
+    hp = 0,
+    mana = 0,
+    sourceType = 'habit',
+    sourceId = null,
+    lootItemId = null,
+    skipBattleEvent = false,
+  } = {}
+) {
   const { rows } = await client.query(
     'SELECT * FROM character_stats WHERE user_id = $1 FOR UPDATE',
     [userId]
@@ -48,10 +67,10 @@ export async function applyReward(client, userId, { xp = 0, gold = 0, hp = 0, ma
     throw err;
   }
 
-  let newXp = stat.xp + xp;
   let level = stat.level;
-  let leveledUp = false;
+  let newXp = stat.xp + xp;
   let unallocated = stat.unallocated_points;
+  let leveledUp = false;
 
   // Resolve multi-level-ups atomically in a loop
   while (newXp >= xpRequiredFor(level)) {
@@ -64,6 +83,7 @@ export async function applyReward(client, userId, { xp = 0, gold = 0, hp = 0, ma
   const finalXp = Math.max(0, newXp);
   const newHp = Math.max(0, Math.min(stat.max_hp, stat.hp + hp));
   const newMana = Math.max(0, Math.min(stat.max_mana, stat.mana + mana));
+  const actualManaRestored = newMana - stat.mana;
   const newGold = Math.max(0, stat.gold + gold);
 
   await client.query(
@@ -73,16 +93,83 @@ export async function applyReward(client, userId, { xp = 0, gold = 0, hp = 0, ma
     [finalXp, level, newHp, newMana, newGold, unallocated, userId]
   );
 
+  // 1. Validate source type for battle event
+  const validSourceType = VALID_BATTLE_SOURCES.includes(sourceType)
+    ? sourceType
+    : 'habit';
+
+  // 2. Handle loot drop auto-insertion into inventory if lootItemId is provided
+  let lootItem = null;
+  if (lootItemId) {
+    const lootRes = await client.query(
+      `SELECT id, name, description, cost_gold as "costGold", type, icon
+       FROM reward_items
+       WHERE id = $1`,
+      [lootItemId]
+    );
+
+    if (lootRes.rows.length > 0) {
+      lootItem = lootRes.rows[0];
+
+      // Upsert into inventory for user
+      const existInv = await client.query(
+        `SELECT id, quantity FROM inventory WHERE user_id = $1 AND reward_item_id = $2 FOR UPDATE`,
+        [userId, lootItemId]
+      );
+
+      if (existInv.rows.length > 0) {
+        await client.query(
+          `UPDATE inventory
+           SET quantity = quantity + 1
+           WHERE id = $1`,
+          [existInv.rows[0].id]
+        );
+      } else {
+        await client.query(
+          `INSERT INTO inventory (user_id, reward_item_id, quantity)
+           VALUES ($1, $2, 1)`,
+          [userId, lootItemId]
+        );
+      }
+    }
+  }
+
+  // 3. Centralized battle_events log insertion (unless skipped, e.g. focus sessions)
+  let eventRow = null;
+  if (!skipBattleEvent) {
+    const eventRes = await client.query(
+      `INSERT INTO battle_events (
+         user_id, source_type, source_id, xp_awarded, gold_awarded, hp_change, loot_item_id
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, user_id as "userId", source_type as "sourceType",
+                 source_id as "sourceId", xp_awarded as "xpAwarded",
+                 gold_awarded as "goldAwarded", hp_change as "hpChange",
+                 loot_item_id as "lootItemId", created_at as "createdAt"`,
+      [userId, validSourceType, sourceId, xp, gold, hp, lootItemId]
+    );
+    eventRow = eventRes.rows[0];
+  }
+
   return {
     leveledUp,
     levelsGained: level - stat.level,
     newLevel: level,
+    previousLevel: stat.level,
     newHp,
     newMana,
+    actualManaRestored,
+    maxMana: stat.max_mana,
     newGold,
     newXp: finalXp,
     xpForNextLevel: xpRequiredFor(level),
     unallocatedPoints: unallocated,
+    battleEvent: eventRow
+      ? {
+          ...eventRow,
+          lootItem,
+        }
+      : null,
   };
 }
 

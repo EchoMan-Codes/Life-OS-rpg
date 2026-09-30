@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useToast } from '@/components/ui/useToast';
 import { useAuth } from '@/features/auth/hooks';
+import { checkAndTriggerCelebrations } from '@/features/celebration/celebrationEvents';
 import {
   fetchHabits,
   createHabit,
@@ -161,9 +162,6 @@ function bumpCharacterOptimistically(oldChar, habit, direction) {
 
 /**
  * Hook to score a habit with optimistic updates, sound, floating text, and error rollback.
- *
- * @param {string} habitId
- * @param {object} [habit] - Full habit object for difficulty calculation
  */
 export function useScoreHabit(habitId, habit) {
   const queryClient = useQueryClient();
@@ -178,20 +176,20 @@ export function useScoreHabit(habitId, habit) {
       const prevHabits = queryClient.getQueryData(['habits', { includeArchived: false }]);
       const prevChar = queryClient.getQueryData(['character']);
 
-      // Optimistically update habit list
       queryClient.setQueryData(['habits', { includeArchived: false }], (old) =>
         bumpHabitOptimistically(old, habitId, direction)
       );
 
-      // Optimistically update character stats in HUD
       queryClient.setQueryData(['character'], (old) =>
         bumpCharacterOptimistically(old, habit, direction)
       );
 
       return { prevHabits, prevChar };
     },
+    onSuccess: (data) => {
+      checkAndTriggerCelebrations(data);
+    },
     onError: (err, _vars, ctx) => {
-      // Rollback to prior snapshot
       if (ctx?.prevHabits !== undefined) {
         queryClient.setQueryData(['habits', { includeArchived: false }], ctx.prevHabits);
       }

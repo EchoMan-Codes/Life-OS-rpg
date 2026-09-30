@@ -124,7 +124,7 @@ export class AuthController {
 
   async googleCallback(req, res) {
     if (!req.user || !req.user.rawRefreshToken) {
-      return res.redirect(`${env.CLIENT_ORIGIN}/?auth_error=google_failed`);
+      return res.redirect(`${env.CLIENT_ORIGIN}/auth/callback?auth_error=google_failed`);
     }
 
     res.cookie(REFRESH_COOKIE_NAME, req.user.rawRefreshToken, REFRESH_COOKIE_OPTIONS);

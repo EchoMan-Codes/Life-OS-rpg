@@ -73,6 +73,31 @@ export async function checkAndProcessUserReset(poolOrClient, userId, timeZone = 
     const localToday = getUserLocalDate(now, tz);
     const { yesterdayDate, yesterdayWeekday } = getUserLocalYesterday(now, tz);
 
+    // 1b. Check Rest Mode status for this user with row locking
+    let isResting = false;
+    const restRes = await client.query(
+      `SELECT is_active, auto_deactivate_at
+       FROM rest_mode
+       WHERE user_id = $1
+       FOR UPDATE`,
+      [userId]
+    );
+
+    if (restRes.rows.length > 0 && restRes.rows[0].is_active) {
+      const { auto_deactivate_at } = restRes.rows[0];
+      if (auto_deactivate_at && new Date(auto_deactivate_at) <= now) {
+        // Expired rest mode: automatically deactivate
+        await client.query(
+          `UPDATE rest_mode
+           SET is_active = false
+           WHERE user_id = $1`,
+          [userId]
+        );
+      } else {
+        isResting = true;
+      }
+    }
+
     // 2. Lock all active dailies for this user to ensure isolation against concurrent cron/API resets
     const dailyRes = await client.query(
       `SELECT id, user_id, title, difficulty, active_days, streak_current, streak_best,
@@ -124,9 +149,12 @@ export async function checkAndProcessUserReset(poolOrClient, userId, timeZone = 
             [daily.id, userId, yesterdayDate]
           );
         } else {
-          // Missed yesterday with no shield: reset streak and apply difficulty-based HP penalty
+          // Missed yesterday with no shield: reset streak to 0 as normal
           newStreak = 0;
-          totalHpLoss += hpPenaltyFor(daily.difficulty);
+          // If Rest Mode is active: skip HP penalty entirely (0 damage)
+          if (!isResting) {
+            totalHpLoss += hpPenaltyFor(daily.difficulty);
+          }
         }
       }
 
@@ -145,7 +173,7 @@ export async function checkAndProcessUserReset(poolOrClient, userId, timeZone = 
 
     // 6. Apply cumulative HP penalty through progression service if player took damage
     if (totalHpLoss > 0) {
-      await applyReward(client, userId, { hp: -totalHpLoss });
+      await applyReward(client, userId, { hp: -totalHpLoss, sourceType: 'daily' });
     }
 
     return {
@@ -165,6 +193,18 @@ export async function checkAndProcessUserReset(poolOrClient, userId, timeZone = 
  * @returns {Promise<{ processedUsers: number, errors: number }>}
  */
 export async function processDueResets(pool) {
+  // First, auto-deactivate any expired rest modes across users
+  try {
+    await pool.query(
+      `UPDATE rest_mode
+       SET is_active = false
+       WHERE is_active = true
+         AND auto_deactivate_at IS NOT NULL
+         AND auto_deactivate_at <= now()`
+    );
+  } catch (err) {
+    console.error('[DAILY_RESET] Error auto-deactivating rest modes:', err.message);
+  }
   const usersRes = await query(
     `SELECT DISTINCT u.id, u.timezone
      FROM users u

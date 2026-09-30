@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useToast } from '@/components/ui/useToast';
 import { useAuth } from '@/features/auth/hooks';
+import { checkAndTriggerCelebrations } from '@/features/celebration/celebrationEvents';
 import {
   fetchDailies,
   createDaily,
@@ -147,6 +148,9 @@ export function useCompleteDaily(dailyId, daily) {
       });
 
       return { prevDailies, prevChar };
+    },
+    onSuccess: (data) => {
+      checkAndTriggerCelebrations(data);
     },
     onError: (err, _vars, ctx) => {
       if (ctx?.prevDailies !== undefined) {

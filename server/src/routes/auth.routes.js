@@ -68,11 +68,11 @@ router.get(
   '/google/callback',
   (req, res, next) => {
     if (!isGoogleConfigured) {
-      return res.redirect(`${env.CLIENT_ORIGIN}/?auth_error=google_not_configured`);
+      return res.redirect(`${env.CLIENT_ORIGIN}/auth/callback?auth_error=google_not_configured`);
     }
     passport.authenticate('google', {
       session: false,
-      failureRedirect: `${env.CLIENT_ORIGIN}/?auth_error=oauth_failure`,
+      failureRedirect: `${env.CLIENT_ORIGIN}/auth/callback?auth_error=oauth_failure`,
     })(req, res, next);
   },
   authController.googleCallback

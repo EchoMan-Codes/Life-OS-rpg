@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { Coins, Shield, User as UserIcon } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Coins, Shield, Swords, User as UserIcon } from 'lucide-react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 
 import { useCharacter } from '@/features/character/hooks';
 import { useAuth } from '@/features/auth/hooks';
+import { LIFEOS_OPEN_ATTRIBUTES_EVENT } from '@/features/celebration/celebrationEvents';
 import { StatBar } from './StatBar';
 import { AttributesDrawer } from './AttributesDrawer';
 
@@ -12,15 +13,17 @@ import { AttributesDrawer } from './AttributesDrawer';
  * Sticky top Player Status HUD.
  * Bold glass surface displaying avatar + level badge, HP/Mana/XP bars, Gold counter,
  * and attributes drawer trigger.
- *
- * @param {object} props
- * @param {boolean} [props.sidebarCollapsed=false] - Whether desktop sidebar is collapsed
- * @param {boolean} [props.isDesktop=false] - Whether viewport is desktop (>= 768px)
  */
-export function PlayerHud({ sidebarCollapsed = false, isDesktop = false }) {
+export function PlayerHud({ sidebarCollapsed = false, isDesktop = false, onOpenBattleLog }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { data: character = {} } = useCharacter();
   const { user } = useAuth();
+
+  useEffect(() => {
+    const handleOpen = () => setDrawerOpen(true);
+    window.addEventListener(LIFEOS_OPEN_ATTRIBUTES_EVENT, handleOpen);
+    return () => window.removeEventListener(LIFEOS_OPEN_ATTRIBUTES_EVENT, handleOpen);
+  }, []);
 
   // Fallback defaults while initial query loads
   const level = character.level ?? 4;
@@ -40,7 +43,6 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false }) {
       <header
         className={clsx(
           'fixed top-0 right-0 z-40 h-16',
-          // Bold glass surface per design tokens (stronger blur and opacity)
           'bg-obsidian-900/90 backdrop-blur-2xl border-b border-glass-border shadow-glow',
           'transition-[left] duration-200',
           isDesktop
@@ -50,7 +52,7 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false }) {
             : 'left-0'
         )}
       >
-        <div className="h-full px-3 sm:px-4 md:px-6 flex items-center justify-between gap-2 sm:gap-4 md:gap-6 overflow-hidden">
+        <div className="h-full px-2.5 sm:px-4 md:px-6 flex items-center justify-between gap-1.5 sm:gap-4 md:gap-6 overflow-hidden">
           {/* 1. Left: Avatar + Level Badge */}
           <button
             type="button"
@@ -67,15 +69,15 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false }) {
                 <img
                   src={avatarUrl}
                   alt={displayName}
-                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-chip object-cover border border-gold/40 shadow-sm"
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-chip object-cover border border-gold/40 shadow-sm"
                 />
               ) : (
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-chip bg-obsidian-700 border border-gold/40 flex items-center justify-center text-gold shadow-sm">
-                  <UserIcon size={20} />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-chip bg-obsidian-700 border border-gold/40 flex items-center justify-center text-gold shadow-sm">
+                  <UserIcon size={18} />
                 </div>
               )}
               {/* Level Badge overlaid */}
-              <span className="absolute -bottom-1 -right-1 bg-obsidian-900 text-gold border border-gold/50 rounded-chip px-1 text-[9px] sm:text-[10px] font-mono font-bold leading-tight shadow">
+              <span className="absolute -bottom-1 -right-1 bg-obsidian-900 text-gold border border-gold/50 rounded-chip px-1 text-[8px] sm:text-[10px] font-mono font-bold leading-tight shadow">
                 {level}
               </span>
             </div>
@@ -91,24 +93,42 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false }) {
           </button>
 
           {/* 2. Middle: HP, Mana, XP StatBars */}
-          <div className="flex items-center gap-2 sm:gap-3 md:gap-5 flex-1 max-w-2xl min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-3 md:gap-5 flex-1 max-w-2xl min-w-0">
             <StatBar type="hp" current={hp} max={maxHp} label="HP" />
             <StatBar type="mana" current={mana} max={maxMana} label="MP" />
             <StatBar type="xp" current={xp} max={xpForNextLevel} label="XP" />
           </div>
 
-          {/* 3. Right: Gold Counter & Attributes Drawer Trigger */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* 3. Right: Gold Counter & Triggers */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* Gold Counter */}
             <div
-              className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-chip bg-obsidian-800 border border-gold/30 text-gold shadow-inner"
+              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 rounded-chip bg-obsidian-800 border border-gold/30 text-gold shadow-inner"
               title={`${gold} Gold`}
             >
-              <Coins size={15} className="text-gold shrink-0" />
+              <Coins size={14} className="text-gold shrink-0" />
               <span className="font-mono font-bold text-xs sm:text-sm">
                 {gold}
               </span>
             </div>
+
+            {/* Battle Chronicles Trigger Button */}
+            {onOpenBattleLog && (
+              <button
+                type="button"
+                onClick={onOpenBattleLog}
+                aria-label="Open Battle Chronicles"
+                title="Battle Chronicles"
+                className={clsx(
+                  'p-1.5 sm:px-2 sm:py-1.5 rounded-lg border border-glass-border',
+                  'bg-glass hover:bg-glass/80 text-gold',
+                  'flex items-center gap-1 transition-colors min-h-[36px] min-w-[36px] justify-center',
+                  'focus:outline-none focus:ring-2 focus:ring-glass-border'
+                )}
+              >
+                <Swords size={15} className="shrink-0" />
+              </button>
+            )}
 
             {/* Attributes Drawer Button */}
             <button
@@ -120,10 +140,10 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false }) {
                 'p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg border border-glass-border',
                 'bg-glass hover:bg-glass/80 text-ink-muted hover:text-ink',
                 'flex items-center gap-1.5 text-caption font-display font-medium',
-                'transition-colors focus:outline-none focus:ring-2 focus:ring-glass-border'
+                'transition-colors focus:outline-none focus:ring-2 focus:ring-glass-border min-h-[36px]'
               )}
             >
-              <Shield size={16} className="text-attr-willpower shrink-0" />
+              <Shield size={15} className="text-attr-willpower shrink-0" />
               <span className="hidden sm:inline">Stats</span>
             </button>
           </div>
@@ -143,4 +163,5 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false }) {
 PlayerHud.propTypes = {
   sidebarCollapsed: PropTypes.bool,
   isDesktop: PropTypes.bool,
+  onOpenBattleLog: PropTypes.func,
 };

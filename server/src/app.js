@@ -12,6 +12,10 @@ import habitRoutes from './routes/habit.routes.js';
 import dailyRoutes from './routes/daily.routes.js';
 import questRoutes from './routes/quest.routes.js';
 import shopRoutes from './routes/shop.routes.js';
+import battleEventRoutes from './routes/battle-event.routes.js';
+import focusRoutes from './routes/focus.routes.js';
+import reflectionRoutes from './routes/reflection.routes.js';
+import restModeRoutes from './routes/rest-mode.routes.js';
 
 const app = express();
 
@@ -68,6 +72,14 @@ app.use('/api/v1/habits', habitRoutes);
 app.use('/api/v1/dailies', dailyRoutes);
 app.use('/api/v1/quests', questRoutes);
 app.use('/api/v1/shop', shopRoutes);
+app.use('/api/v1/battle-events', battleEventRoutes);
+app.use('/battle-events', battleEventRoutes);
+app.use('/api/v1/focus', focusRoutes);
+app.use('/focus', focusRoutes);
+app.use('/api/v1/reflections', reflectionRoutes);
+app.use('/reflections', reflectionRoutes);
+app.use('/api/v1/rest-mode', restModeRoutes);
+app.use('/rest-mode', restModeRoutes);
 
 // 404 handler for undefined routes
 app.use((req, res) => {
@@ -93,6 +105,7 @@ app.use((err, req, res, next) => {
       code,
       message: err.message || 'An unexpected error occurred.',
       ...(err.suggestions && { suggestions: err.suggestions }),
+      ...(err.details && { details: err.details }),
     },
   });
 });

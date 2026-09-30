@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useToast } from '@/components/ui/useToast';
 import { useAuth } from '@/features/auth/hooks';
+import { checkAndTriggerCelebrations } from '@/features/celebration/celebrationEvents';
 import {
   fetchQuests,
   fetchQuest,
@@ -250,10 +251,11 @@ export function useCompleteQuestItem() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['quests'] });
       queryClient.invalidateQueries({ queryKey: ['character'] });
+      checkAndTriggerCelebrations(data);
 
       if (data?.parentCompleted) {
         showToast({
-          title: 'Quest Completed!',
+          title: 'Quest Completed! 🏆',
           message: 'All checklist subtasks conquered! Completion bonus awarded.',
           type: 'success',
         });
@@ -301,12 +303,13 @@ export function useCompleteQuest() {
 
   return useMutation({
     mutationFn: (questId) => completeQuest(questId),
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['quests'] });
       queryClient.invalidateQueries({ queryKey: ['character'] });
+      checkAndTriggerCelebrations(data);
       showToast({
-        title: 'Quest Conquered!',
-        message: 'Quest rewards and remaining milestones granted.',
+        title: 'Quest Conquered! 🏆',
+        message: 'Quest rewards and completion bonus granted.',
         type: 'success',
       });
     },

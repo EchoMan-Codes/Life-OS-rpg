@@ -7,6 +7,8 @@ import {
   CalendarCheck,
   Scroll,
   ShoppingBag,
+  Clock,
+  Moon,
   ChevronLeft,
   ChevronRight,
   LogIn,
@@ -17,24 +19,21 @@ import { spring, pressable } from '@/lib/motionVariants';
 import { useAuth } from '@/features/auth/hooks';
 
 /**
- * Navigation items — placeholder routes for future phases.
+ * Navigation items for primary RPG LifeOS features.
  */
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/habits', icon: Flame, label: 'Habits' },
   { to: '/dailies', icon: CalendarCheck, label: 'Dailies' },
   { to: '/quests', icon: Scroll, label: 'Quests' },
+  { to: '/focus', icon: Clock, label: 'Focus Chamber' },
+  { to: '/reflection', icon: Moon, label: 'Reflection' },
   { to: '/shop', icon: ShoppingBag, label: 'Shop' },
 ];
 
 /**
  * Desktop sidebar — fixed left, w-64 expanded / w-20 collapsed.
  * Hidden below md breakpoint.
- *
- * @param {object} props
- * @param {boolean} props.collapsed - Whether the sidebar is in icon-only mode
- * @param {() => void} props.onToggle - Toggle collapsed state
- * @param {() => void} [props.onOpenAuth] - Callback to open authentication modal
  */
 export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
   const shouldReduceMotion = useReducedMotion();
@@ -54,22 +53,27 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
       {/* Logo / App title */}
       <div className="flex items-center h-16 px-5 border-b border-glass-border">
         {!collapsed && (
-          <motion.span
-            className="text-display-sm text-ink truncate"
+          <motion.div
+            className="flex items-center gap-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.05 }}
           >
-            Life OS
-          </motion.span>
+            <div className="w-8 h-8 rounded-lg bg-gold/15 border border-gold/40 flex items-center justify-center text-gold font-bold font-display text-sm">
+              Ω
+            </div>
+            <span className="text-display-sm text-ink truncate">Life OS</span>
+          </motion.div>
         )}
         {collapsed && (
-          <span className="text-display-sm text-ink mx-auto">L</span>
+          <div className="w-8 h-8 rounded-lg bg-gold/15 border border-gold/40 flex items-center justify-center text-gold font-bold font-display text-sm mx-auto">
+            Ω
+          </div>
         )}
       </div>
 
       {/* Nav items */}
-      <nav className="flex-1 py-4 px-3 space-y-1">
+      <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
         {navItems.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
@@ -81,7 +85,7 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
                 'min-h-[44px]',
                 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-glass-border',
                 isActive
-                  ? 'bg-glass text-ink'
+                  ? 'bg-glass text-ink border border-glass-border shadow-sm'
                   : 'text-ink-muted hover:bg-glass hover:text-ink'
               )
             }
@@ -92,7 +96,7 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
         ))}
       </nav>
 
-      {/* ── User Session / Auth Section ── */}
+      {/* User Session / Auth Section */}
       <div className="px-3 py-3 border-t border-glass-border">
         {isAuthenticated && user ? (
           <div
@@ -110,7 +114,7 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
                 />
               ) : (
                 <div className="w-8 h-8 rounded-full bg-attr-perception/20 border border-attr-perception/40 flex items-center justify-center text-attr-perception font-semibold text-xs shrink-0">
-                  {user.displayName?.[0]?.toUpperCase() || 'P'}
+                  {user.displayName?.[0]?.toUpperCase() || 'H'}
                 </div>
               )}
               {!collapsed && (
@@ -133,7 +137,7 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
                 aria-label="Log out"
                 title="Log out"
                 className={clsx(
-                  'p-1.5 rounded-chip text-ink-muted hover:text-attr-strength hover:bg-white/10',
+                  'p-1.5 rounded-chip text-ink-muted hover:text-hp hover:bg-white/10',
                   'transition-colors duration-150',
                   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-glass-border'
                 )}

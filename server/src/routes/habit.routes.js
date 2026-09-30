@@ -31,6 +31,7 @@ const scoreHabitSchema = z.object({
 router.use(requireAuth);
 
 router.get('/', (req, res, next) => habitController.listHabits(req, res, next));
+router.get('/activity', (req, res, next) => habitController.getHabitActivity(req, res, next));
 router.post('/', validate(createHabitSchema), (req, res, next) => habitController.createHabit(req, res, next));
 router.get('/:id', (req, res, next) => habitController.getHabit(req, res, next));
 router.patch('/:id', validate(updateHabitSchema), (req, res, next) => habitController.updateHabit(req, res, next));

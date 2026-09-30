@@ -494,6 +494,8 @@ export class QuestService {
       const itemProgression = await applyReward(client, userId, {
         xp: item.xp_reward,
         gold: item.gold_reward,
+        sourceType: 'quest',
+        sourceId: questId,
       });
 
       // 5. Insert audit completion record for item
@@ -550,6 +552,8 @@ export class QuestService {
         const milestoneProg = await applyReward(client, userId, {
           xp: m.xp_bonus,
           gold: m.gold_bonus,
+          sourceType: 'quest',
+          sourceId: questId,
         });
         latestProgression = milestoneProg;
 
@@ -590,6 +594,8 @@ export class QuestService {
         const questProg = await applyReward(client, userId, {
           xp: questReward.xp,
           gold: questReward.gold,
+          sourceType: 'quest',
+          sourceId: questId,
         });
         latestProgression = questProg;
 
@@ -800,7 +806,12 @@ export class QuestService {
           `UPDATE quest_milestones SET is_reached = true, reached_at = now() WHERE id = $1`,
           [m.id]
         );
-        const mProg = await applyReward(client, userId, { xp: m.xp_bonus, gold: m.gold_bonus });
+        const mProg = await applyReward(client, userId, {
+          xp: m.xp_bonus,
+          gold: m.gold_bonus,
+          sourceType: 'quest',
+          sourceId: questId,
+        });
         latestProgression = mProg;
 
         await client.query(
@@ -831,6 +842,8 @@ export class QuestService {
       const questProg = await applyReward(client, userId, {
         xp: questReward.xp,
         gold: questReward.gold,
+        sourceType: 'quest',
+        sourceId: questId,
       });
       latestProgression = questProg;
 

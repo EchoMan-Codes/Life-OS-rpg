@@ -1,22 +1,28 @@
 import { Routes, Route } from 'react-router-dom';
 
 import { AppShell } from '@/components/layout';
-import DevShowcase from '@/pages/DevShowcase';
 import AuthCallback from '@/pages/AuthCallback';
+import DashboardPage from '@/pages/DashboardPage';
 import HabitsPage from '@/pages/HabitsPage';
 import DailiesPage from '@/pages/DailiesPage';
 import QuestsPage from '@/pages/QuestsPage';
+import FocusChamberPage from '@/pages/FocusChamberPage';
+import ReflectionPage from '@/pages/ReflectionPage';
 import ShopPage from '@/pages/ShopPage';
+import DevShowcase from '@/pages/DevShowcase';
 
 export default function App() {
   return (
     <AppShell>
       <Routes>
-        <Route path="/" element={<DevShowcase />} />
+        <Route path="/" element={<DashboardPage />} />
         <Route path="/habits" element={<HabitsPage />} />
         <Route path="/dailies" element={<DailiesPage />} />
         <Route path="/quests" element={<QuestsPage />} />
+        <Route path="/focus" element={<FocusChamberPage />} />
+        <Route path="/reflection" element={<ReflectionPage />} />
         <Route path="/shop" element={<ShopPage />} />
+        <Route path="/dev" element={<DevShowcase />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
       </Routes>
     </AppShell>

@@ -18,6 +18,27 @@ export class HabitController {
   }
 
   /**
+   * GET /api/v1/habits/activity
+   */
+  async getHabitActivity(req, res, next) {
+    try {
+      const recentLimit = req.query.recentLimit !== undefined
+        ? parseInt(String(req.query.recentLimit), 10)
+        : 10;
+      if (isNaN(recentLimit) || recentLimit < 1 || recentLimit > 50) {
+        const err = new Error('recentLimit must be an integer between 1 and 50');
+        err.status = 400;
+        err.code = 'INVALID_QUERY_PARAMS';
+        return next(err);
+      }
+      const activity = await habitService.getHabitActivity(req.user.id, { recentLimit });
+      return res.status(200).json({ data: activity });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
    * GET /api/v1/habits/:id
    */
   async getHabit(req, res, next) {

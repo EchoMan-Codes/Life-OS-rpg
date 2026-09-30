@@ -7,10 +7,20 @@ export const REFRESH_COOKIE_NAME = 'rt';
 
 export const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
+/**
+ * Refresh cookie options.
+ *
+ * In production (cross-origin: Vercel frontend ↔ Render backend),
+ * sameSite must be 'none' so the browser sends the cookie on cross-origin
+ * credential-bearing POST requests (/auth/refresh).
+ * 'lax' would silently block these, causing session loss on page refresh.
+ *
+ * In development (same origin localhost), 'lax' is fine and more secure.
+ */
 export const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: env.NODE_ENV === 'production',
-  sameSite: 'lax',
+  sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
   path: '/api/v1/auth',
   maxAge: REFRESH_TOKEN_TTL_MS,
 };

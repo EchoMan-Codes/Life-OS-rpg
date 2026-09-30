@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import clsx from 'clsx';
 
 import { useMediaQuery } from '@/hooks/useMediaQuery';
@@ -20,6 +21,9 @@ import { BottomNav } from './BottomNav';
  * @param {React.ReactNode} props.children - Main content area
  */
 export function AppShell({ children }) {
+  const location = useLocation();
+  const isOnboardingPage = location.pathname === '/onboarding' || location.pathname === '/login';
+
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [battleDrawerOpen, setBattleDrawerOpen] = useState(false);
@@ -31,6 +35,16 @@ export function AppShell({ children }) {
     window.addEventListener(LIFEOS_OPEN_BATTLE_LOG_EVENT, handleOpenBattleLog);
     return () => window.removeEventListener(LIFEOS_OPEN_BATTLE_LOG_EVENT, handleOpenBattleLog);
   }, []);
+
+  if (isOnboardingPage) {
+    return (
+      <ToastProvider>
+        <div className="min-h-screen bg-[#07080C]">
+          {children}
+        </div>
+      </ToastProvider>
+    );
+  }
 
   return (
     <ToastProvider>

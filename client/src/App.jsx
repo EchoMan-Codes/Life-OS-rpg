@@ -11,11 +11,15 @@ import ReflectionPage from '@/pages/ReflectionPage';
 import ShopPage from '@/pages/ShopPage';
 import DevShowcase from '@/pages/DevShowcase';
 
+import OnboardingPage from '@/features/onboarding/OnboardingPage';
+
 export default function App() {
   return (
     <AppShell>
       <Routes>
         <Route path="/" element={<DashboardPage />} />
+        <Route path="/onboarding" element={<OnboardingPage />} />
+        <Route path="/login" element={<OnboardingPage defaultMode="login" />} />
         <Route path="/habits" element={<HabitsPage />} />
         <Route path="/dailies" element={<DailiesPage />} />
         <Route path="/quests" element={<QuestsPage />} />

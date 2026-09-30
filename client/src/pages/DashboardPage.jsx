@@ -433,12 +433,40 @@ export default function DashboardPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-        <Activity size={48} className="text-gold mb-4" />
-        <h2 className="text-display-sm text-ink mb-2">Life OS — RPG Command Center</h2>
-        <p className="text-body text-ink-muted max-w-md">
-          Sign in to access your dashboard, complete dailies, run focus sessions, and monitor character progression.
-        </p>
+      <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4 py-8">
+        <div className="w-full max-w-lg p-6 sm:p-8 rounded-3xl bg-white/[0.02] border border-white/10 backdrop-blur-xl shadow-2xl space-y-6">
+          <div className="w-14 h-14 rounded-2xl bg-mana/15 border border-mana/30 mx-auto flex items-center justify-center text-mana shadow-[0_0_30px_rgba(99,102,241,0.2)]">
+            <Sparkles size={28} />
+          </div>
+
+          <div className="space-y-2">
+            <span className="text-[11px] font-mono uppercase tracking-widest text-mana font-semibold">
+              LifeOS Operating System
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">
+              Calibrate Your Sanctum
+            </h2>
+            <p className="text-xs sm:text-sm text-ink-muted leading-relaxed">
+              Step into a unified personal operating system. Track habits, complete daily rituals, engage in deep focus sprints, and level up your character progression.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <Link
+              to="/onboarding"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-ink text-obsidian font-semibold text-sm hover:bg-ink/90 transition-all shadow-lg min-h-[44px]"
+            >
+              <span>Initialize LifeOS</span>
+              <ArrowRight size={15} />
+            </Link>
+            <Link
+              to="/login"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white/[0.05] hover:bg-white/[0.09] border border-white/10 text-ink font-semibold text-sm transition-all min-h-[44px]"
+            >
+              <span>Sign In</span>
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }

@@ -4,7 +4,7 @@ import clsx from 'clsx';
 
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { AuthModal } from '@/features/auth/components/AuthModal';
-import { PlayerHud, FloatingTextContainer } from '@/components/hud';
+import { PlayerHud, FloatingTextContainer, MobileProgressionHud } from '@/components/hud';
 import { ToastProvider } from '@/components/ui/Toast';
 import { BattleActivityDrawer } from '@/components/hud/BattleActivityDrawer';
 import { LevelUpModal } from '@/components/celebration/LevelUpModal';
@@ -39,7 +39,7 @@ export function AppShell({ children }) {
   if (isOnboardingPage) {
     return (
       <ToastProvider>
-        <div className="min-h-screen bg-[#07080C]">
+        <div className="min-h-screen bg-obsidian text-ink">
           {children}
         </div>
       </ToastProvider>
@@ -79,7 +79,14 @@ export function AppShell({ children }) {
               : 'pb-28 sm:pb-32' // clearance for floating capsule bottom nav on mobile
           )}
         >
-          <div className="p-3 sm:p-5 md:p-6 lg:p-8 max-w-7xl mx-auto">{children}</div>
+          <div className="p-3 sm:p-5 md:p-6 lg:p-8 max-w-7xl mx-auto">
+            {!isDesktop && (
+              <div className="mb-3.5">
+                <MobileProgressionHud />
+              </div>
+            )}
+            {children}
+          </div>
         </main>
 
         {/* Mobile: Bottom nav with Hub drawer */}

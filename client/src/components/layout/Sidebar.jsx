@@ -46,14 +46,15 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
       className={clsx(
         'fixed top-0 left-0 h-screen z-40',
         'hidden md:flex flex-col',
-        'bg-obsidian-900 border-r border-glass-border',
+        'bg-white dark:bg-obsidian-900 border-r border-slate-200/80 dark:border-glass-border',
+        'shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-none',
         'transition-all duration-200'
       )}
       animate={{ width: collapsed ? 80 : 256 }}
       transition={shouldReduceMotion ? { duration: 0 } : spring.snappy}
     >
       {/* Logo / App title */}
-      <div className="flex items-center h-16 px-5 border-b border-glass-border">
+      <div className="flex items-center h-16 px-5 border-b border-slate-200/80 dark:border-glass-border">
         {!collapsed && (
           <motion.div
             className="flex items-center gap-2"
@@ -64,7 +65,7 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
             <div className="w-8 h-8 rounded-lg bg-gold/15 border border-gold/40 flex items-center justify-center text-gold font-bold font-display text-sm">
               Ω
             </div>
-            <span className="text-display-sm text-ink truncate">Life OS</span>
+            <span className="text-display-sm text-slate-800 dark:text-ink truncate">Life OS</span>
           </motion.div>
         )}
         {collapsed && (
@@ -82,13 +83,13 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
             to={to}
             className={({ isActive }) =>
               clsx(
-                'flex items-center gap-3 px-3 py-2.5 rounded-panel',
-                'text-sm font-medium transition-colors duration-150',
+                'flex items-center gap-3 px-3 py-2.5 rounded-2xl',
+                'text-sm font-medium transition-all duration-150',
                 'min-h-[44px]',
-                'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-glass-border',
+                'focus-visible:outline-2 focus-visible:outline-offset-2',
                 isActive
-                  ? 'bg-glass text-ink border border-glass-border shadow-sm'
-                  : 'text-ink-muted hover:bg-glass hover:text-ink'
+                  ? 'bg-indigo-50/90 text-indigo-700 border border-indigo-200/70 shadow-xs font-semibold dark:bg-glass dark:text-ink dark:border-glass-border'
+                  : 'text-slate-600 dark:text-ink-muted hover:bg-slate-100/70 dark:hover:bg-glass hover:text-slate-900 dark:hover:text-ink'
               )
             }
           >

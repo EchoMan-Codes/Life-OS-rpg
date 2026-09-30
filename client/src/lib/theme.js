@@ -12,24 +12,24 @@ import { useState, useEffect, useCallback } from 'react';
 export const THEME_STORAGE_KEY = 'lifeos_appearance_mode';
 
 export const APPEARANCE_MODES = [
+  { id: 'light', label: 'Light', desc: 'Solar Premium', icon: 'Sun' },
   { id: 'dark', label: 'Dark', desc: 'Obsidian Black', icon: 'Moon' },
   { id: 'dim', label: 'Dim', desc: 'Midnight Indigo', icon: 'Sparkles' },
-  { id: 'light', label: 'Light', desc: 'Solar Minimalist', icon: 'Sun' },
 ];
 
 /**
- * Gets the stored appearance mode or defaults to 'dark'.
+ * Gets the stored appearance mode or defaults to 'light'.
  */
 export function getSavedThemeMode() {
   try {
     const saved = localStorage.getItem(THEME_STORAGE_KEY);
-    if (saved && ['dark', 'dim', 'light', 'system'].includes(saved)) {
+    if (saved && ['light', 'dark', 'dim', 'system'].includes(saved)) {
       return saved;
     }
   } catch {
     // fallback
   }
-  return 'dark';
+  return 'light';
 }
 
 /**

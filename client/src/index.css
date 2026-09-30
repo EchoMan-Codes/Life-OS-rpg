@@ -8,19 +8,19 @@
  */
 
 @theme {
-  /* ── Background (obsidian) ── */
-  --color-obsidian: #07080C;
-  --color-obsidian-900: #0B0D14;
-  --color-obsidian-800: #12141D;
-  --color-obsidian-700: #1B1E2B;
+  /* ── Background (obsidian) — Light Mode Default ── */
+  --color-obsidian: #F6F8FC;
+  --color-obsidian-900: #FFFFFF;
+  --color-obsidian-800: #EEF2F8;
+  --color-obsidian-700: #E2E8F0;
 
   /* ── Glass surfaces ── */
-  --color-glass: rgba(255, 255, 255, 0.04);
-  --color-glass-border: rgba(255, 255, 255, 0.08);
+  --color-glass: rgba(0, 0, 0, 0.03);
+  --color-glass-border: rgba(0, 0, 0, 0.08);
 
   /* ── Text ── */
-  --color-ink: #E7E9EE;
-  --color-ink-muted: #9AA0AE;
+  --color-ink: #0F172A;
+  --color-ink-muted: #64748B;
 
   /* ── Attribute colors (5 only — never add a sixth) ── */
   --color-attr-strength: #DC2626;
@@ -208,12 +208,38 @@ body {
   -webkit-backdrop-filter: blur(12px);
 }
 
-/* ── Appearance Mode Overrides ── */
+/* ── Appearance Mode System (Default: Light Mode) ── */
+:root {
+  --color-obsidian: #F6F8FC;
+  --color-obsidian-900: #FFFFFF;
+  --color-obsidian-800: #EEF2F8;
+  --color-obsidian-700: #E2E8F0;
+  --color-glass: rgba(0, 0, 0, 0.03);
+  --color-glass-border: rgba(0, 0, 0, 0.08);
+  --color-ink: #0F172A;
+  --color-ink-muted: #64748B;
+}
+
+[data-theme="dark"], .theme-dark {
+  --color-obsidian: #07080C;
+  --color-obsidian-900: #0B0D14;
+  --color-obsidian-800: #12141D;
+  --color-obsidian-700: #1B1E2B;
+  --color-glass: rgba(255, 255, 255, 0.04);
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+  --color-ink: #E7E9EE;
+  --color-ink-muted: #9AA0AE;
+}
+
 [data-theme="dim"], .theme-dim {
   --color-obsidian: #040508;
   --color-obsidian-900: #080A10;
   --color-obsidian-800: #0E121C;
   --color-obsidian-700: #161A28;
+  --color-glass: rgba(255, 255, 255, 0.04);
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+  --color-ink: #E7E9EE;
+  --color-ink-muted: #9AA0AE;
 }
 
 [data-theme="light"], .theme-light {
@@ -225,5 +251,113 @@ body {
   --color-glass-border: rgba(0, 0, 0, 0.08);
   --color-ink: #0F172A;
   --color-ink-muted: #64748B;
+}
+
+/* ── LifeOS Color Card System Tokens ── */
+.color-card {
+  position: relative;
+  border-radius: 1.5rem;
+  padding: 1.25rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+}
+
+.color-card-indigo {
+  background: #EEF2FF;
+  border: 1px solid rgba(99, 102, 241, 0.22);
+  color: #1E1B4B;
+}
+[data-theme="dark"] .color-card-indigo, [data-theme="dim"] .color-card-indigo {
+  background: rgba(99, 102, 241, 0.10);
+  border-color: rgba(99, 102, 241, 0.28);
+  color: #E0E7FF;
+}
+
+.color-card-teal {
+  background: #F0FDFA;
+  border: 1px solid rgba(20, 184, 166, 0.22);
+  color: #134E4A;
+}
+[data-theme="dark"] .color-card-teal, [data-theme="dim"] .color-card-teal {
+  background: rgba(20, 184, 166, 0.10);
+  border-color: rgba(20, 184, 166, 0.28);
+  color: #CCFBF1;
+}
+
+.color-card-emerald {
+  background: #ECFDF5;
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  color: #064E3B;
+}
+[data-theme="dark"] .color-card-emerald, [data-theme="dim"] .color-card-emerald {
+  background: rgba(16, 185, 129, 0.10);
+  border-color: rgba(16, 185, 129, 0.28);
+  color: #D1FAE5;
+}
+
+.color-card-amber {
+  background: #FFFBEB;
+  border: 1px solid rgba(245, 158, 11, 0.22);
+  color: #78350F;
+}
+[data-theme="dark"] .color-card-amber, [data-theme="dim"] .color-card-amber {
+  background: rgba(245, 158, 11, 0.10);
+  border-color: rgba(245, 158, 11, 0.28);
+  color: #FEF3C7;
+}
+
+.color-card-peach {
+  background: #FFF7ED;
+  border: 1px solid rgba(249, 115, 22, 0.22);
+  color: #7C2D12;
+}
+[data-theme="dark"] .color-card-peach, [data-theme="dim"] .color-card-peach {
+  background: rgba(249, 115, 22, 0.10);
+  border-color: rgba(249, 115, 22, 0.28);
+  color: #FFEDD5;
+}
+
+.color-card-violet {
+  background: #F5F3FF;
+  border: 1px solid rgba(139, 92, 246, 0.22);
+  color: #2E1065;
+}
+[data-theme="dark"] .color-card-violet, [data-theme="dim"] .color-card-violet {
+  background: rgba(139, 92, 246, 0.10);
+  border-color: rgba(139, 92, 246, 0.28);
+  color: #EDE9FE;
+}
+
+.color-card-rose {
+  background: #FFF1F2;
+  border: 1px solid rgba(244, 63, 94, 0.22);
+  color: #881337;
+}
+[data-theme="dark"] .color-card-rose, [data-theme="dim"] .color-card-rose {
+  background: rgba(244, 63, 94, 0.10);
+  border-color: rgba(244, 63, 94, 0.28);
+  color: #FFE4E6;
+}
+
+.color-card-coral {
+  background: #FEF2F2;
+  border: 1px solid rgba(239, 68, 68, 0.22);
+  color: #7F1D1D;
+}
+[data-theme="dark"] .color-card-coral, [data-theme="dim"] .color-card-coral {
+  background: rgba(239, 68, 68, 0.10);
+  border-color: rgba(239, 68, 68, 0.28);
+  color: #FEE2E2;
+}
+
+.color-card-sky {
+  background: #F0F9FF;
+  border: 1px solid rgba(14, 165, 233, 0.22);
+  color: #0C4A6E;
+}
+[data-theme="dark"] .color-card-sky, [data-theme="dim"] .color-card-sky {
+  background: rgba(14, 165, 233, 0.10);
+  border-color: rgba(14, 165, 233, 0.28);
+  color: #E0F2FE;
 }
 

@@ -3,3 +3,4 @@ export { StatBar } from './StatBar';
 export { AttributesRadarChart } from './AttributesRadarChart';
 export { AttributesDrawer } from './AttributesDrawer';
 export { FloatingTextContainer } from './FloatingTextContainer';
+export { MobileProgressionHud } from './MobileProgressionHud';

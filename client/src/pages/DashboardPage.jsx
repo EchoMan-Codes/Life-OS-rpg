@@ -42,7 +42,7 @@ import {
 } from 'recharts';
 import clsx from 'clsx';
 
-import { Card } from '@/components/ui';
+import { Card, ColorCard } from '@/components/ui';
 import { useAuth } from '@/features/auth/hooks';
 import { useCharacter } from '@/features/character/hooks';
 import { useHabits, useScoreHabit } from '@/features/habits/hooks';
@@ -58,18 +58,18 @@ import {
 import { spring } from '@/lib/motionVariants';
 
 /**
- * Custom dark glass chart tooltip.
+ * Custom light-first/dark-adaptive glass chart tooltip.
  */
 function CustomChartTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-obsidian-900/95 border border-glass-border rounded-xl px-3 py-2 shadow-2xl backdrop-blur-xl text-xs">
-      <p className="text-ink-muted font-medium mb-1">{label}</p>
+    <div className="bg-white/95 dark:bg-obsidian-900/95 border border-slate-200 dark:border-glass-border rounded-2xl px-3.5 py-2.5 shadow-xl backdrop-blur-xl text-xs text-slate-800 dark:text-ink">
+      <p className="text-slate-500 dark:text-ink-muted font-medium mb-1.5">{label}</p>
       {payload.map((entry) => (
         <div key={entry.name} className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-          <span className="text-ink-muted capitalize">{entry.name}:</span>
-          <span className="font-bold text-ink font-mono">{entry.value}</span>
+          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
+          <span className="text-slate-500 dark:text-ink-muted capitalize">{entry.name}:</span>
+          <span className="font-bold text-slate-900 dark:text-ink font-mono">{entry.value}</span>
         </div>
       ))}
     </div>
@@ -96,10 +96,10 @@ function DashboardDailyItem({ daily }) {
       onClick={handleToggle}
       className={clsx(
         'group flex items-center justify-between p-3 sm:p-3.5 rounded-2xl border transition-all cursor-pointer min-h-[52px]',
-        'backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.06)]',
+        'backdrop-blur-md shadow-[0_2px_8px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.06)]',
         daily.isCompleteToday
-          ? 'bg-white/[0.02] border-white/5 opacity-60'
-          : 'bg-white/[0.04] border-white/10 hover:border-white/20 hover:bg-white/[0.06]'
+          ? 'bg-emerald-50/70 border-emerald-200/80 dark:bg-white/[0.02] dark:border-white/5 opacity-75'
+          : 'bg-white/85 border-slate-200/90 text-slate-800 hover:border-emerald-300 hover:bg-white dark:bg-white/[0.04] dark:border-white/10 dark:text-ink dark:hover:border-white/20 dark:hover:bg-white/[0.06]'
       )}
     >
       <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
@@ -110,21 +110,21 @@ function DashboardDailyItem({ daily }) {
           className={clsx(
             'w-7 h-7 rounded-xl border flex items-center justify-center transition-all shrink-0',
             daily.isCompleteToday
-              ? 'bg-emerald-500/25 border-emerald-500/60 text-emerald-400 shadow-sm'
-              : 'border-white/20 bg-white/[0.04] group-hover:border-attr-perception text-transparent'
+              ? 'bg-emerald-500/25 border-emerald-500/60 text-emerald-600 dark:text-emerald-400 shadow-sm'
+              : 'border-slate-300 dark:border-white/20 bg-slate-100/80 dark:bg-white/[0.04] group-hover:border-emerald-500 text-transparent'
           )}
         >
           {daily.isCompleteToday ? (
             <Check size={14} className="stroke-[3]" />
           ) : (
-            <Circle size={10} className="group-hover:text-attr-perception/40" />
+            <Circle size={10} className="group-hover:text-emerald-500/40" />
           )}
         </motion.button>
         <div className="min-w-0">
           <p
             className={clsx(
-              'text-xs sm:text-sm font-medium text-ink truncate transition-all',
-              daily.isCompleteToday && 'line-through text-ink-muted'
+              'text-xs sm:text-sm font-semibold truncate transition-all',
+              daily.isCompleteToday ? 'line-through text-slate-400 dark:text-ink-muted' : 'text-slate-900 dark:text-ink'
             )}
           >
             {daily.title}
@@ -134,16 +134,16 @@ function DashboardDailyItem({ daily }) {
               className={clsx(
                 'text-[9px] sm:text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border',
                 daily.difficulty === 'hard'
-                  ? 'bg-hp/15 border-hp/30 text-hp'
+                  ? 'bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-hp'
                   : daily.difficulty === 'medium'
-                  ? 'bg-gold/15 border-gold/30 text-gold'
-                  : 'bg-attr-perception/15 border-attr-perception/30 text-attr-perception'
+                  ? 'bg-amber-500/15 border-amber-500/30 text-amber-700 dark:text-gold'
+                  : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-attr-vitality'
               )}
             >
               {daily.difficulty || 'easy'}
             </span>
             {daily.currentStreak > 0 && (
-              <span className="text-[10px] text-gold font-mono flex items-center gap-0.5">
+              <span className="text-[10px] text-amber-600 dark:text-gold font-mono flex items-center gap-0.5 font-semibold">
                 <Flame size={11} className="fill-current" /> {daily.currentStreak}d streak
               </span>
             )}
@@ -153,11 +153,11 @@ function DashboardDailyItem({ daily }) {
 
       <div className="text-right shrink-0 pl-2">
         {daily.isCompleteToday ? (
-          <span className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1 font-mono">
+          <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-mono">
             <CheckCircle2 size={13} /> Conquered
           </span>
         ) : (
-          <span className="text-[11px] text-ink-muted group-hover:text-attr-perception transition-colors font-mono">
+          <span className="text-[11px] text-slate-400 dark:text-ink-muted group-hover:text-emerald-600 dark:group-hover:text-attr-perception transition-colors font-mono font-bold">
             +XP
           </span>
         )}
@@ -179,18 +179,18 @@ function DashboardHabitItem({ habit }) {
       transition={spring.ios}
       className={clsx(
         'flex items-center justify-between p-3 sm:p-3.5 rounded-2xl border transition-all min-h-[52px]',
-        'bg-white/[0.04] border-white/10 hover:border-white/20 hover:bg-white/[0.06] backdrop-blur-md',
-        'shadow-[0_4px_16px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.06)]'
+        'bg-white/85 border-slate-200/90 text-slate-800 hover:border-amber-300 hover:bg-white dark:bg-white/[0.04] dark:border-white/10 dark:hover:border-white/20 dark:hover:bg-white/[0.06] backdrop-blur-md',
+        'shadow-[0_2px_8px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.06)]'
       )}
     >
       <div className="min-w-0 flex-1 pr-2.5">
-        <p className="text-xs sm:text-sm font-medium text-ink truncate">{habit.title}</p>
+        <p className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-ink truncate">{habit.title}</p>
         <div className="flex items-center gap-2 mt-0.5">
-          <span className="text-[10px] font-mono text-gold flex items-center gap-0.5">
+          <span className="text-[10px] font-mono text-amber-600 dark:text-gold flex items-center gap-0.5 font-bold">
             <Flame size={11} className="fill-current" /> {habit.currentStreak || 0}d streak
           </span>
           {habit.bestStreak > 0 && (
-            <span className="text-[10px] font-mono text-ink-muted">
+            <span className="text-[10px] font-mono text-slate-400 dark:text-ink-muted">
               (Best: {habit.bestStreak}d)
             </span>
           )}
@@ -203,8 +203,8 @@ function DashboardHabitItem({ habit }) {
         onClick={() => !isPending && scoreMutation.mutate('positive')}
         disabled={isPending}
         className={clsx(
-          'w-8 h-8 rounded-xl bg-gold/15 hover:bg-gold/25 border border-gold/40 text-gold',
-          'flex items-center justify-center transition-all shrink-0 min-h-[32px] min-w-[32px] shadow-sm',
+          'w-8 h-8 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-700 dark:text-gold',
+          'flex items-center justify-center transition-all shrink-0 min-h-[32px] min-w-[32px] shadow-xs',
           isPending && 'opacity-50'
         )}
         title="Score Habit (+)"
@@ -216,45 +216,21 @@ function DashboardHabitItem({ habit }) {
 }
 
 /**
- * High-density Glance Metric Card with compact mobile styling and iOS glass.
+ * Reusable Glance Metric Card powered by the LifeOS Color Card System.
  */
-function GlanceMetricCard({ icon: Icon, label, value, subtext, color, badge, onClick }) {
+function GlanceMetricCard({ icon, label, value, subtext, color = 'indigo', badge, actionTo, actionText, onClick }) {
   return (
-    <motion.div
-      whileTap={onClick ? { scale: 0.96 } : undefined}
-      transition={spring.ios}
-      onClick={onClick}
-      className={clsx(
-        'p-3.5 sm:p-4 rounded-3xl bg-obsidian-900/60 border border-white/10 backdrop-blur-2xl',
-        'shadow-[0_8px_32px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.1)]',
-        'flex flex-col justify-between transition-all min-w-0',
-        onClick && 'cursor-pointer hover:border-white/20 hover:bg-white/[0.04]'
-      )}
-    >
-      <div className="flex items-center justify-between mb-2">
-        <div
-          className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl flex items-center justify-center shrink-0 shadow-inner"
-          style={{ backgroundColor: `${color}18`, border: `1px solid ${color}35` }}
-        >
-          <Icon size={17} style={{ color }} />
-        </div>
-        {badge && (
-          <span
-            className="text-[9px] sm:text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full border"
-            style={{ backgroundColor: `${color}15`, borderColor: `${color}35`, color }}
-          >
-            {badge}
-          </span>
-        )}
-      </div>
-      <div>
-        <p className="text-xl sm:text-2xl font-bold font-display text-ink tracking-tight leading-tight">
-          {value}
-        </p>
-        <p className="text-[11px] sm:text-xs text-ink-muted truncate font-medium mt-0.5">{label}</p>
-        {subtext && <p className="text-[10px] sm:text-[11px] text-ink-muted/80 truncate mt-0.5 font-mono">{subtext}</p>}
-      </div>
-    </motion.div>
+    <ColorCard
+      color={color}
+      icon={icon}
+      title={label}
+      value={value}
+      subtitle={subtext}
+      badge={badge}
+      actionTo={actionTo}
+      actionText={actionText}
+      onAction={onClick}
+    />
   );
 }
 
@@ -494,10 +470,10 @@ export default function DashboardPage() {
       transition={spring.snappy}
     >
       {/* ── 1. Hero Cockpit & RPG Tactical Header ── */}
-      <section className="relative rounded-3xl p-4 sm:p-7 bg-gradient-to-br from-obsidian-900/85 via-obsidian-900/65 to-obsidian-800/75 border border-white/15 shadow-[0_16px_48px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-2xl overflow-hidden">
+      <section className="relative rounded-3xl p-4 sm:p-7 bg-gradient-to-br from-white via-slate-50 to-indigo-50/40 border border-slate-200/80 shadow-[0_10px_35px_rgba(0,0,0,0.05)] dark:from-obsidian-900/85 dark:via-obsidian-900/65 dark:to-obsidian-800/75 dark:border-white/15 dark:shadow-[0_16px_48px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-2xl overflow-hidden">
         {/* Ambient atmospheric glows */}
-        <div className="absolute -top-24 right-10 w-72 h-72 bg-attr-perception/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 left-10 w-72 h-72 bg-gold/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-24 right-10 w-72 h-72 bg-indigo-500/10 dark:bg-attr-perception/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 left-10 w-72 h-72 bg-amber-500/10 dark:bg-gold/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-5">
           {/* Hero Identity */}
@@ -507,33 +483,33 @@ export default function DashboardPage() {
                 <img
                   src={user.avatarUrl}
                   alt={displayName}
-                  className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl object-cover border-2 border-gold/50 shadow-lg"
+                  className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl object-cover border-2 border-amber-400 dark:border-gold/50 shadow-md"
                 />
               ) : (
-                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-gold/20 to-obsidian-800 border-2 border-gold/40 flex items-center justify-center text-gold font-display font-extrabold text-xl sm:text-2xl shadow-lg">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-amber-400/20 to-indigo-500/20 border-2 border-amber-400/50 flex items-center justify-center text-amber-600 dark:text-gold font-display font-extrabold text-xl sm:text-2xl shadow-md">
                   Ω
                 </div>
               )}
-              <div className="absolute -bottom-1 -right-1 bg-obsidian-950 text-gold border border-gold/60 rounded-full px-2 py-0.2 text-[9px] sm:text-[10px] font-mono font-bold shadow">
+              <div className="absolute -bottom-1 -right-1 bg-white dark:bg-obsidian-950 text-amber-700 dark:text-gold border border-amber-300 dark:border-gold/60 rounded-full px-2 py-0.2 text-[9px] sm:text-[10px] font-mono font-bold shadow-xs">
                 Lv.{character?.level || 1}
               </div>
             </div>
 
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                <span className="text-[11px] sm:text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-gold/15 text-gold border border-gold/30">
+                <span className="text-[11px] sm:text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-gold border border-amber-500/30">
                   {characterTitle}
                 </span>
                 {bestStreak > 0 && (
-                  <span className="text-[11px] sm:text-xs font-mono px-2 py-0.5 rounded-full bg-hp/15 text-hp border border-hp/30 flex items-center gap-1">
+                  <span className="text-[11px] sm:text-xs font-mono px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-700 dark:text-hp border border-rose-500/30 flex items-center gap-1">
                     <Flame size={12} className="fill-current" /> {bestStreak}d streak
                   </span>
                 )}
               </div>
-              <h1 className="text-xl sm:text-3xl font-extrabold font-display text-ink tracking-tight mt-1 truncate">
-                {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold via-amber-200 to-attr-perception">{displayName}</span>
+              <h1 className="text-xl sm:text-3xl font-extrabold font-display text-slate-900 dark:text-ink tracking-tight mt-1 truncate">
+                {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-orange-500 to-indigo-600 dark:from-gold dark:via-amber-200 dark:to-attr-perception">{displayName}</span>
               </h1>
-              <p className="text-[11px] sm:text-xs text-ink-muted font-mono mt-0.5">
+              <p className="text-[11px] sm:text-xs text-slate-500 dark:text-ink-muted font-mono mt-0.5">
                 {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
               </p>
             </div>
@@ -544,10 +520,10 @@ export default function DashboardPage() {
             <Link
               to="/focus"
               className={clsx(
-                'flex items-center gap-1.5 sm:gap-2 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-sm min-h-[42px] active:scale-95',
+                'flex items-center gap-1.5 sm:gap-2 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-xs min-h-[42px] active:scale-95',
                 activeFocus
-                  ? 'bg-mana text-obsidian-950 shadow-mana/30 animate-pulse'
-                  : 'bg-mana/15 hover:bg-mana/25 text-mana border border-mana/40 backdrop-blur-md'
+                  ? 'bg-sky-500 text-white shadow-sky-500/30 animate-pulse'
+                  : 'bg-sky-500/15 hover:bg-sky-500/25 text-sky-700 dark:text-mana border border-sky-500/40 backdrop-blur-md'
               )}
             >
               <Clock size={15} />
@@ -556,7 +532,7 @@ export default function DashboardPage() {
 
             <Link
               to="/reflection"
-              className="flex items-center gap-1.5 sm:gap-2 px-3.5 py-2.5 rounded-2xl bg-teal-500/15 hover:bg-teal-500/25 text-teal-300 border border-teal-500/40 text-xs font-bold transition-all min-h-[42px] backdrop-blur-md active:scale-95"
+              className="flex items-center gap-1.5 sm:gap-2 px-3.5 py-2.5 rounded-2xl bg-teal-500/15 hover:bg-teal-500/25 text-teal-700 dark:text-teal-300 border border-teal-500/40 text-xs font-bold transition-all min-h-[42px] backdrop-blur-md active:scale-95"
             >
               <Moon size={15} />
               <span>{todayReflection ? 'Reflection' : 'Reflect'}</span>
@@ -565,7 +541,7 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={openBattleLogDrawer}
-              className="flex items-center gap-1.5 sm:gap-2 px-3.5 py-2.5 rounded-2xl bg-gold/15 hover:bg-gold/25 text-gold border border-gold/40 text-xs font-bold transition-all min-h-[42px] backdrop-blur-md active:scale-95"
+              className="flex items-center gap-1.5 sm:gap-2 px-3.5 py-2.5 rounded-2xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-gold border border-amber-500/40 text-xs font-bold transition-all min-h-[42px] backdrop-blur-md active:scale-95"
               title="Battle Chronicles"
             >
               <Swords size={15} />
@@ -575,16 +551,16 @@ export default function DashboardPage() {
         </div>
 
         {/* Tactical Advisory Pill */}
-        <div className="mt-3.5 pt-3 border-t border-white/10 flex items-center justify-between gap-2.5 text-xs">
+        <div className="mt-3.5 pt-3 border-t border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-2.5 text-xs">
           <div className="flex items-center gap-2 min-w-0">
-            <div className={clsx('p-1.5 rounded-xl bg-obsidian-950/70 border border-white/10 shrink-0 shadow-inner', tacticalAdvisory.color)}>
+            <div className={clsx('p-1.5 rounded-xl bg-white/90 dark:bg-obsidian-950/70 border border-slate-200 dark:border-white/10 shrink-0 shadow-xs', tacticalAdvisory.color)}>
               <tacticalAdvisory.icon size={14} />
             </div>
-            <span className="text-ink font-medium truncate text-[11px] sm:text-xs">{tacticalAdvisory.text}</span>
+            <span className="text-slate-800 dark:text-ink font-medium truncate text-[11px] sm:text-xs">{tacticalAdvisory.text}</span>
           </div>
           <Link
             to={tacticalAdvisory.link}
-            className="text-[11px] sm:text-xs text-ink-muted hover:text-ink flex items-center gap-0.5 shrink-0 font-medium transition-colors"
+            className="text-[11px] sm:text-xs text-slate-500 hover:text-slate-900 dark:text-ink-muted dark:hover:text-ink flex items-center gap-0.5 shrink-0 font-semibold transition-colors"
           >
             <span>Act</span>
             <ChevronRight size={13} />
@@ -592,7 +568,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* ── 2. Unified Glance Metric Strip ── */}
+      {/* ── 2. Unified Glance Metric Strip (LifeOS Color Card System) ── */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         <GlanceMetricCard
           icon={CalendarCheck}
@@ -600,7 +576,9 @@ export default function DashboardPage() {
           value={`${completedTodayCount}/${activeDailies.length}`}
           subtext={`${dailiesRate}% conquered`}
           badge={dailiesRate === 100 ? 'All Clear' : `${activeDailies.length - completedTodayCount} left`}
-          color="#34D399"
+          color="emerald"
+          actionTo="/dailies"
+          actionText="Conquer"
         />
         <GlanceMetricCard
           icon={Flame}
@@ -608,7 +586,9 @@ export default function DashboardPage() {
           value={activeHabits.length}
           subtext={bestStreak > 0 ? `Best: ${bestStreak}d` : 'Build a ritual'}
           badge={activeHabits.length > 0 ? 'Active' : 'Setup'}
-          color="#F59E0B"
+          color="amber"
+          actionTo="/habits"
+          actionText="Score"
         />
         <GlanceMetricCard
           icon={Scroll}
@@ -616,7 +596,9 @@ export default function DashboardPage() {
           value={activeQuests.length}
           subtext={primaryQuest ? primaryQuest.title : 'Ready for duty'}
           badge={activeQuests.length > 0 ? `${activeQuests.length} live` : 'None'}
-          color="#A78BFA"
+          color="violet"
+          actionTo="/quests"
+          actionText="Board"
         />
         <GlanceMetricCard
           icon={Clock}
@@ -624,13 +606,15 @@ export default function DashboardPage() {
           value={`${totalFocusMinutes}m`}
           subtext={`${focusSessions.filter((s) => s.status === 'completed').length} sessions logged`}
           badge={`+${Math.round(totalFocusMinutes * 1.5)} MP`}
-          color="#38BDF8"
+          color="sky"
+          actionTo="/focus"
+          actionText="Enter"
         />
       </section>
 
       {/* ── 3. Dedicated Mobile Segmented Switcher (iOS Frosted Glass Capsule) ── */}
-      <div className="md:hidden sticky top-16 z-30 -mx-3 px-3 py-2 bg-obsidian-950/80 backdrop-blur-2xl border-y border-white/10">
-        <div className="grid grid-cols-4 gap-1 p-1 rounded-full bg-obsidian-900/80 border border-white/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] backdrop-blur-md">
+      <div className="md:hidden sticky top-16 z-30 -mx-3 px-3 py-2 bg-white/90 dark:bg-obsidian-950/80 backdrop-blur-2xl border-y border-slate-200/80 dark:border-white/10">
+        <div className="grid grid-cols-4 gap-1 p-1 rounded-full bg-slate-100/90 dark:bg-obsidian-900/80 border border-slate-200 dark:border-white/10 shadow-inner backdrop-blur-md">
           {[
             { id: 'actions', label: 'Actions', icon: Zap },
             { id: 'analytics', label: 'Analytics', icon: TrendingUp },
@@ -648,7 +632,7 @@ export default function DashboardPage() {
                 {isActive && (
                   <motion.div
                     layoutId="ios-dashboard-tab-pill"
-                    className="absolute inset-0 rounded-full bg-white/[0.14] border border-white/20 shadow-sm"
+                    className="absolute inset-0 rounded-full bg-white dark:bg-white/[0.14] border border-slate-300 dark:border-white/20 shadow-xs"
                     transition={spring.capsule}
                   />
                 )}
@@ -660,13 +644,13 @@ export default function DashboardPage() {
                     size={13}
                     className={clsx(
                       'transition-colors',
-                      isActive ? 'text-attr-perception' : 'text-ink-muted'
+                      isActive ? 'text-indigo-600 dark:text-attr-perception' : 'text-slate-500 dark:text-ink-muted'
                     )}
                   />
                   <span
                     className={clsx(
-                      'transition-colors',
-                      isActive ? 'text-ink font-bold' : 'text-ink-muted'
+                      'transition-colors text-xs',
+                      isActive ? 'text-slate-900 dark:text-ink font-bold' : 'text-slate-500 dark:text-ink-muted'
                     )}
                   >
                     {label}
@@ -692,14 +676,14 @@ export default function DashboardPage() {
             {/* Prominent Circular Progress Ring Card (5 cols on desktop) */}
             <div className="lg:col-span-5">
               <Card className="p-5 sm:p-6 h-full flex flex-col justify-between relative overflow-hidden">
-                <div className="flex items-center justify-between border-b border-glass-border pb-3">
+                <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-glass-border pb-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-xs font-bold font-display uppercase tracking-wider text-ink">
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-xs font-bold font-display uppercase tracking-wider text-slate-900 dark:text-ink">
                       Daily Conquest Progress
                     </span>
                   </div>
-                  <span className="text-[11px] font-mono text-ink-muted">
+                  <span className="text-[11px] font-mono text-slate-500 dark:text-ink-muted">
                     {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </span>
                 </div>
@@ -712,7 +696,7 @@ export default function DashboardPage() {
                         cx="50"
                         cy="50"
                         r="40"
-                        className="stroke-obsidian-800"
+                        className="stroke-slate-200 dark:stroke-obsidian-800"
                         strokeWidth="8"
                         fill="transparent"
                       />
@@ -732,16 +716,16 @@ export default function DashboardPage() {
                       />
                       <defs>
                         <linearGradient id="conquest-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stopColor="#34D399" />
+                          <stop offset="0%" stopColor="#10B981" />
                           <stop offset="100%" stopColor="#38BDF8" />
                         </linearGradient>
                       </defs>
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                      <span className="text-2xl font-black font-display text-ink tracking-tight">
+                      <span className="text-2xl font-black font-display text-slate-900 dark:text-ink tracking-tight">
                         {dailiesRate}%
                       </span>
-                      <span className="text-[9px] uppercase tracking-widest text-ink-muted font-mono font-semibold">
+                      <span className="text-[9px] uppercase tracking-widest text-slate-500 dark:text-ink-muted font-mono font-semibold">
                         Cleared
                       </span>
                     </div>
@@ -749,26 +733,26 @@ export default function DashboardPage() {
 
                   <div className="space-y-2 min-w-0 flex-1">
                     <div>
-                      <span className="text-xs text-ink-muted">Dailies Completed</span>
-                      <p className="text-base font-bold font-mono text-ink">
-                        {completedTodayCount} <span className="text-xs text-ink-muted">/ {activeDailies.length}</span>
+                      <span className="text-xs text-slate-500 dark:text-ink-muted">Dailies Completed</span>
+                      <p className="text-base font-bold font-mono text-slate-900 dark:text-ink">
+                        {completedTodayCount} <span className="text-xs text-slate-500 dark:text-ink-muted">/ {activeDailies.length}</span>
                       </p>
                     </div>
                     <div>
-                      <span className="text-xs text-ink-muted">Cognitive Stamina</span>
-                      <p className="text-base font-bold font-mono text-ink">
-                        {totalFocusMinutes}m <span className="text-xs text-ink-muted">Logged</span>
+                      <span className="text-xs text-slate-500 dark:text-ink-muted">Cognitive Stamina</span>
+                      <p className="text-base font-bold font-mono text-slate-900 dark:text-ink">
+                        {totalFocusMinutes}m <span className="text-xs text-slate-500 dark:text-ink-muted">Logged</span>
                       </p>
                     </div>
                   </div>
                 </div>
 
                 {/* Progress Summary Pill */}
-                <div className="pt-3 border-t border-glass-border flex items-center justify-between text-xs">
-                  <span className="text-ink-muted">
+                <div className="pt-3 border-t border-slate-200/80 dark:border-glass-border flex items-center justify-between text-xs">
+                  <span className="text-slate-500 dark:text-ink-muted">
                     {dailiesRate === 100 ? 'All dailies conquered today!' : `${activeDailies.length - completedTodayCount} rituals remaining`}
                   </span>
-                  <Link to="/dailies" className="text-emerald-400 font-semibold hover:underline flex items-center gap-0.5">
+                  <Link to="/dailies" className="text-emerald-600 dark:text-emerald-400 font-semibold hover:underline flex items-center gap-0.5">
                     <span>Manage</span>
                     <ChevronRight size={13} />
                   </Link>
@@ -779,131 +763,52 @@ export default function DashboardPage() {
             {/* 4 Modular Context Tiles (7 cols on desktop - Ref 3 inspired 2x2 grid) */}
             <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               {/* Tile 1: Deep Focus Chamber */}
-              <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-white/20 transition-all flex flex-col justify-between group">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-xl bg-mana/15 border border-mana/30 flex items-center justify-center text-mana">
-                      <Clock size={16} />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-ink font-display">Deep Focus</h4>
-                      <span className="text-[10px] font-mono text-ink-muted">Cognitive sprint</span>
-                    </div>
-                  </div>
-                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-mana/15 text-mana border border-mana/30">
-                    {activeFocus ? 'Active' : 'Ready'}
-                  </span>
-                </div>
-                <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-xs">
-                  <span className="text-ink-muted text-[11px] truncate">
-                    {activeFocus ? 'In focus flow' : 'Regenerate Mana'}
-                  </span>
-                  <Link to="/focus" className="text-mana font-semibold hover:underline flex items-center gap-0.5 shrink-0">
-                    <span>Launch</span>
-                    <ChevronRight size={13} />
-                  </Link>
-                </div>
-              </div>
+              <ColorCard
+                color="indigo"
+                icon={Clock}
+                title="Deep Focus"
+                value={activeFocus ? 'In Flow' : `${totalFocusMinutes}m`}
+                subtitle={activeFocus ? 'Deep work sprint in progress' : 'Regenerate Mana with cognitive sprints'}
+                badge={activeFocus ? 'Active' : 'Ready'}
+                actionTo="/focus"
+                actionText="Launch"
+              />
 
-              {/* Tile 2: Streak Armor & Grit */}
-              <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-white/20 transition-all flex flex-col justify-between group">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-xl bg-gold/15 border border-gold/30 flex items-center justify-center text-gold">
-                      <Flame size={16} />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-ink font-display">Streak Shield</h4>
-                      <span className="text-[10px] font-mono text-ink-muted">Daily discipline</span>
-                    </div>
-                  </div>
-                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-gold/15 text-gold border border-gold/30">
-                    {bestStreak}d streak
-                  </span>
-                </div>
-                <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-xs">
-                  <span className="text-ink-muted text-[11px] truncate">
-                    {activeHabits.length} habits tracking
-                  </span>
-                  <Link to="/habits" className="text-gold font-semibold hover:underline flex items-center gap-0.5 shrink-0">
-                    <span>Check</span>
-                    <ChevronRight size={13} />
-                  </Link>
-                </div>
-              </div>
+              {/* Tile 2: Streak Shield & Armor */}
+              <ColorCard
+                color="peach"
+                icon={Flame}
+                title="Streak Shield"
+                value={`${bestStreak}d`}
+                subtitle={`${activeHabits.length} habits maintaining continuous discipline`}
+                badge="Momentum"
+                actionTo="/habits"
+                actionText="Score"
+              />
 
-              {/* Tile 3: Rest & Recovery Mode */}
-              <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-white/20 transition-all flex flex-col justify-between group">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-teal-400">
-                      <Moon size={16} />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-ink font-display">Rest & Harmony</h4>
-                      <span className="text-[10px] font-mono text-ink-muted">Burnout defense</span>
-                    </div>
-                  </div>
-                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-400 border border-teal-500/30">
-                    {restStatus?.isActive ? 'Resting' : 'Normal'}
-                  </span>
-                </div>
-                <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-xs">
-                  <span className="text-ink-muted text-[11px] truncate">
-                    {todayReflection ? 'Reflection logged' : 'Evening review'}
-                  </span>
-                  <Link to="/reflection" className="text-teal-400 font-semibold hover:underline flex items-center gap-0.5 shrink-0">
-                    <span>Reflect</span>
-                    <ChevronRight size={13} />
-                  </Link>
-                </div>
-              </div>
+              {/* Tile 3: Rest & Harmony */}
+              <ColorCard
+                color="teal"
+                icon={Moon}
+                title="Rest & Harmony"
+                value={restStatus?.isActive ? 'Resting' : (todayReflection ? '5/5 Mind' : 'Standby')}
+                subtitle={todayReflection ? 'Daily wellness review recorded' : 'Evening reflection protects against burnout'}
+                badge={restStatus?.isActive ? 'Active' : 'Ready'}
+                actionTo="/reflection"
+                actionText="Reflect"
+              />
 
-              {/* Tile 4: Leading Attribute Instrumentation */}
-              <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-white/20 transition-all flex flex-col justify-between group">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-8 h-8 rounded-xl flex items-center justify-center"
-                      style={{
-                        backgroundColor: `${leadingAttribute.color}15`,
-                        borderColor: `${leadingAttribute.color}30`,
-                        borderWidth: 1,
-                        color: leadingAttribute.color,
-                      }}
-                    >
-                      <Sparkles size={16} />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-ink font-display">Lead Attribute</h4>
-                      <span className="text-[10px] font-mono text-ink-muted">{leadingAttribute.name}</span>
-                    </div>
-                  </div>
-                  <span
-                    className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border"
-                    style={{
-                      backgroundColor: `${leadingAttribute.color}15`,
-                      color: leadingAttribute.color,
-                      borderColor: `${leadingAttribute.color}30`,
-                    }}
-                  >
-                    {leadingAttribute.val} {leadingAttribute.stat}
-                  </span>
-                </div>
-                <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-xs">
-                  <span className="text-ink-muted text-[11px] truncate">
-                    {character?.unallocatedPoints > 0 ? `+${character.unallocatedPoints} SP ready` : 'Stats balanced'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={openAttributesDrawer}
-                    className="text-attr-perception font-semibold hover:underline flex items-center gap-0.5 shrink-0"
-                  >
-                    <span>Inspect</span>
-                    <ChevronRight size={13} />
-                  </button>
-                </div>
-              </div>
+              {/* Tile 4: Leading Attribute */}
+              <ColorCard
+                color="rose"
+                icon={Sparkles}
+                title="Lead Attribute"
+                value={`${leadingAttribute.val} ${leadingAttribute.stat}`}
+                subtitle={`${leadingAttribute.name} leads your hero specialization`}
+                badge={character?.unallocatedPoints > 0 ? `+${character.unallocatedPoints} SP` : 'Optimal'}
+                actionText="Inspect"
+                onAction={openAttributesDrawer}
+              />
             </div>
           </div>
 
@@ -1008,41 +913,41 @@ export default function DashboardPage() {
             </Card>
 
             {/* Active Quest Spotlight */}
-            <Card className="p-4 sm:p-5 bg-gradient-to-br from-obsidian-800 to-obsidian-900 border-glass-border">
+            <Card className="p-4 sm:p-5 bg-gradient-to-br from-violet-50/80 to-indigo-50/60 border-violet-200/80 dark:from-obsidian-800 dark:to-obsidian-900 dark:border-glass-border">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-attr-perception/15 border border-attr-perception/30 flex items-center justify-center text-attr-perception">
+                  <div className="w-8 h-8 rounded-lg bg-violet-500/15 border border-violet-500/30 flex items-center justify-center text-violet-600 dark:text-attr-perception">
                     <Scroll size={16} />
                   </div>
                   <div>
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-attr-perception font-bold">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-violet-700 dark:text-attr-perception font-bold">
                       Priority Quest
                     </span>
-                    <h4 className="text-sm font-bold text-ink truncate max-w-[200px]">
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-ink truncate max-w-[200px]">
                       {primaryQuest ? primaryQuest.title : 'No Active Quest'}
                     </h4>
                   </div>
                 </div>
-                <Link to="/quests" className="text-xs text-attr-perception hover:underline font-semibold">
+                <Link to="/quests" className="text-xs text-violet-600 dark:text-attr-perception hover:underline font-semibold">
                   Board
                 </Link>
               </div>
 
               {primaryQuest ? (
                 <div>
-                  <p className="text-xs text-ink-muted line-clamp-2 mb-3">
+                  <p className="text-xs text-slate-600 dark:text-ink-muted line-clamp-2 mb-3">
                     {primaryQuest.description || 'Advance your hero objectives by completing subtasks.'}
                   </p>
-                  <div className="flex items-center justify-between text-xs font-mono text-ink-muted mb-1">
+                  <div className="flex items-center justify-between text-xs font-mono text-slate-500 dark:text-ink-muted mb-1">
                     <span>Progress</span>
                     <span>
                       {primaryQuest.items?.filter((i) => i.isCompleted).length || 0} /{' '}
                       {primaryQuest.items?.length || 0} Tasks
                     </span>
                   </div>
-                  <div className="h-1.5 rounded-full bg-obsidian-700 overflow-hidden">
+                  <div className="h-1.5 rounded-full bg-slate-200 dark:bg-obsidian-700 overflow-hidden">
                     <div
-                      className="h-full bg-attr-perception rounded-full"
+                      className="h-full bg-violet-500 rounded-full"
                       style={{
                         width: `${
                           primaryQuest.items?.length
@@ -1370,18 +1275,18 @@ export default function DashboardPage() {
               {character ? (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {/* Vital Statistics */}
-                  <div className="p-3.5 rounded-2xl bg-obsidian-900/60 border border-glass-border space-y-3">
-                    <div className="text-xs font-bold text-ink uppercase tracking-wider">Vitals</div>
+                  <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-obsidian-900/60 border border-slate-200/80 dark:border-glass-border space-y-3 shadow-xs">
+                    <div className="text-xs font-bold text-slate-900 dark:text-ink uppercase tracking-wider">Vitals</div>
                     <div>
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-ink-muted flex items-center gap-1">
-                          <Heart size={12} className="text-hp" /> HP
+                        <span className="text-slate-500 dark:text-ink-muted flex items-center gap-1">
+                          <Heart size={12} className="text-rose-500 dark:text-hp" /> HP
                         </span>
-                        <span className="text-ink font-mono font-bold">{character.hp} / {character.maxHp}</span>
+                        <span className="text-slate-900 dark:text-ink font-mono font-bold">{character.hp} / {character.maxHp}</span>
                       </div>
-                      <div className="h-2 bg-obsidian-700 rounded-full overflow-hidden">
+                      <div className="h-2 bg-slate-200 dark:bg-obsidian-700 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-hp rounded-full"
+                          className="h-full bg-rose-500 dark:bg-hp rounded-full"
                           style={{ width: `${Math.min(100, (character.hp / character.maxHp) * 100)}%` }}
                         />
                       </div>
@@ -1389,14 +1294,14 @@ export default function DashboardPage() {
 
                     <div>
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-ink-muted flex items-center gap-1">
-                          <Zap size={12} className="text-mana" /> Mana
+                        <span className="text-slate-500 dark:text-ink-muted flex items-center gap-1">
+                          <Zap size={12} className="text-sky-500 dark:text-mana" /> Mana
                         </span>
-                        <span className="text-ink font-mono font-bold">{character.mana} / {character.maxMana}</span>
+                        <span className="text-slate-900 dark:text-ink font-mono font-bold">{character.mana} / {character.maxMana}</span>
                       </div>
-                      <div className="h-2 bg-obsidian-700 rounded-full overflow-hidden">
+                      <div className="h-2 bg-slate-200 dark:bg-obsidian-700 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-mana rounded-full"
+                          className="h-full bg-sky-500 dark:bg-mana rounded-full"
                           style={{ width: `${Math.min(100, (character.mana / character.maxMana) * 100)}%` }}
                         />
                       </div>
@@ -1404,14 +1309,14 @@ export default function DashboardPage() {
 
                     <div>
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-ink-muted flex items-center gap-1">
-                          <Flame size={12} className="text-xp" /> XP Progress
+                        <span className="text-slate-500 dark:text-ink-muted flex items-center gap-1">
+                          <Flame size={12} className="text-amber-500 dark:text-xp" /> XP Progress
                         </span>
-                        <span className="text-ink font-mono font-bold">{character.xp} / {character.xpForNextLevel}</span>
+                        <span className="text-slate-900 dark:text-ink font-mono font-bold">{character.xp} / {character.xpForNextLevel}</span>
                       </div>
-                      <div className="h-2 bg-obsidian-700 rounded-full overflow-hidden">
+                      <div className="h-2 bg-slate-200 dark:bg-obsidian-700 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-xp to-gold rounded-full"
+                          className="h-full bg-gradient-to-r from-amber-500 to-amber-400 dark:from-xp dark:to-gold rounded-full"
                           style={{ width: `${Math.min(100, (character.xp / character.xpForNextLevel) * 100)}%` }}
                         />
                       </div>
@@ -1419,41 +1324,41 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Attributes Matrix */}
-                  <div className="p-3.5 rounded-2xl bg-obsidian-900/60 border border-glass-border space-y-2">
-                    <div className="text-xs font-bold text-ink uppercase tracking-wider mb-2">5 Attributes</div>
+                  <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-obsidian-900/60 border border-slate-200/80 dark:border-glass-border space-y-2 shadow-xs">
+                    <div className="text-xs font-bold text-slate-900 dark:text-ink uppercase tracking-wider mb-2">5 Attributes</div>
                     {character.attributes && (
                       <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div className="p-2 rounded-lg bg-obsidian-800/80 border border-glass-border flex justify-between">
-                          <span className="text-ink-muted">Strength:</span>
-                          <strong className="text-hp font-mono">{character.attributes.strength || 5}</strong>
+                        <div className="p-2 rounded-xl bg-slate-50 dark:bg-obsidian-800/80 border border-slate-200/70 dark:border-glass-border flex justify-between">
+                          <span className="text-slate-500 dark:text-ink-muted">Strength:</span>
+                          <strong className="text-rose-600 dark:text-hp font-mono">{character.attributes.strength || 5}</strong>
                         </div>
-                        <div className="p-2 rounded-lg bg-obsidian-800/80 border border-glass-border flex justify-between">
-                          <span className="text-ink-muted">Vitality:</span>
-                          <strong className="text-emerald-400 font-mono">{character.attributes.vitality || 5}</strong>
+                        <div className="p-2 rounded-xl bg-slate-50 dark:bg-obsidian-800/80 border border-slate-200/70 dark:border-glass-border flex justify-between">
+                          <span className="text-slate-500 dark:text-ink-muted">Vitality:</span>
+                          <strong className="text-emerald-600 dark:text-emerald-400 font-mono">{character.attributes.vitality || 5}</strong>
                         </div>
-                        <div className="p-2 rounded-lg bg-obsidian-800/80 border border-glass-border flex justify-between">
-                          <span className="text-ink-muted">Intelligence:</span>
-                          <strong className="text-attr-intelligence font-mono">{character.attributes.intelligence || 5}</strong>
+                        <div className="p-2 rounded-xl bg-slate-50 dark:bg-obsidian-800/80 border border-slate-200/70 dark:border-glass-border flex justify-between">
+                          <span className="text-slate-500 dark:text-ink-muted">Intelligence:</span>
+                          <strong className="text-sky-600 dark:text-attr-intelligence font-mono">{character.attributes.intelligence || 5}</strong>
                         </div>
-                        <div className="p-2 rounded-lg bg-obsidian-800/80 border border-glass-border flex justify-between">
-                          <span className="text-ink-muted">Willpower:</span>
-                          <strong className="text-attr-willpower font-mono">{character.attributes.willpower || 5}</strong>
+                        <div className="p-2 rounded-xl bg-slate-50 dark:bg-obsidian-800/80 border border-slate-200/70 dark:border-glass-border flex justify-between">
+                          <span className="text-slate-500 dark:text-ink-muted">Willpower:</span>
+                          <strong className="text-violet-600 dark:text-attr-willpower font-mono">{character.attributes.willpower || 5}</strong>
                         </div>
-                        <div className="p-2 rounded-lg bg-obsidian-800/80 border border-glass-border flex justify-between col-span-2">
-                          <span className="text-ink-muted">Perception:</span>
-                          <strong className="text-gold font-mono">{character.attributes.perception || 5}</strong>
+                        <div className="p-2 rounded-xl bg-slate-50 dark:bg-obsidian-800/80 border border-slate-200/70 dark:border-glass-border flex justify-between col-span-2">
+                          <span className="text-slate-500 dark:text-ink-muted">Perception:</span>
+                          <strong className="text-amber-600 dark:text-gold font-mono">{character.attributes.perception || 5}</strong>
                         </div>
                       </div>
                     )}
                   </div>
 
                   {/* Vault & Rewards */}
-                  <div className="p-3.5 rounded-2xl bg-obsidian-900/60 border border-glass-border flex flex-col justify-between">
+                  <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-obsidian-900/60 border border-slate-200/80 dark:border-glass-border flex flex-col justify-between shadow-xs">
                     <div>
-                      <div className="text-xs font-bold text-ink uppercase tracking-wider mb-3">Treasury</div>
-                      <div className="p-3 rounded-xl bg-gold/10 border border-gold/30 flex items-center justify-between mb-3">
-                        <span className="text-xs text-ink-muted">Current Gold</span>
-                        <span className="text-xl font-bold font-mono text-gold flex items-center gap-1.5">
+                      <div className="text-xs font-bold text-slate-900 dark:text-ink uppercase tracking-wider mb-3">Treasury</div>
+                      <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between mb-3">
+                        <span className="text-xs text-slate-500 dark:text-ink-muted">Current Gold</span>
+                        <span className="text-xl font-bold font-mono text-amber-600 dark:text-gold flex items-center gap-1.5">
                           <Award size={18} />
                           {character.gold?.toLocaleString() || 0}
                         </span>
@@ -1461,7 +1366,7 @@ export default function DashboardPage() {
                     </div>
                     <Link
                       to="/shop"
-                      className="w-full py-2.5 px-4 rounded-xl bg-gold/20 hover:bg-gold/30 text-gold border border-gold/40 text-xs font-bold text-center block transition-all min-h-[40px]"
+                      className="w-full py-2.5 px-4 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-gold border border-amber-500/40 text-xs font-bold text-center block transition-all min-h-[40px]"
                     >
                       Visit Rewards Shop
                     </Link>

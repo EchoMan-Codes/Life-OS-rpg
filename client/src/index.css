@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, [data-theme="dim"], [data-theme="dim"] *, .dark, .dark *));
+
 /*
  * ══════════════════════════════════════════════
  *  Life OS — Design Tokens (Tailwind v4 @theme)
@@ -13,6 +15,7 @@
   --color-obsidian-900: #FFFFFF;
   --color-obsidian-800: #EEF2F8;
   --color-obsidian-700: #E2E8F0;
+  --color-obsidian-950: #CBD5E1;
 
   /* ── Glass surfaces ── */
   --color-glass: rgba(0, 0, 0, 0.03);
@@ -214,17 +217,19 @@ body {
   --color-obsidian-900: #FFFFFF;
   --color-obsidian-800: #EEF2F8;
   --color-obsidian-700: #E2E8F0;
+  --color-obsidian-950: #CBD5E1;
   --color-glass: rgba(0, 0, 0, 0.03);
   --color-glass-border: rgba(0, 0, 0, 0.08);
   --color-ink: #0F172A;
   --color-ink-muted: #64748B;
 }
 
-[data-theme="dark"], .theme-dark {
+[data-theme="dark"], .theme-dark, .dark {
   --color-obsidian: #07080C;
   --color-obsidian-900: #0B0D14;
   --color-obsidian-800: #12141D;
   --color-obsidian-700: #1B1E2B;
+  --color-obsidian-950: #050609;
   --color-glass: rgba(255, 255, 255, 0.04);
   --color-glass-border: rgba(255, 255, 255, 0.08);
   --color-ink: #E7E9EE;
@@ -236,6 +241,7 @@ body {
   --color-obsidian-900: #080A10;
   --color-obsidian-800: #0E121C;
   --color-obsidian-700: #161A28;
+  --color-obsidian-950: #020305;
   --color-glass: rgba(255, 255, 255, 0.04);
   --color-glass-border: rgba(255, 255, 255, 0.08);
   --color-ink: #E7E9EE;
@@ -247,6 +253,7 @@ body {
   --color-obsidian-900: #FFFFFF;
   --color-obsidian-800: #EEF2F8;
   --color-obsidian-700: #E2E8F0;
+  --color-obsidian-950: #CBD5E1;
   --color-glass: rgba(0, 0, 0, 0.03);
   --color-glass-border: rgba(0, 0, 0, 0.08);
   --color-ink: #0F172A;

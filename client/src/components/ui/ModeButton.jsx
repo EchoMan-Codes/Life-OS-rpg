@@ -53,10 +53,10 @@ export function ModeButton({ className, compact = false, showLabel = false }) {
         aria-label="Toggle appearance mode"
         aria-expanded={isOpen}
         className={clsx(
-          'p-2 sm:px-2.5 sm:py-1.5 rounded-xl border border-white/10',
-          'bg-white/[0.04] hover:bg-white/[0.08] active:scale-95 text-ink-muted hover:text-ink',
-          'flex items-center gap-1.5 text-caption font-medium transition-all shadow-sm',
-          'focus:outline-none focus:ring-2 focus:ring-white/20 min-h-[36px]'
+          'p-2 sm:px-2.5 sm:py-1.5 rounded-xl border transition-all duration-200 shadow-xs min-h-[36px] flex items-center gap-1.5',
+          'bg-white/90 border-slate-200/90 text-slate-700 hover:text-slate-900 hover:bg-slate-100/80',
+          'dark:bg-white/[0.04] dark:border-white/10 dark:text-ink-muted dark:hover:text-ink dark:hover:bg-white/[0.08]',
+          'focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-white/20'
         )}
       >
         <motion.div
@@ -64,12 +64,12 @@ export function ModeButton({ className, compact = false, showLabel = false }) {
           initial={{ rotate: -40, opacity: 0, scale: 0.8 }}
           animate={{ rotate: 0, opacity: 1, scale: 1 }}
           transition={spring.snappy}
-          className="flex items-center justify-center shrink-0 text-attr-perception"
+          className="flex items-center justify-center shrink-0 text-amber-500 dark:text-attr-perception"
         >
           <CurrentIcon size={15} />
         </motion.div>
         {showLabel && (
-          <span className="capitalize text-xs font-semibold hidden sm:inline text-ink">
+          <span className="capitalize text-xs font-semibold hidden sm:inline text-slate-800 dark:text-ink">
             {mode}
           </span>
         )}
@@ -85,11 +85,11 @@ export function ModeButton({ className, compact = false, showLabel = false }) {
             transition={spring.ios}
             className={clsx(
               'absolute top-full right-0 mt-2 z-50 w-44 p-1.5 rounded-2xl',
-              'bg-obsidian-900/95 border border-glass-border shadow-2xl backdrop-blur-2xl',
+              'bg-white/95 dark:bg-obsidian-900/95 border border-slate-200/90 dark:border-glass-border shadow-2xl backdrop-blur-2xl',
               'space-y-1'
             )}
           >
-            <div className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-ink-muted">
+            <div className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-ink-muted">
               Appearance
             </div>
             {availableModes.map((item) => {
@@ -103,18 +103,18 @@ export function ModeButton({ className, compact = false, showLabel = false }) {
                   className={clsx(
                     'w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium transition-all',
                     isSelected
-                      ? 'bg-white/10 text-ink font-semibold'
-                      : 'text-ink-muted hover:text-ink hover:bg-white/[0.04]'
+                      ? 'bg-indigo-50 text-indigo-700 font-semibold dark:bg-white/10 dark:text-ink'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 dark:text-ink-muted dark:hover:text-ink dark:hover:bg-white/[0.04]'
                   )}
                 >
                   <div className="flex items-center gap-2">
-                    <Icon size={14} className={isSelected ? 'text-attr-perception' : 'text-ink-muted'} />
+                    <Icon size={14} className={isSelected ? 'text-indigo-600 dark:text-attr-perception' : 'text-slate-400 dark:text-ink-muted'} />
                     <span>{item.label}</span>
                   </div>
                   {isSelected && (
                     <motion.span
                       layoutId="active-theme-check"
-                      className="w-1.5 h-1.5 rounded-full bg-attr-perception"
+                      className="w-1.5 h-1.5 rounded-full bg-indigo-600 dark:bg-attr-perception"
                       transition={spring.snappy}
                     />
                   )}

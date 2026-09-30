@@ -47,13 +47,20 @@ export function applyThemeToDOM(mode) {
   root.setAttribute('data-theme', effective);
   if (effective === 'light') {
     root.classList.add('theme-light');
-    root.classList.remove('theme-dim', 'theme-dark');
+    root.classList.remove('theme-dim', 'theme-dark', 'dark');
   } else if (effective === 'dim') {
-    root.classList.add('theme-dim');
+    root.classList.add('theme-dim', 'dark');
     root.classList.remove('theme-light', 'theme-dark');
   } else {
-    root.classList.add('theme-dark');
+    root.classList.add('theme-dark', 'dark');
     root.classList.remove('theme-light', 'theme-dim');
+  }
+
+  // Dispatch global event for components listening to theme change
+  try {
+    window.dispatchEvent(new CustomEvent('lifeos-theme-change', { detail: { mode, effective } }));
+  } catch {
+    // ignore
   }
 }
 

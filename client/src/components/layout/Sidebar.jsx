@@ -9,6 +9,7 @@ import {
   ShoppingBag,
   Clock,
   Moon,
+  User,
   ChevronLeft,
   ChevronRight,
   LogIn,
@@ -29,6 +30,7 @@ const navItems = [
   { to: '/focus', icon: Clock, label: 'Focus Chamber' },
   { to: '/reflection', icon: Moon, label: 'Reflection' },
   { to: '/shop', icon: ShoppingBag, label: 'Shop' },
+  { to: '/profile', icon: User, label: 'Profile' },
 ];
 
 /**

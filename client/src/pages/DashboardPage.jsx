@@ -309,6 +309,21 @@ export default function DashboardPage() {
     return 'Shadow Pathfinder';
   }, [character?.attributes]);
 
+  // Determine Leading Character Attribute for Modular Status
+  const leadingAttribute = useMemo(() => {
+    if (!character?.attributes) return { key: 'strength', name: 'Strength', stat: 'STR', color: '#DC2626', val: 5 };
+    const { strength = 5, intelligence = 5, vitality = 5, willpower = 5, perception = 5 } = character.attributes;
+    const list = [
+      { key: 'strength', name: 'Strength', stat: 'STR', color: '#DC2626', val: strength },
+      { key: 'intelligence', name: 'Intelligence', stat: 'INT', color: '#38BDF8', val: intelligence },
+      { key: 'vitality', name: 'Vitality', stat: 'VIT', color: '#34D399', val: vitality },
+      { key: 'willpower', name: 'Willpower', stat: 'WIL', color: '#A78BFA', val: willpower },
+      { key: 'perception', name: 'Perception', stat: 'PER', color: '#FBBF24', val: perception },
+    ];
+    list.sort((a, b) => b.val - a.val);
+    return list[0];
+  }, [character?.attributes]);
+
   // Contextual LifeOS Tactical Advisory based on real state
   const tacticalAdvisory = useMemo(() => {
     if (restStatus?.isActive) {
@@ -672,6 +687,226 @@ export default function DashboardPage() {
             mobileTab !== 'actions' && 'hidden md:grid'
           )}
         >
+          {/* ── Reference 3 Modular Hub: Circular Conquest Gauge & 4 Context Tiles ── */}
+          <div className="lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-5">
+            {/* Prominent Circular Progress Ring Card (5 cols on desktop) */}
+            <div className="lg:col-span-5">
+              <Card className="p-5 sm:p-6 h-full flex flex-col justify-between relative overflow-hidden">
+                <div className="flex items-center justify-between border-b border-glass-border pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-xs font-bold font-display uppercase tracking-wider text-ink">
+                      Daily Conquest Progress
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-mono text-ink-muted">
+                    {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </span>
+                </div>
+
+                {/* Central Ring Gauge */}
+                <div className="my-5 flex items-center justify-around gap-4">
+                  <div className="relative flex items-center justify-center shrink-0">
+                    <svg className="w-28 h-28 transform -rotate-90" viewBox="0 0 100 100">
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        className="stroke-obsidian-800"
+                        strokeWidth="8"
+                        fill="transparent"
+                      />
+                      <motion.circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        stroke="url(#conquest-gradient)"
+                        strokeWidth="8"
+                        strokeDasharray={2 * Math.PI * 40}
+                        strokeDashoffset={2 * Math.PI * 40 * (1 - dailiesRate / 100)}
+                        strokeLinecap="round"
+                        fill="transparent"
+                        initial={{ strokeDashoffset: 2 * Math.PI * 40 }}
+                        animate={{ strokeDashoffset: 2 * Math.PI * 40 * (1 - dailiesRate / 100) }}
+                        transition={spring.gentle}
+                      />
+                      <defs>
+                        <linearGradient id="conquest-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#34D399" />
+                          <stop offset="100%" stopColor="#38BDF8" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                      <span className="text-2xl font-black font-display text-ink tracking-tight">
+                        {dailiesRate}%
+                      </span>
+                      <span className="text-[9px] uppercase tracking-widest text-ink-muted font-mono font-semibold">
+                        Cleared
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 min-w-0 flex-1">
+                    <div>
+                      <span className="text-xs text-ink-muted">Dailies Completed</span>
+                      <p className="text-base font-bold font-mono text-ink">
+                        {completedTodayCount} <span className="text-xs text-ink-muted">/ {activeDailies.length}</span>
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-xs text-ink-muted">Cognitive Stamina</span>
+                      <p className="text-base font-bold font-mono text-ink">
+                        {totalFocusMinutes}m <span className="text-xs text-ink-muted">Logged</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Progress Summary Pill */}
+                <div className="pt-3 border-t border-glass-border flex items-center justify-between text-xs">
+                  <span className="text-ink-muted">
+                    {dailiesRate === 100 ? 'All dailies conquered today!' : `${activeDailies.length - completedTodayCount} rituals remaining`}
+                  </span>
+                  <Link to="/dailies" className="text-emerald-400 font-semibold hover:underline flex items-center gap-0.5">
+                    <span>Manage</span>
+                    <ChevronRight size={13} />
+                  </Link>
+                </div>
+              </Card>
+            </div>
+
+            {/* 4 Modular Context Tiles (7 cols on desktop - Ref 3 inspired 2x2 grid) */}
+            <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              {/* Tile 1: Deep Focus Chamber */}
+              <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-white/20 transition-all flex flex-col justify-between group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-mana/15 border border-mana/30 flex items-center justify-center text-mana">
+                      <Clock size={16} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-ink font-display">Deep Focus</h4>
+                      <span className="text-[10px] font-mono text-ink-muted">Cognitive sprint</span>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-mana/15 text-mana border border-mana/30">
+                    {activeFocus ? 'Active' : 'Ready'}
+                  </span>
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-xs">
+                  <span className="text-ink-muted text-[11px] truncate">
+                    {activeFocus ? 'In focus flow' : 'Regenerate Mana'}
+                  </span>
+                  <Link to="/focus" className="text-mana font-semibold hover:underline flex items-center gap-0.5 shrink-0">
+                    <span>Launch</span>
+                    <ChevronRight size={13} />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Tile 2: Streak Armor & Grit */}
+              <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-white/20 transition-all flex flex-col justify-between group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-gold/15 border border-gold/30 flex items-center justify-center text-gold">
+                      <Flame size={16} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-ink font-display">Streak Shield</h4>
+                      <span className="text-[10px] font-mono text-ink-muted">Daily discipline</span>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-gold/15 text-gold border border-gold/30">
+                    {bestStreak}d streak
+                  </span>
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-xs">
+                  <span className="text-ink-muted text-[11px] truncate">
+                    {activeHabits.length} habits tracking
+                  </span>
+                  <Link to="/habits" className="text-gold font-semibold hover:underline flex items-center gap-0.5 shrink-0">
+                    <span>Check</span>
+                    <ChevronRight size={13} />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Tile 3: Rest & Recovery Mode */}
+              <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-white/20 transition-all flex flex-col justify-between group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-teal-400">
+                      <Moon size={16} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-ink font-display">Rest & Harmony</h4>
+                      <span className="text-[10px] font-mono text-ink-muted">Burnout defense</span>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-400 border border-teal-500/30">
+                    {restStatus?.isActive ? 'Resting' : 'Normal'}
+                  </span>
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-xs">
+                  <span className="text-ink-muted text-[11px] truncate">
+                    {todayReflection ? 'Reflection logged' : 'Evening review'}
+                  </span>
+                  <Link to="/reflection" className="text-teal-400 font-semibold hover:underline flex items-center gap-0.5 shrink-0">
+                    <span>Reflect</span>
+                    <ChevronRight size={13} />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Tile 4: Leading Attribute Instrumentation */}
+              <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-white/20 transition-all flex flex-col justify-between group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-8 h-8 rounded-xl flex items-center justify-center"
+                      style={{
+                        backgroundColor: `${leadingAttribute.color}15`,
+                        borderColor: `${leadingAttribute.color}30`,
+                        borderWidth: 1,
+                        color: leadingAttribute.color,
+                      }}
+                    >
+                      <Sparkles size={16} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-ink font-display">Lead Attribute</h4>
+                      <span className="text-[10px] font-mono text-ink-muted">{leadingAttribute.name}</span>
+                    </div>
+                  </div>
+                  <span
+                    className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border"
+                    style={{
+                      backgroundColor: `${leadingAttribute.color}15`,
+                      color: leadingAttribute.color,
+                      borderColor: `${leadingAttribute.color}30`,
+                    }}
+                  >
+                    {leadingAttribute.val} {leadingAttribute.stat}
+                  </span>
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-white/5 flex items-center justify-between text-xs">
+                  <span className="text-ink-muted text-[11px] truncate">
+                    {character?.unallocatedPoints > 0 ? `+${character.unallocatedPoints} SP ready` : 'Stats balanced'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={openAttributesDrawer}
+                    className="text-attr-perception font-semibold hover:underline flex items-center gap-0.5 shrink-0"
+                  >
+                    <span>Inspect</span>
+                    <ChevronRight size={13} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Today's Dailies Command Checklist (7 cols) */}
           <div className="lg:col-span-7">
             <Card className="p-4 sm:p-6 h-full flex flex-col justify-between">

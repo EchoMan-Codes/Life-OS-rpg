@@ -9,6 +9,7 @@ import QuestsPage from '@/pages/QuestsPage';
 import FocusChamberPage from '@/pages/FocusChamberPage';
 import ReflectionPage from '@/pages/ReflectionPage';
 import ShopPage from '@/pages/ShopPage';
+import ProfilePage from '@/pages/ProfilePage';
 import DevShowcase from '@/pages/DevShowcase';
 
 import OnboardingPage from '@/features/onboarding/OnboardingPage';
@@ -18,6 +19,7 @@ export default function App() {
     <AppShell>
       <Routes>
         <Route path="/" element={<DashboardPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/login" element={<OnboardingPage defaultMode="login" />} />
         <Route path="/habits" element={<HabitsPage />} />

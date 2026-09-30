@@ -8,6 +8,7 @@ import { useAuth } from '@/features/auth/hooks';
 import { LIFEOS_OPEN_ATTRIBUTES_EVENT } from '@/features/celebration/celebrationEvents';
 import { StatBar } from './StatBar';
 import { AttributesDrawer } from './AttributesDrawer';
+import { ModeButton } from '@/components/ui/ModeButton';
 
 /**
  * Sticky top Player Status HUD.
@@ -130,6 +131,9 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false, onOpenB
                 <Swords size={15} className="shrink-0" />
               </button>
             )}
+
+            {/* Mode Appearance Toggle */}
+            <ModeButton />
 
             {/* Attributes Drawer Button */}
             <button

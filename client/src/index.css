@@ -208,3 +208,22 @@ body {
   -webkit-backdrop-filter: blur(12px);
 }
 
+/* ── Appearance Mode Overrides ── */
+[data-theme="dim"], .theme-dim {
+  --color-obsidian: #040508;
+  --color-obsidian-900: #080A10;
+  --color-obsidian-800: #0E121C;
+  --color-obsidian-700: #161A28;
+}
+
+[data-theme="light"], .theme-light {
+  --color-obsidian: #F6F8FC;
+  --color-obsidian-900: #FFFFFF;
+  --color-obsidian-800: #EEF2F8;
+  --color-obsidian-700: #E2E8F0;
+  --color-glass: rgba(0, 0, 0, 0.03);
+  --color-glass-border: rgba(0, 0, 0, 0.08);
+  --color-ink: #0F172A;
+  --color-ink-muted: #64748B;
+}
+

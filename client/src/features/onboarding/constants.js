@@ -1,12 +1,14 @@
 /**
  * LifeOS Onboarding Questions, Data Model Mappings, and Synthesis Logic.
+ * Inspired by Reference 1 & 2: single-purpose screens, large typography,
+ * illustrated option cards, and progressive calibration.
  */
 
 export const ONBOARDING_STEPS = [
-  { id: 'intro', label: 'Manifesto', index: 1 },
-  { id: 'focus', label: 'Core Objective', index: 2 },
-  { id: 'cadence', label: 'Daily Rhythm', index: 3 },
-  { id: 'style', label: 'Focus Style', index: 4 },
+  { id: 'intro', label: 'Welcome', index: 1 },
+  { id: 'focus', label: 'Main Goal', index: 2 },
+  { id: 'level', label: 'Discipline Level', index: 3 },
+  { id: 'style', label: 'Work Style', index: 4 },
   { id: 'auth', label: 'Initialize', index: 5 },
 ];
 
@@ -15,77 +17,99 @@ export const TOTAL_STEPS = ONBOARDING_STEPS.length;
 export const CORE_OBJECTIVES = [
   {
     id: 'deep-work',
-    title: 'Deep Work & Skill Mastery',
-    description: 'Cognitive problem solving, learning, coding, writing',
+    title: 'Study & Deep Work',
+    category: 'Study',
+    description: 'Cognitive problem solving, skills, coding & learning',
     attribute: 'Intelligence',
     stat: 'INT',
     color: '#38BDF8', // Azure
     archetype: 'Arcane Scholar',
     icon: 'Brain',
+    motif: 'cognitive',
   },
   {
     id: 'vitality',
-    title: 'Physical Vitality & Health',
-    description: 'Cardio, strength training, clean nutrition, sleep',
+    title: 'Physical Vitality & Fitness',
+    category: 'Fitness',
+    description: 'Cardio, strength training, clean nutrition & recovery',
     attribute: 'Vitality',
     stat: 'VIT',
     color: '#34D399', // Emerald
     archetype: 'Immortal Warden',
     icon: 'Activity',
+    motif: 'vitality',
   },
   {
     id: 'grit',
-    title: 'Relentless Discipline & Habits',
-    description: 'Breaking bad habits, daily streaks, unstoppable grit',
+    title: 'Relentless Habits & Grit',
+    category: 'Habits',
+    description: 'Breaking bad loops, building daily streaks & stoic grit',
     attribute: 'Willpower',
     stat: 'WIL',
     color: '#A78BFA', // Violet
     archetype: 'Astral Sovereign',
     icon: 'Shield',
+    motif: 'grit',
   },
   {
     id: 'execution',
-    title: 'Execution Speed & Output',
-    description: 'Crushing tasks, shipping projects, high-volume delivery',
+    title: 'Career & Financial Focus',
+    category: 'Career',
+    description: 'Shipping milestones, wealth building & high-velocity output',
     attribute: 'Strength',
     stat: 'STR',
     color: '#DC2626', // Crimson
     archetype: 'Iron Vanguard',
     icon: 'Zap',
+    motif: 'execution',
   },
   {
     id: 'mindfulness',
-    title: 'Clarity, Energy & Harmony',
-    description: 'Stress mitigation, evening reflection, burnout defense',
+    title: 'Mindfulness & Life Balance',
+    category: 'Balance',
+    description: 'Burnout defense, calm evenings & energy restoration',
     attribute: 'Perception',
     stat: 'PER',
     color: '#FBBF24', // Amber
     archetype: 'Shadow Pathfinder',
     icon: 'Eye',
+    motif: 'harmony',
   },
 ];
 
-export const DAILY_CADENCES = [
+export const DISCIPLINE_LEVELS = [
   {
-    id: 'morning',
-    title: 'Morning Momentum',
-    tagline: 'Win the morning, win the day',
-    description: 'Stack your most critical dailies before noon. Generates early XP and sets daily momentum.',
-    icon: 'Sunrise',
+    id: 'beginner',
+    title: 'Initiate Builder',
+    levelLabel: 'Beginner',
+    tagline: 'Establishing baseline consistency',
+    description: 'Gentle penalty thresholds, forgiving streaks, focus on daily habit formation.',
+    xpMultiplier: '1.0x Baseline XP',
+    badge: 'Beginner',
+    color: '#34D399', // Emerald
+    motif: 'initiate',
   },
   {
-    id: 'flow',
-    title: 'Steady Rhythm',
-    tagline: 'Consistent pacing throughout',
-    description: 'Balanced check-ins across the day. Ideal for blended schedules and flexible priorities.',
-    icon: 'Compass',
+    id: 'skilled',
+    title: 'Disciplined Vanguard',
+    levelLabel: 'Skilled',
+    tagline: 'Consistent execution & daily rhythm',
+    description: 'Standard RPG stat balancing, daily quest requirements, balanced HP/Mana stakes.',
+    xpMultiplier: '1.25x Progress Velocity',
+    badge: 'Skilled',
+    color: '#38BDF8', // Azure
+    motif: 'skilled',
   },
   {
-    id: 'evening',
-    title: 'Night Owl & Reflection',
-    tagline: 'Mindful evening decompression',
-    description: 'Evening review, 30-day wellness reflections, and preparing tomorrow’s quest objectives.',
-    icon: 'Moon',
+    id: 'guru',
+    title: 'Relentless Sovereign',
+    levelLabel: 'Master',
+    tagline: 'Peak performance & zero excuses',
+    description: 'High-difficulty quests, strict streak decay, maximum gold & attribute multipliers.',
+    xpMultiplier: '1.5x Mastery XP',
+    badge: 'Master',
+    color: '#A78BFA', // Violet
+    motif: 'master',
   },
 ];
 
@@ -97,14 +121,16 @@ export const FOCUS_STYLES = [
     title: 'Classic Pomodoro',
     badge: '25m / 5m',
     description: 'High-intensity cognitive bursts with crisp recovery intervals. Fast Mana regeneration.',
+    icon: 'Zap',
   },
   {
     id: 'immersion',
     duration: 50,
     breakTime: 10,
-    title: 'Extended Flow',
+    title: 'Extended Deep Flow',
     badge: '50m / 10m',
     description: 'Deep cognitive immersion for complex architecture, deep writing, and sustained thinking.',
+    icon: 'Clock',
   },
   {
     id: 'deep',
@@ -113,23 +139,32 @@ export const FOCUS_STYLES = [
     title: 'Ultradian Deep Dive',
     badge: '90m / 15m',
     description: 'Maximum stamina sessions matching human ultradian peak performance rhythms.',
+    icon: 'Compass',
   },
 ];
 
 /**
  * Generates an intelligent, tailored summary synthesis based on real selections.
  */
-export function generateSystemSynthesis({ objectiveId, cadenceId, focusStyleId }) {
+export function generateSystemSynthesis({ objectiveId, levelId, focusStyleId }) {
   const objective = CORE_OBJECTIVES.find((o) => o.id === objectiveId) || CORE_OBJECTIVES[0];
-  const cadence = DAILY_CADENCES.find((c) => c.id === cadenceId) || DAILY_CADENCES[0];
+  const level = DISCIPLINE_LEVELS.find((l) => l.id === levelId) || DISCIPLINE_LEVELS[1];
   const focus = FOCUS_STYLES.find((f) => f.id === focusStyleId) || FOCUS_STYLES[1];
 
   return {
     archetype: objective.archetype,
     primaryAttribute: `${objective.attribute} (${objective.stat})`,
     primaryAttributeColor: objective.color,
-    cadenceTitle: cadence.title,
-    focusPreset: focus.badge,
-    summarySentence: `Configured for ${objective.title.toLowerCase()}, a ${cadence.title.toLowerCase()} ritual cadence, and ${focus.title.toLowerCase()} focus intervals.`,
+    disciplineTier: level.title,
+    cadenceTitle: `${level.levelLabel} Tier`,
+    xpMultiplier: level.xpMultiplier,
+    focusPreset: `${focus.duration}m Sprint`,
+    focusSprint: `${focus.duration} min (${focus.title})`,
+    summarySentence: `Configured as ${objective.archetype} at ${level.title} discipline tier with ${focus.duration}m cognitive sprints.`,
+    recommendedDailies: [
+      `Morning Calibration (${objective.stat} check-in)`,
+      `${focus.duration}-Minute Deep Focus Chamber Sprint`,
+      'Evening Reflection & Burnout Defense',
+    ],
   };
 }

@@ -1,24 +1,16 @@
 import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
-import { ArrowRight, Check, Sparkles, Brain, Activity, Shield, Zap, Eye } from 'lucide-react';
+import { ArrowRight, Check, Sparkles } from 'lucide-react';
 import clsx from 'clsx';
-import { CORE_OBJECTIVES } from '../constants';
+import { DISCIPLINE_LEVELS } from '../constants';
 import { CardMotif } from './CardMotif';
 
-const ICON_MAP = {
-  Brain,
-  Activity,
-  Shield,
-  Zap,
-  Eye,
-};
-
 /**
- * Step 2: Main Goal & Attribute Alignment.
- * Inspired by Reference 1: Large typography question, rich illustrated option cards,
- * and circular forward action button.
+ * Step 3: Discipline Level Selection.
+ * Inspired directly by Reference 1 (Screen 2: "What's your level?"):
+ * Beginner, Skilled, Guru/Master with large illustrated cards and forward action button.
  */
-export function StepCoreFocus({ selectedId, onSelect, onContinue }) {
+export function StepDisciplineLevel({ selectedId, onSelect, onContinue }) {
   return (
     <div className="flex flex-col justify-between h-full min-h-[440px]">
       <div className="space-y-5">
@@ -26,84 +18,72 @@ export function StepCoreFocus({ selectedId, onSelect, onContinue }) {
         <div className="space-y-1.5">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-mana/10 border border-mana/20 text-mana text-[10px] font-mono tracking-widest uppercase">
             <Sparkles size={11} />
-            <span>Calibration 01</span>
+            <span>Calibration 02</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink font-display">
-            What is your main goal?
+            What is your discipline level?
           </h2>
           <p className="text-xs sm:text-sm text-ink-muted leading-relaxed max-w-lg">
-            Select your primary discipline to calibrate starting quests, RPG stat priorities, and focus presets.
+            Calibrate habit difficulty, streak forgiveness thresholds, and progression multiplier.
           </p>
         </div>
 
-        {/* Option Cards (Ref 1: Large illustrated panels with abstract silhouettes) */}
-        <div className="space-y-2.5">
-          {CORE_OBJECTIVES.map((item) => {
-            const isSelected = selectedId === item.id;
-            const Icon = ICON_MAP[item.icon] || Zap;
+        {/* Large Level Cards (Ref 1: Large illustrated panels) */}
+        <div className="space-y-3">
+          {DISCIPLINE_LEVELS.map((level) => {
+            const isSelected = selectedId === level.id;
 
             return (
               <motion.button
-                key={item.id}
+                key={level.id}
                 type="button"
-                onClick={() => onSelect(item.id)}
-                whileHover={{ scale: 1.01 }}
+                onClick={() => onSelect(level.id)}
+                whileHover={{ scale: 1.012 }}
                 whileTap={{ scale: 0.99 }}
                 className={clsx(
-                  'w-full text-left p-3.5 sm:p-4 rounded-2xl border transition-all duration-200 flex items-center justify-between gap-3 group relative overflow-hidden',
+                  'w-full text-left p-4 sm:p-5 rounded-2xl border transition-all duration-200 flex items-center justify-between gap-4 group relative overflow-hidden',
                   isSelected
                     ? 'bg-mana/10 border-mana/50 shadow-[0_0_24px_rgba(99,102,241,0.18)] ring-1 ring-mana/40'
                     : 'bg-white/[0.02] border-white/[0.07] hover:bg-white/[0.04] hover:border-white/18'
                 )}
               >
-                {/* Active ambient vertical accent line */}
+                {/* Active vertical accent line */}
                 {isSelected && (
                   <div
                     className="absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl"
-                    style={{ backgroundColor: item.color }}
+                    style={{ backgroundColor: level.color }}
                   />
                 )}
 
-                <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                  {/* Icon */}
-                  <div
-                    className={clsx(
-                      'w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors',
-                      isSelected
-                        ? 'bg-mana/20 text-ink'
-                        : 'bg-white/[0.04] text-ink-muted group-hover:text-ink'
-                    )}
-                    style={{ color: isSelected ? item.color : undefined }}
-                  >
-                    <Icon size={18} />
+                <div className="space-y-1 min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-base sm:text-lg font-bold text-ink font-display">
+                      {level.title}
+                    </span>
+                    <span
+                      className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider"
+                      style={{
+                        backgroundColor: `${level.color}18`,
+                        color: level.color,
+                      }}
+                    >
+                      {level.badge}
+                    </span>
                   </div>
-
-                  {/* Title & Description */}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs sm:text-sm font-bold text-ink">
-                        {item.title}
-                      </span>
-                      <span
-                        className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase tracking-wider"
-                        style={{
-                          backgroundColor: `${item.color}15`,
-                          color: item.color,
-                        }}
-                      >
-                        {item.stat}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-ink-muted line-clamp-1 mt-0.5">
-                      {item.description}
-                    </p>
+                  <p className="text-xs text-ink-muted leading-relaxed max-w-sm">
+                    {level.description}
+                  </p>
+                  <div className="text-[10px] font-mono text-ink-muted pt-1">
+                    <span style={{ color: level.color }} className="font-semibold">
+                      {level.xpMultiplier}
+                    </span>
                   </div>
                 </div>
 
                 {/* Right side: Abstract Vector Silhouette Motif (Inspired by Ref 1) */}
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-3 shrink-0">
                   <div className="hidden sm:block">
-                    <CardMotif type={item.motif} color={item.color} />
+                    <CardMotif type={level.motif} color={level.color} />
                   </div>
 
                   {/* Check Indicator */}
@@ -124,10 +104,10 @@ export function StepCoreFocus({ selectedId, onSelect, onContinue }) {
         </div>
       </div>
 
-      {/* Footer Forward Action (Ref 1: Circular Forward Arrow Button or Pill) */}
+      {/* Footer Forward Action (Ref 1: Circular Forward Arrow Button) */}
       <div className="pt-6 mt-4 flex items-center justify-between border-t border-white/[0.06]">
         <span className="text-xs text-ink-muted font-mono hidden sm:inline">
-          {CORE_OBJECTIVES.find((o) => o.id === selectedId)?.archetype || 'Select an objective'}
+          {DISCIPLINE_LEVELS.find((l) => l.id === selectedId)?.tagline || 'Select your tier'}
         </span>
 
         <div className="flex items-center gap-3 ml-auto">
@@ -148,7 +128,7 @@ export function StepCoreFocus({ selectedId, onSelect, onContinue }) {
   );
 }
 
-StepCoreFocus.propTypes = {
+StepDisciplineLevel.propTypes = {
   selectedId: PropTypes.string.isRequired,
   onSelect: PropTypes.func.isRequired,
   onContinue: PropTypes.func.isRequired,

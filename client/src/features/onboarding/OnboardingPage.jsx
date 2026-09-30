@@ -9,7 +9,7 @@ import { OnboardingIllustration } from './components/OnboardingIllustration';
 import { OnboardingProgress } from './components/OnboardingProgress';
 import { StepIntro } from './components/StepIntro';
 import { StepCoreFocus } from './components/StepCoreFocus';
-import { StepRitualCadence } from './components/StepRitualCadence';
+import { StepDisciplineLevel } from './components/StepDisciplineLevel';
 import { StepFocusStyle } from './components/StepFocusStyle';
 import { StepAuth } from './components/StepAuth';
 
@@ -18,7 +18,7 @@ export const LOCAL_STORAGE_COMPLETED_KEY = 'lifeos_onboarding_completed';
 
 const DEFAULT_ANSWERS = {
   objectiveId: 'deep-work',
-  cadenceId: 'morning',
+  levelId: 'skilled',
   focusStyleId: 'immersion',
 };
 
@@ -33,10 +33,10 @@ const STEP_CAPTIONS = {
     headline: 'Define Your Core Crucible',
     subtext: 'Every action builds your character. Align your primary domain to calibrate your initial RPG stat progression.',
   },
-  cadence: {
+  level: {
     category: 'CALIBRATION 02',
-    headline: 'Pace Your Daily Rhythm',
-    subtext: 'Align your quests with your natural biological clock to eliminate decision fatigue and build momentum.',
+    headline: 'Establish Your Discipline Tier',
+    subtext: 'Calibrate habit stakes, streak forgiveness rules, and XP velocity to match your current commitment.',
   },
   style: {
     category: 'CALIBRATION 03',
@@ -295,10 +295,10 @@ export default function OnboardingPage({ defaultMode = 'onboarding' }) {
                     />
                   )}
 
-                  {currentStep.id === 'cadence' && (
-                    <StepRitualCadence
-                      selectedId={answers.cadenceId}
-                      onSelect={(id) => setAnswers((prev) => ({ ...prev, cadenceId: id }))}
+                  {currentStep.id === 'level' && (
+                    <StepDisciplineLevel
+                      selectedId={answers.levelId}
+                      onSelect={(id) => setAnswers((prev) => ({ ...prev, levelId: id }))}
                       onContinue={handleNext}
                     />
                   )}

@@ -185,8 +185,8 @@ export function OnboardingIllustration({ step, type, className }) {
         </svg>
       )}
 
-      {/* ── 3. Daily Rhythm / Cadence Scene (Ritual) ── */}
-      {activeType === 'cadence' && (
+      {/* ── 3. Daily Rhythm / Discipline Level Scene ── */}
+      {(activeType === 'cadence' || activeType === 'level') && (
         <svg viewBox="0 0 320 320" fill="none" className="w-full h-full max-w-[320px]">
           <circle cx="160" cy="160" r="110" fill="#FBBF24" fillOpacity="0.04" />
 
@@ -352,7 +352,7 @@ export function OnboardingIllustration({ step, type, className }) {
 }
 
 OnboardingIllustration.propTypes = {
-  step: PropTypes.oneOf(['intro', 'focus', 'cadence', 'style', 'auth']),
-  type: PropTypes.oneOf(['intro', 'focus', 'cadence', 'style', 'auth']),
+  step: PropTypes.oneOf(['intro', 'focus', 'cadence', 'level', 'style', 'auth']),
+  type: PropTypes.oneOf(['intro', 'focus', 'cadence', 'level', 'style', 'auth']),
   className: PropTypes.string,
 };

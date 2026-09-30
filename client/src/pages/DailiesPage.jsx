@@ -4,8 +4,7 @@ import { CalendarCheck, Plus, Sparkles, CheckCircle2, Clock, Zap, ShieldAlert } 
 import clsx from 'clsx';
 
 import { useDailies } from '@/features/dailies/hooks';
-import { DailyCard } from '@/components/dailies/DailyCard';
-import { DailyModal } from '@/components/dailies/DailyModal';
+import { DailyCard, DailyModal, DailiesOrbitRibbon } from '@/components/dailies';
 import { spring } from '@/lib/motionVariants';
 
 const FILTERS = [
@@ -70,24 +69,24 @@ export default function DailiesPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
-      {/* ── 1. Glassy iOS Cockpit Header (Emerald Vitality Theme) ── */}
-      <section className="relative rounded-3xl p-5 sm:p-7 bg-gradient-to-br from-obsidian-900/85 via-obsidian-900/65 to-obsidian-800/75 border border-white/15 shadow-[0_16px_48px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-2xl overflow-hidden">
+      {/* ── 1. Glassy Cockpit Header (Emerald Vitality Theme) ── */}
+      <section className="relative rounded-3xl p-5 sm:p-7 bg-gradient-to-br from-white via-emerald-50/40 to-slate-50 border border-slate-200/80 shadow-[0_10px_35px_rgba(0,0,0,0.05)] dark:from-obsidian-900/85 dark:via-obsidian-900/65 dark:to-obsidian-800/75 dark:border-white/15 dark:shadow-[0_16px_48px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-2xl overflow-hidden">
         {/* Ambient emerald & jade glow */}
         <div className="absolute -top-24 -left-20 w-80 h-80 bg-emerald-500/15 rounded-full blur-[100px] pointer-events-none" />
         <div className="absolute top-1/2 -right-20 w-64 h-64 bg-teal-500/10 rounded-full blur-[100px] pointer-events-none" />
 
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-mono font-semibold">
-              <Clock size={13} className="animate-spin text-emerald-400" style={{ animationDuration: '8s' }} />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs font-mono font-semibold">
+              <Clock size={13} className="animate-spin text-emerald-500" style={{ animationDuration: '8s' }} />
               <span>{todayFormatted.toUpperCase()} • RESETS AT 00:00</span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight font-display">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-ink tracking-tight font-display">
               Daily Rituals & Vows
             </h1>
 
-            <p className="text-xs sm:text-sm text-ink-muted leading-relaxed max-w-xl">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-ink-muted leading-relaxed max-w-xl">
               Essential commitments refreshed each day. Conquering dailies safeguards your HP and awards consistent Gold & XP. Incomplete rituals risk daily damage.
             </p>
           </div>
@@ -98,7 +97,7 @@ export default function DailiesPage() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.96 }}
             transition={spring.snappy}
-            className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-obsidian font-bold text-xs sm:text-sm hover:from-emerald-400 hover:to-teal-300 transition-all shadow-[0_8px_24px_rgba(16,185,129,0.35)] self-start sm:self-auto min-h-[46px]"
+            className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-xs sm:text-sm hover:from-emerald-400 hover:to-teal-300 transition-all shadow-[0_8px_24px_rgba(16,185,129,0.25)] self-start sm:self-auto min-h-[46px]"
           >
             <Plus size={16} strokeWidth={2.5} />
             <span>New Daily</span>
@@ -106,46 +105,18 @@ export default function DailiesPage() {
         </div>
       </section>
 
-      {/* ── 2. Unified iOS Glance Metric Strip ── */}
-      <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl shadow-sm space-y-1">
-          <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted">Due Today</span>
-          <p className="text-xl sm:text-2xl font-bold font-mono text-ink">{dueCount}</p>
-          <span className="text-[10px] text-ink-muted font-mono">{dailies.length} total enrolled</span>
-        </div>
-
-        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl shadow-sm space-y-1">
-          <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted">Conquered</span>
-          <p className="text-xl sm:text-2xl font-bold font-mono text-emerald-400 flex items-center gap-1.5">
-            <CheckCircle2 size={20} className="text-emerald-400" />
-            <span>{completedCount}</span>
-          </p>
-          <span className="text-[10px] text-emerald-400/80 font-mono">
-            {dueCount - completedCount === 0 ? 'All cleared!' : `${dueCount - completedCount} remaining`}
-          </span>
-        </div>
-
-        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl shadow-sm space-y-1">
-          <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted">Highest Streak</span>
-          <p className="text-xl sm:text-2xl font-bold font-mono text-amber-400">{bestOverallStreak}d</p>
-          <span className="text-[10px] text-ink-muted font-mono">Consecutive days</span>
-        </div>
-
-        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl shadow-sm space-y-1">
-          <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted">Daily Victory</span>
-          <p className="text-xl sm:text-2xl font-bold font-mono text-emerald-300">{completionPercent}%</p>
-          <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden mt-1">
-            <div
-              className="bg-emerald-400 h-full rounded-full transition-all duration-500"
-              style={{ width: `${completionPercent}%` }}
-            />
-          </div>
-        </div>
-      </section>
+      {/* ── 2. Unique Connected Daily Conquest Orbit Ribbon ── */}
+      <DailiesOrbitRibbon
+        dueCount={dueCount}
+        completedCount={completedCount}
+        bestOverallStreak={bestOverallStreak}
+        completionPercent={completionPercent}
+        totalDailies={dailies.length}
+      />
 
       {/* ── 3. iOS Frosted Segmented Filter Capsule ── */}
       <div className="flex items-center justify-between gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className="p-1 rounded-full bg-obsidian-900/80 border border-white/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] backdrop-blur-md flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="p-1 rounded-full bg-slate-100/90 dark:bg-obsidian-900/80 border border-slate-200/90 dark:border-white/10 shadow-inner backdrop-blur-md flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {FILTERS.map((tab) => {
             const isActive = activeFilter === tab.id;
             return (
@@ -156,8 +127,8 @@ export default function DailiesPage() {
                 className={clsx(
                   'px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap',
                   isActive
-                    ? 'bg-emerald-500 text-obsidian shadow-sm'
-                    : 'text-ink-muted hover:text-ink hover:bg-white/5'
+                    ? 'bg-emerald-500 text-slate-950 font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 dark:text-ink-muted dark:hover:text-ink hover:bg-slate-200/60 dark:hover:bg-white/5'
                 )}
               >
                 {tab.label}
@@ -166,7 +137,7 @@ export default function DailiesPage() {
           })}
         </div>
 
-        <span className="text-[11px] font-mono text-ink-faint hidden sm:inline">
+        <span className="text-[11px] font-mono text-slate-400 dark:text-ink-faint hidden sm:inline">
           Showing {filteredDailies.length} of {dailies.length} rituals
         </span>
       </div>

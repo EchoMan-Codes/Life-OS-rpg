@@ -4,8 +4,7 @@ import { Flame, Plus, Sparkles, TrendingUp, ShieldCheck, Zap } from 'lucide-reac
 import clsx from 'clsx';
 
 import { useHabits } from '@/features/habits/hooks';
-import { HabitCard } from '@/components/habits/HabitCard';
-import { HabitModal } from '@/components/habits/HabitModal';
+import { HabitCard, HabitModal, HabitMomentumRibbon } from '@/components/habits';
 import { spring } from '@/lib/motionVariants';
 
 const FILTERS = [
@@ -47,24 +46,24 @@ export default function HabitsPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
-      {/* ── 1. Glassy iOS Cockpit Header (Flame / Amber Theme) ── */}
-      <section className="relative rounded-3xl p-5 sm:p-7 bg-gradient-to-br from-obsidian-900/85 via-obsidian-900/65 to-obsidian-800/75 border border-white/15 shadow-[0_16px_48px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-2xl overflow-hidden">
+      {/* ── 1. Glassy Cockpit Header (Flame / Amber Theme) ── */}
+      <section className="relative rounded-3xl p-5 sm:p-7 bg-gradient-to-br from-white via-amber-50/40 to-slate-50 border border-slate-200/80 shadow-[0_10px_35px_rgba(0,0,0,0.05)] dark:from-obsidian-900/85 dark:via-obsidian-900/65 dark:to-obsidian-800/75 dark:border-white/15 dark:shadow-[0_16px_48px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-2xl overflow-hidden">
         {/* Ambient atmospheric glows */}
         <div className="absolute -top-24 -left-20 w-80 h-80 bg-amber-500/15 rounded-full blur-[100px] pointer-events-none" />
         <div className="absolute top-1/2 -right-20 w-64 h-64 bg-orange-500/10 rounded-full blur-[100px] pointer-events-none" />
 
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-400 text-xs font-mono font-semibold">
-              <Flame size={13} className="fill-amber-400 animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-400 text-xs font-mono font-semibold">
+              <Flame size={13} className="fill-amber-500 animate-pulse" />
               <span>STREAK ENGINE • WILLPOWER & GRIT</span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight font-display">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-ink tracking-tight font-display">
               Habits & Momentum
             </h1>
 
-            <p className="text-xs sm:text-sm text-ink-muted leading-relaxed max-w-xl">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-ink-muted leading-relaxed max-w-xl">
               Forge positive disciplines and conquer detrimental routines. Swipe right on cards to log success (+XP), or swipe left to hold yourself accountable.
             </p>
           </div>
@@ -75,7 +74,7 @@ export default function HabitsPage() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.96 }}
             transition={spring.snappy}
-            className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 text-obsidian font-bold text-xs sm:text-sm hover:from-amber-400 hover:to-amber-300 transition-all shadow-[0_8px_24px_rgba(245,158,11,0.35)] self-start sm:self-auto min-h-[46px]"
+            className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-bold text-xs sm:text-sm hover:from-amber-400 hover:to-amber-300 transition-all shadow-[0_8px_24px_rgba(245,158,11,0.25)] self-start sm:self-auto min-h-[46px]"
           >
             <Plus size={16} strokeWidth={2.5} />
             <span>Forge Habit</span>
@@ -83,45 +82,16 @@ export default function HabitsPage() {
         </div>
       </section>
 
-      {/* ── 2. Unified iOS Glance Metric Strip ── */}
-      <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl shadow-sm space-y-1">
-          <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted">Active Habits</span>
-          <p className="text-xl sm:text-2xl font-bold font-mono text-ink">{habits.length}</p>
-          <span className="text-[10px] text-amber-400/80 font-mono">Real-time tracked</span>
-        </div>
-
-        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl shadow-sm space-y-1">
-          <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted">Peak Streak</span>
-          <p className="text-xl sm:text-2xl font-bold font-mono text-amber-400 flex items-center gap-1.5">
-            <Flame size={20} className="fill-amber-400 text-amber-400" />
-            <span>{bestOverallStreak}d</span>
-          </p>
-          <span className="text-[10px] text-ink-muted font-mono">Unbroken streak</span>
-        </div>
-
-        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl shadow-sm space-y-1">
-          <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted">Total Conquests</span>
-          <p className="text-xl sm:text-2xl font-bold font-mono text-emerald-400 flex items-center gap-1.5">
-            <Zap size={18} className="text-emerald-400" />
-            <span>{totalCompletions}</span>
-          </p>
-          <span className="text-[10px] text-ink-muted font-mono">Positive reps</span>
-        </div>
-
-        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl shadow-sm space-y-1">
-          <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted">Tactile Gesture</span>
-          <p className="text-xs font-semibold text-mana mt-1 flex items-center gap-1">
-            <ShieldCheck size={14} />
-            <span>Swipe ±80px</span>
-          </p>
-          <span className="text-[10px] text-ink-muted font-mono">Haptic card scoring</span>
-        </div>
-      </section>
+      {/* ── 2. Unique Connected 7-Day Habit Momentum Wave ── */}
+      <HabitMomentumRibbon
+        habits={habits}
+        bestOverallStreak={bestOverallStreak}
+        totalCompletions={totalCompletions}
+      />
 
       {/* ── 3. iOS Frosted Segmented Filter Capsule ── */}
       <div className="flex items-center justify-between gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className="p-1 rounded-full bg-obsidian-900/80 border border-white/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] backdrop-blur-md flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="p-1 rounded-full bg-slate-100/90 dark:bg-obsidian-900/80 border border-slate-200/90 dark:border-white/10 shadow-inner backdrop-blur-md flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {FILTERS.map((tab) => {
             const isActive = activeFilter === tab.id;
             return (
@@ -132,8 +102,8 @@ export default function HabitsPage() {
                 className={clsx(
                   'px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap',
                   isActive
-                    ? 'bg-amber-500 text-obsidian shadow-sm'
-                    : 'text-ink-muted hover:text-ink hover:bg-white/5'
+                    ? 'bg-amber-500 text-slate-950 font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 dark:text-ink-muted dark:hover:text-ink hover:bg-slate-200/60 dark:hover:bg-white/5'
                 )}
               >
                 {tab.label}
@@ -142,7 +112,7 @@ export default function HabitsPage() {
           })}
         </div>
 
-        <span className="text-[11px] font-mono text-ink-faint hidden sm:inline">
+        <span className="text-[11px] font-mono text-slate-400 dark:text-ink-faint hidden sm:inline">
           Showing {filteredHabits.length} of {habits.length}
         </span>
       </div>

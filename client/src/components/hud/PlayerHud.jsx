@@ -62,8 +62,8 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false, onOpenB
             title="Open Character Attributes"
             aria-label="Open character attributes"
             className={clsx(
-              'flex items-center gap-2 group p-1 rounded-xl hover:bg-white/[0.06] active:scale-95 transition-all shrink-0',
-              'focus:outline-none focus:ring-2 focus:ring-white/20'
+              'flex items-center gap-2 group p-1 rounded-xl hover:bg-slate-100/80 dark:hover:bg-white/[0.06] active:scale-95 transition-all shrink-0',
+              'focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-white/20'
             )}
           >
             <div className="relative">
@@ -74,12 +74,12 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false, onOpenB
                   className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border border-gold/50 shadow-sm"
                 />
               ) : (
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-obsidian-800 border border-gold/40 flex items-center justify-center text-gold shadow-sm">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-slate-100 dark:bg-obsidian-800 border border-gold/40 flex items-center justify-center text-amber-600 dark:text-gold shadow-sm">
                   <UserIcon size={18} />
                 </div>
               )}
               {/* Level Badge overlaid */}
-              <span className="absolute -bottom-1 -right-1 bg-obsidian-950 text-gold border border-gold/60 rounded-full px-1.5 text-[8px] sm:text-[10px] font-mono font-bold leading-tight shadow">
+              <span className="absolute -bottom-1 -right-1 bg-slate-900 dark:bg-obsidian-950 text-amber-400 dark:text-gold border border-gold/60 rounded-full px-1.5 text-[8px] sm:text-[10px] font-mono font-bold leading-tight shadow">
                 {level}
               </span>
             </div>

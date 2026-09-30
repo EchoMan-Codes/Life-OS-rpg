@@ -171,32 +171,40 @@ export default function ProfilePage() {
       transition={spring.snappy}
       className="space-y-6 max-w-7xl mx-auto pb-16"
     >
-      {/* ── Top Header Bar ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-glass-border pb-4">
-        <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gold/15 border border-gold/30 text-gold text-[10px] font-mono tracking-widest uppercase mb-1">
-            <Sparkles size={11} />
-            <span>Personal Sanctum</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold font-display text-ink tracking-tight">
-            Profile & Character Control Center
-          </h1>
-          <p className="text-xs sm:text-sm text-ink-muted">
-            Manage your personal identity, RPG instrumentation, appearance modes, and system preferences.
-          </p>
-        </div>
+      {/* ── 1. Glassy iOS Cockpit Header (Imperial Sovereign Theme) ── */}
+      <section className="relative rounded-3xl p-5 sm:p-7 bg-gradient-to-br from-white via-indigo-50/30 to-slate-50 border border-slate-200/80 shadow-[0_10px_35px_rgba(0,0,0,0.05)] dark:from-obsidian-900/85 dark:via-obsidian-900/65 dark:to-obsidian-800/75 dark:border-white/15 dark:shadow-[0_16px_48px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-2xl overflow-hidden">
+        {/* Ambient atmospheric glows */}
+        <div className="absolute -top-24 -left-20 w-80 h-80 bg-amber-500/15 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/2 -right-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={openBattleLogDrawer}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gold/15 hover:bg-gold/25 text-gold border border-gold/40 text-xs font-semibold transition-all active:scale-95"
-          >
-            <Swords size={14} />
-            <span>Chronicles</span>
-          </button>
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-gold text-xs font-mono font-semibold">
+              <Sparkles size={13} className="text-amber-500 dark:text-gold" />
+              <span>COMMAND SANCTUM • PROFILE & INSTRUMENTATION</span>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-ink tracking-tight font-display">
+              Character Control Center
+            </h1>
+
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-ink-muted leading-relaxed max-w-xl">
+              Manage your personal identity, RPG attributes, sound preferences, and display mode appearance.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={openBattleLogDrawer}
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-gold border border-amber-400/40 dark:border-gold/40 text-xs font-bold transition-all active:scale-95 shadow-xs"
+            >
+              <Swords size={15} />
+              <span>Battle Chronicles</span>
+            </button>
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* ── Main Asymmetric Layout ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -210,31 +218,31 @@ export default function ProfilePage() {
                   <img
                     src={avatarUrl}
                     alt={displayName}
-                    className="w-16 h-16 rounded-2xl object-cover border-2 border-gold/50 shadow-lg"
+                    className="w-16 h-16 rounded-2xl object-cover border-2 border-amber-400/60 dark:border-gold/50 shadow-md"
                   />
                 ) : (
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gold/20 to-obsidian-800 border-2 border-gold/40 flex items-center justify-center text-gold font-display font-extrabold text-2xl shadow-lg">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400/20 to-indigo-500/20 border-2 border-amber-400/50 flex items-center justify-center text-amber-600 dark:text-gold font-display font-extrabold text-2xl shadow-md">
                     <UserIcon size={28} />
                   </div>
                 )}
-                <span className="absolute -bottom-1 -right-1 bg-obsidian-950 text-gold border border-gold/60 rounded-full px-2 py-0.5 text-[10px] font-mono font-bold shadow-md">
+                <span className="absolute -bottom-1 -right-1 bg-slate-900 text-amber-400 dark:bg-obsidian-950 dark:text-gold border border-amber-400/60 dark:border-gold/60 rounded-full px-2 py-0.5 text-[10px] font-mono font-bold shadow-md">
                   Lv.{level}
                 </span>
               </div>
 
               <div className="min-w-0 flex-1">
-                <h2 className="text-base sm:text-lg font-bold font-display text-ink truncate">
+                <h2 className="text-base sm:text-lg font-bold font-display text-slate-900 dark:text-ink truncate">
                   {displayName}
                 </h2>
-                <p className="text-xs text-ink-muted truncate font-mono mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-ink-muted truncate font-mono mt-0.5">
                   {email}
                 </p>
                 <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gold/15 border border-gold/30 text-gold text-[10px] font-mono font-bold">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-gold text-[10px] font-mono font-bold">
                     <Flame size={12} className="fill-current" />
                     <span>{bestStreak > 0 ? `${bestStreak}d Streak` : 'Streak Active'}</span>
                   </span>
-                  <span className="px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-ink-muted text-[10px] font-mono">
+                  <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.06] border border-slate-200 dark:border-white/10 text-slate-600 dark:text-ink-muted text-[10px] font-mono">
                     Level {level} Sovereign
                   </span>
                 </div>
@@ -242,25 +250,25 @@ export default function ProfilePage() {
             </div>
 
             {/* Level XP Progress Gauge */}
-            <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.07] space-y-2">
+            <div className="p-3.5 rounded-2xl bg-slate-50/90 border border-slate-200/80 dark:bg-white/[0.02] dark:border-white/[0.07] space-y-2">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-ink-muted font-medium flex items-center gap-1.5">
-                  <Sparkles size={12} className="text-xp" />
+                <span className="text-slate-600 dark:text-ink-muted font-medium flex items-center gap-1.5">
+                  <Sparkles size={12} className="text-purple-600 dark:text-xp" />
                   <span>XP Progress</span>
                 </span>
-                <span className="font-mono text-ink font-bold">
+                <span className="font-mono text-slate-900 dark:text-ink font-bold">
                   {xp} / {xpForNextLevel}
                 </span>
               </div>
-              <div className="h-2 rounded-full bg-obsidian-800 overflow-hidden relative">
+              <div className="h-2 rounded-full bg-slate-200 dark:bg-obsidian-800 overflow-hidden relative">
                 <motion.div
-                  className="h-full bg-gradient-to-r from-xp to-gold rounded-full"
+                  className="h-full bg-gradient-to-r from-purple-500 to-amber-500 dark:from-xp dark:to-gold rounded-full"
                   initial={{ width: 0 }}
                   animate={{ width: `${xpPercent}%` }}
                   transition={spring.snappy}
                 />
               </div>
-              <div className="flex items-center justify-between text-[10px] text-ink-muted font-mono">
+              <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-ink-muted font-mono">
                 <span>{xpPercent}% completed</span>
                 <span>{xpRemaining} XP to next level</span>
               </div>
@@ -270,11 +278,11 @@ export default function ProfilePage() {
           {/* 7-Day Week Discipline Strip (Ref 4) */}
           <Card className="p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-ink uppercase tracking-wider font-display">
-                <Calendar size={13} className="text-attr-perception" />
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-ink uppercase tracking-wider font-display">
+                <Calendar size={13} className="text-amber-600 dark:text-attr-perception" />
                 <span>Weekly Discipline Strip</span>
               </div>
-              <span className="text-[10px] font-mono text-ink-muted">
+              <span className="text-[10px] font-mono text-slate-500 dark:text-ink-muted">
                 {bestStreak > 0 ? `${bestStreak}-day momentum` : 'Daily focus'}
               </span>
             </div>
@@ -290,16 +298,16 @@ export default function ProfilePage() {
                     className={clsx(
                       'flex flex-col items-center py-2 px-1 rounded-xl border transition-all text-center',
                       isToday
-                        ? 'bg-gradient-to-b from-attr-perception/20 to-gold/10 border-attr-perception/50 shadow-[0_0_15px_rgba(251,191,36,0.15)] ring-1 ring-attr-perception/40'
+                        ? 'bg-gradient-to-b from-amber-500/20 to-amber-500/5 border-amber-500/50 shadow-xs ring-1 ring-amber-500/40 text-amber-700 dark:text-attr-perception'
                         : isPast
-                        ? 'bg-white/[0.03] border-white/10'
-                        : 'bg-white/[0.01] border-white/5 opacity-60'
+                        ? 'bg-slate-50 dark:bg-white/[0.03] border-slate-200 dark:border-white/10'
+                        : 'bg-slate-50/40 dark:bg-white/[0.01] border-slate-200/50 dark:border-white/5 opacity-60'
                     )}
                   >
                     <span
                       className={clsx(
                         'text-[9px] font-mono uppercase tracking-wider',
-                        isToday ? 'text-attr-perception font-bold' : 'text-ink-muted'
+                        isToday ? 'text-amber-700 dark:text-attr-perception font-bold' : 'text-slate-500 dark:text-ink-muted'
                       )}
                     >
                       {day.label}
@@ -307,7 +315,7 @@ export default function ProfilePage() {
                     <span
                       className={clsx(
                         'text-xs font-bold font-mono mt-0.5',
-                        isToday ? 'text-ink' : 'text-ink-muted'
+                        isToday ? 'text-slate-900 dark:text-ink' : 'text-slate-600 dark:text-ink-muted'
                       )}
                     >
                       {day.dateNumber}
@@ -317,11 +325,11 @@ export default function ProfilePage() {
                         <div
                           className={clsx(
                             'w-1.5 h-1.5 rounded-full',
-                            isToday ? 'bg-attr-perception animate-pulse' : 'bg-emerald-400'
+                            isToday ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500 dark:bg-emerald-400'
                           )}
                         />
                       ) : (
-                        <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-slate-200 dark:bg-white/10" />
                       )}
                     </div>
                   </div>
@@ -332,10 +340,10 @@ export default function ProfilePage() {
 
           {/* Appearance Mode Controller (Requirement 10) */}
           <Card className="p-5 space-y-3">
-            <div className="text-xs font-bold text-ink uppercase tracking-wider font-display">
+            <div className="text-xs font-bold text-slate-900 dark:text-ink uppercase tracking-wider font-display">
               Appearance Mode
             </div>
-            <div className="grid grid-cols-3 gap-2 p-1.5 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-md">
+            <div className="grid grid-cols-3 gap-2 p-1.5 rounded-2xl bg-slate-100/90 border border-slate-200 dark:bg-white/[0.03] dark:border-white/10 backdrop-blur-md">
               {[
                 { id: 'dark', label: 'Dark', icon: Moon },
                 { id: 'dim', label: 'Dim', icon: Sparkles },
@@ -351,11 +359,11 @@ export default function ProfilePage() {
                     className={clsx(
                       'py-2 px-2 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition-all',
                       isActive
-                        ? 'bg-white/10 text-ink font-bold shadow-sm border border-white/20'
-                        : 'text-ink-muted hover:text-ink hover:bg-white/[0.04]'
+                        ? 'bg-white text-slate-900 font-bold shadow-xs border border-slate-300 dark:bg-white/10 dark:text-ink dark:border-white/20'
+                        : 'text-slate-600 dark:text-ink-muted hover:text-slate-900 dark:hover:text-ink hover:bg-white/60 dark:hover:bg-white/[0.04]'
                     )}
                   >
-                    <Icon size={14} className={isActive ? 'text-attr-perception' : 'text-ink-muted'} />
+                    <Icon size={14} className={isActive ? 'text-amber-500 dark:text-attr-perception' : 'text-slate-400 dark:text-ink-muted'} />
                     <span>{item.label}</span>
                   </button>
                 );
@@ -365,7 +373,7 @@ export default function ProfilePage() {
 
           {/* System Preferences Card (Ref 4) */}
           <Card className="p-5 space-y-3">
-            <div className="text-xs font-bold text-ink uppercase tracking-wider font-display">
+            <div className="text-xs font-bold text-slate-900 dark:text-ink uppercase tracking-wider font-display">
               Preferences & Account
             </div>
 
@@ -373,17 +381,17 @@ export default function ProfilePage() {
               <button
                 type="button"
                 onClick={toggleSound}
-                className="w-full flex items-center justify-between p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/10 transition-all text-xs text-ink"
+                className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 dark:bg-white/[0.02] dark:hover:bg-white/[0.05] dark:border-white/10 transition-all text-xs text-slate-800 dark:text-ink"
               >
                 <div className="flex items-center gap-2.5">
                   {soundEnabled ? (
-                    <Volume2 size={16} className="text-attr-perception" />
+                    <Volume2 size={16} className="text-amber-500 dark:text-attr-perception" />
                   ) : (
-                    <VolumeX size={16} className="text-ink-muted" />
+                    <VolumeX size={16} className="text-slate-400 dark:text-ink-muted" />
                   )}
                   <span>Audio Haptic FX</span>
                 </div>
-                <span className="font-mono text-[11px] text-ink-muted uppercase">
+                <span className="font-mono text-[11px] text-slate-500 dark:text-ink-muted uppercase">
                   {soundEnabled ? 'Enabled' : 'Muted'}
                 </span>
               </button>
@@ -393,7 +401,7 @@ export default function ProfilePage() {
                 onClick={async () => {
                   await logout();
                 }}
-                className="w-full flex items-center justify-between p-3 rounded-xl bg-hp/10 hover:bg-hp/15 border border-hp/20 transition-all text-xs text-hp font-semibold mt-3"
+                className="w-full flex items-center justify-between p-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/25 transition-all text-xs text-rose-600 dark:text-hp font-semibold mt-3"
               >
                 <div className="flex items-center gap-2.5">
                   <LogOut size={16} />
@@ -411,30 +419,30 @@ export default function ProfilePage() {
         <div className="lg:col-span-8 space-y-5">
           {/* Attributes Instrumentation Deck (Requirement 7) */}
           <Card className="p-5 sm:p-6 space-y-5">
-            <div className="flex items-center justify-between border-b border-glass-border pb-4">
+            <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-glass-border pb-4">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-gold/15 border border-gold/30 flex items-center justify-center text-gold">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-gold">
                   <Shield size={18} />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold font-display text-ink">
+                  <h2 className="text-base font-bold font-display text-slate-900 dark:text-ink">
                     Personal Development Instrumentation
                   </h2>
-                  <p className="text-[11px] text-ink-muted">
+                  <p className="text-[11px] text-slate-500 dark:text-ink-muted">
                     Balanced RPG attribute growth across physical, cognitive, and discipline vectors
                   </p>
                 </div>
               </div>
 
               {unallocatedPoints > 0 && (
-                <span className="px-3 py-1 rounded-full bg-gold/20 border border-gold/40 text-gold text-xs font-mono font-bold animate-pulse">
+                <span className="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-700 dark:text-gold text-xs font-mono font-bold animate-pulse">
                   +{unallocatedPoints} Stat Points Ready
                 </span>
               )}
             </div>
 
             {/* Radar Chart Visualizer */}
-            <div className="py-2 flex flex-col items-center bg-white/[0.01] rounded-2xl border border-white/5">
+            <div className="py-2 flex flex-col items-center bg-slate-50/80 rounded-2xl border border-slate-200/80 dark:bg-white/[0.01] dark:border-white/5">
               <AttributesRadarChart attributes={attributes} />
             </div>
 
@@ -466,7 +474,7 @@ export default function ProfilePage() {
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-ink text-sm">
+                            <span className="font-bold text-slate-900 dark:text-ink text-sm">
                               {attr.name}
                             </span>
                             <span
@@ -483,7 +491,7 @@ export default function ProfilePage() {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold text-base text-ink">
+                        <span className="font-mono font-bold text-base text-slate-900 dark:text-ink">
                           {val}
                         </span>
                         {unallocatedPoints > 0 && (
@@ -492,7 +500,7 @@ export default function ProfilePage() {
                             onClick={() => handleAllocate(attr.key, attr.name)}
                             disabled={allocateMutation.isPending}
                             aria-label={`Allocate 1 point to ${attr.name}`}
-                            className="w-6 h-6 rounded-lg bg-gold/20 hover:bg-gold/30 border border-gold/40 text-gold flex items-center justify-center transition-all active:scale-95"
+                            className="w-6 h-6 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-700 dark:text-gold flex items-center justify-center transition-all active:scale-95"
                           >
                             <Plus size={14} />
                           </button>
@@ -501,7 +509,7 @@ export default function ProfilePage() {
                     </div>
 
                     {/* Progress Bar */}
-                    <div className="h-1.5 rounded-full bg-black/40 overflow-hidden">
+                    <div className="h-1.5 rounded-full bg-slate-200 dark:bg-black/40 overflow-hidden">
                       <motion.div
                         className="h-full rounded-full"
                         style={{ backgroundColor: attr.color }}
@@ -511,7 +519,7 @@ export default function ProfilePage() {
                       />
                     </div>
 
-                    <p className="text-[11px] text-ink-muted leading-relaxed">
+                    <p className="text-[11px] text-slate-600 dark:text-ink-muted leading-relaxed">
                       {attr.desc}
                     </p>
                   </div>

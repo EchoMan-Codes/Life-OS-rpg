@@ -137,24 +137,24 @@ export default function QuestsPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-20">
-      {/* ── 1. Glassy iOS Cockpit Header (Astral Violet Theme) ── */}
-      <section className="relative rounded-3xl p-5 sm:p-7 bg-gradient-to-br from-obsidian-900/85 via-obsidian-900/65 to-obsidian-800/75 border border-white/15 shadow-[0_16px_48px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-2xl overflow-hidden">
+      {/* ── 1. Glassy Cockpit Header (Astral Violet Theme) ── */}
+      <section className="relative rounded-3xl p-5 sm:p-7 bg-gradient-to-br from-white via-violet-50/40 to-slate-50 border border-slate-200/80 shadow-[0_10px_35px_rgba(0,0,0,0.05)] dark:from-obsidian-900/85 dark:via-obsidian-900/65 dark:to-obsidian-800/75 dark:border-white/15 dark:shadow-[0_16px_48px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-2xl overflow-hidden">
         {/* Ambient violet & indigo glow */}
         <div className="absolute -top-24 -left-20 w-80 h-80 bg-violet-500/15 rounded-full blur-[100px] pointer-events-none" />
         <div className="absolute top-1/2 -right-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
 
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/25 text-violet-300 text-xs font-mono font-semibold">
-              <Sparkles size={13} className="text-violet-400" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/15 border border-violet-500/30 text-violet-700 dark:text-violet-300 text-xs font-mono font-semibold">
+              <Sparkles size={13} className="text-violet-600 dark:text-violet-400" />
               <span>CAMPAIGN DECK • 25% / 50% / 75% / 100% THRESHOLDS</span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight font-display">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-ink tracking-tight font-display">
               Quest Log & Milestones
             </h1>
 
-            <p className="text-xs sm:text-sm text-ink-muted leading-relaxed max-w-xl">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-ink-muted leading-relaxed max-w-xl">
               Break down complex projects into actionable checklists. Progressing through quest milestones yields proportional XP, character stat increments, and gold.
             </p>
           </div>
@@ -165,7 +165,7 @@ export default function QuestsPage() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.96 }}
             transition={spring.snappy}
-            className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-violet-500 to-indigo-500 text-ink font-bold text-xs sm:text-sm hover:from-violet-400 hover:to-indigo-400 transition-all shadow-[0_8px_24px_rgba(139,92,246,0.35)] self-start sm:self-auto min-h-[46px]"
+            className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold text-xs sm:text-sm hover:from-violet-500 hover:to-indigo-500 transition-all shadow-[0_8px_24px_rgba(139,92,246,0.35)] self-start sm:self-auto min-h-[46px]"
           >
             <Plus size={16} strokeWidth={2.5} />
             <span>New Quest</span>
@@ -175,44 +175,44 @@ export default function QuestsPage() {
 
       {/* ── 2. Unified iOS Glance Metric Strip ── */}
       <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl shadow-sm space-y-1">
-          <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted">Total Campaigns</span>
-          <p className="text-xl sm:text-2xl font-bold font-mono text-ink">{stats.total}</p>
-          <span className="text-[10px] text-ink-muted font-mono">Enrolled in log</span>
+        <div className="p-4 rounded-2xl bg-white/80 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 backdrop-blur-xl shadow-xs space-y-1">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-ink-muted">Total Campaigns</span>
+          <p className="text-xl sm:text-2xl font-bold font-mono text-slate-900 dark:text-ink">{stats.total}</p>
+          <span className="text-[10px] text-slate-400 dark:text-ink-muted font-mono">Enrolled in log</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl shadow-sm space-y-1">
-          <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted">Active Missions</span>
-          <p className="text-xl sm:text-2xl font-bold font-mono text-violet-400 flex items-center gap-1.5">
-            <Clock size={18} className="text-violet-400" />
+        <div className="p-4 rounded-2xl bg-white/80 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 backdrop-blur-xl shadow-xs space-y-1">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-ink-muted">Active Missions</span>
+          <p className="text-xl sm:text-2xl font-bold font-mono text-violet-600 dark:text-violet-400 flex items-center gap-1.5">
+            <Clock size={18} className="text-violet-600 dark:text-violet-400" />
             <span>{stats.active}</span>
           </p>
-          <span className="text-[10px] text-violet-400/80 font-mono">In progress</span>
+          <span className="text-[10px] text-violet-600/80 dark:text-violet-400/80 font-mono">In progress</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl shadow-sm space-y-1">
-          <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted">Conquered</span>
-          <p className="text-xl sm:text-2xl font-bold font-mono text-emerald-400 flex items-center gap-1.5">
-            <CheckCircle2 size={18} className="text-emerald-400" />
+        <div className="p-4 rounded-2xl bg-white/80 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 backdrop-blur-xl shadow-xs space-y-1">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-ink-muted">Conquered</span>
+          <p className="text-xl sm:text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+            <CheckCircle2 size={18} className="text-emerald-500" />
             <span>{stats.completed}</span>
           </p>
-          <span className="text-[10px] text-emerald-400/80 font-mono">100% completed</span>
+          <span className="text-[10px] text-emerald-600/80 dark:text-emerald-400/80 font-mono">100% completed</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl shadow-sm space-y-1">
-          <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted">Subtasks Cleared</span>
-          <p className="text-xl sm:text-2xl font-bold font-mono text-gold flex items-center gap-1.5">
-            <Zap size={18} className="text-gold" />
+        <div className="p-4 rounded-2xl bg-white/80 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 backdrop-blur-xl shadow-xs space-y-1">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-ink-muted">Subtasks Cleared</span>
+          <p className="text-xl sm:text-2xl font-bold font-mono text-amber-600 dark:text-gold flex items-center gap-1.5">
+            <Zap size={18} className="text-amber-500" />
             <span>{stats.subtasksDone}</span>
           </p>
-          <span className="text-[10px] text-ink-muted font-mono">Checklist items</span>
+          <span className="text-[10px] text-slate-400 dark:text-ink-muted font-mono">Checklist items</span>
         </div>
       </section>
 
       {/* ── 3. iOS Frosted Segmented Controls Bar ── */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {/* Status Filter Capsule */}
-        <div className="p-1 rounded-full bg-obsidian-900/80 border border-white/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] backdrop-blur-md flex items-center gap-1 self-start">
+        <div className="p-1 rounded-full bg-slate-100/90 dark:bg-obsidian-900/80 border border-slate-200/90 dark:border-white/10 shadow-inner backdrop-blur-md flex items-center gap-1 self-start">
           {STATUS_FILTERS.map((f) => {
             const isActive = statusFilter === f.id;
             return (
@@ -223,8 +223,8 @@ export default function QuestsPage() {
                 className={clsx(
                   'px-4 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap',
                   isActive
-                    ? 'bg-violet-500 text-ink shadow-sm'
-                    : 'text-ink-muted hover:text-ink hover:bg-white/5'
+                    ? 'bg-violet-600 text-white font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 dark:text-ink-muted dark:hover:text-ink hover:bg-slate-200/60 dark:hover:bg-white/5'
                 )}
               >
                 {f.label}
@@ -234,7 +234,7 @@ export default function QuestsPage() {
         </div>
 
         {/* View Mode Toggle Capsule (Board vs List) */}
-        <div className="p-1 rounded-full bg-obsidian-900/80 border border-white/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] backdrop-blur-md flex items-center gap-1 self-end sm:self-auto">
+        <div className="p-1 rounded-full bg-slate-100/90 dark:bg-obsidian-900/80 border border-slate-200/90 dark:border-white/10 shadow-inner backdrop-blur-md flex items-center gap-1 self-end sm:self-auto">
           <button
             type="button"
             onClick={() => setViewMode('board')}
@@ -242,8 +242,8 @@ export default function QuestsPage() {
             className={clsx(
               'flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all',
               viewMode === 'board'
-                ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40 shadow-sm'
-                : 'text-ink-muted hover:text-ink'
+                ? 'bg-violet-600 text-white font-bold shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 dark:text-ink-muted dark:hover:text-ink hover:bg-slate-200/60 dark:hover:bg-white/5'
             )}
           >
             <LayoutGrid size={14} />
@@ -256,8 +256,8 @@ export default function QuestsPage() {
             className={clsx(
               'flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all',
               viewMode === 'list'
-                ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40 shadow-sm'
-                : 'text-ink-muted hover:text-ink'
+                ? 'bg-violet-600 text-white font-bold shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 dark:text-ink-muted dark:hover:text-ink hover:bg-slate-200/60 dark:hover:bg-white/5'
             )}
           >
             <List size={14} />
@@ -270,20 +270,20 @@ export default function QuestsPage() {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[1, 2, 3].map((n) => (
-            <div key={n} className="h-48 rounded-2xl bg-white/[0.02] border border-white/10 animate-pulse" />
+            <div key={n} className="h-48 rounded-2xl bg-slate-100/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 animate-pulse" />
           ))}
         </div>
       ) : isError ? (
-        <div className="p-6 text-center text-red-400 text-sm rounded-2xl bg-red-500/10 border border-red-500/20">
+        <div className="p-6 text-center text-red-500 text-sm rounded-2xl bg-red-500/10 border border-red-500/20">
           Failed to load quests. Please check your connection.
         </div>
       ) : quests.length === 0 ? (
-        <div className="p-10 sm:p-14 text-center rounded-3xl bg-white/[0.02] border border-white/10 backdrop-blur-xl shadow-lg space-y-4">
-          <div className="w-14 h-14 mx-auto rounded-2xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center text-violet-400">
+        <div className="p-10 sm:p-14 text-center rounded-3xl bg-white/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 backdrop-blur-xl shadow-xs space-y-4">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center text-violet-600 dark:text-violet-400">
             <Scroll size={26} />
           </div>
-          <h3 className="text-lg sm:text-xl font-bold text-ink">Your Quest Log is Empty</h3>
-          <p className="text-xs sm:text-sm text-ink-muted max-w-sm mx-auto leading-relaxed">
+          <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-ink">Your Quest Log is Empty</h3>
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-ink-muted max-w-sm mx-auto leading-relaxed">
             No active campaigns. Establish your first quest, define subtasks, and conquer milestones for substantial XP and Gold!
           </p>
           <motion.button
@@ -291,7 +291,7 @@ export default function QuestsPage() {
             onClick={handleOpenCreate}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="px-5 py-2.5 rounded-xl bg-violet-500 text-ink font-bold text-xs hover:bg-violet-400 transition-all shadow-md inline-flex items-center gap-1.5"
+            className="px-5 py-2.5 rounded-xl bg-violet-600 text-white font-bold text-xs hover:bg-violet-700 transition-all shadow-md inline-flex items-center gap-1.5"
           >
             <Plus size={14} strokeWidth={2.5} />
             <span>Embark on First Quest</span>
@@ -301,13 +301,13 @@ export default function QuestsPage() {
         /* ── Three-Column iOS Frosted Board View ── */
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
           {/* Column 1: To Do */}
-          <div className="flex flex-col gap-3 rounded-3xl p-3.5 sm:p-4 bg-white/[0.02] border border-white/10 backdrop-blur-xl shadow-md">
+          <div className="flex flex-col gap-3 rounded-3xl p-3.5 sm:p-4 bg-slate-100/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 backdrop-blur-xl shadow-xs">
             <div className="flex items-center justify-between px-2 py-1">
-              <div className="flex items-center gap-2 text-xs font-bold text-ink">
-                <CircleDot size={15} className="text-ink-muted" />
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-ink">
+                <CircleDot size={15} className="text-slate-400 dark:text-ink-muted" />
                 <span>To Do</span>
               </div>
-              <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-white/5 border border-white/10 text-ink-muted">
+              <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-ink-muted">
                 {boardColumns.todo.length}
               </span>
             </div>
@@ -319,7 +319,7 @@ export default function QuestsPage() {
                 ))}
               </AnimatePresence>
               {boardColumns.todo.length === 0 && (
-                <div className="p-8 text-center text-xs text-ink-muted italic border border-dashed border-white/10 rounded-2xl">
+                <div className="p-8 text-center text-xs text-slate-400 dark:text-ink-muted italic border border-dashed border-slate-300 dark:border-white/10 rounded-2xl">
                   No quests awaiting initiation
                 </div>
               )}
@@ -327,13 +327,13 @@ export default function QuestsPage() {
           </div>
 
           {/* Column 2: In Progress */}
-          <div className="flex flex-col gap-3 rounded-3xl p-3.5 sm:p-4 bg-white/[0.02] border border-white/10 backdrop-blur-xl shadow-md">
+          <div className="flex flex-col gap-3 rounded-3xl p-3.5 sm:p-4 bg-slate-100/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 backdrop-blur-xl shadow-xs">
             <div className="flex items-center justify-between px-2 py-1">
-              <div className="flex items-center gap-2 text-xs font-bold text-violet-300">
-                <Clock size={15} className="text-violet-400" />
+              <div className="flex items-center gap-2 text-xs font-bold text-violet-700 dark:text-violet-300">
+                <Clock size={15} className="text-violet-600 dark:text-violet-400" />
                 <span>In Progress</span>
               </div>
-              <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-violet-500/15 border border-violet-500/30 text-violet-300">
+              <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-violet-500/15 border border-violet-500/30 text-violet-700 dark:text-violet-300">
                 {boardColumns.inProgress.length}
               </span>
             </div>
@@ -345,7 +345,7 @@ export default function QuestsPage() {
                 ))}
               </AnimatePresence>
               {boardColumns.inProgress.length === 0 && (
-                <div className="p-8 text-center text-xs text-ink-muted italic border border-dashed border-white/10 rounded-2xl">
+                <div className="p-8 text-center text-xs text-slate-400 dark:text-ink-muted italic border border-dashed border-slate-300 dark:border-white/10 rounded-2xl">
                   No quests currently underway
                 </div>
               )}
@@ -353,13 +353,13 @@ export default function QuestsPage() {
           </div>
 
           {/* Column 3: Done */}
-          <div className="flex flex-col gap-3 rounded-3xl p-3.5 sm:p-4 bg-white/[0.02] border border-white/10 backdrop-blur-xl shadow-md">
+          <div className="flex flex-col gap-3 rounded-3xl p-3.5 sm:p-4 bg-slate-100/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 backdrop-blur-xl shadow-xs">
             <div className="flex items-center justify-between px-2 py-1">
-              <div className="flex items-center gap-2 text-xs font-bold text-emerald-300">
-                <CheckCircle2 size={15} className="text-emerald-400" />
+              <div className="flex items-center gap-2 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                <CheckCircle2 size={15} className="text-emerald-600 dark:text-emerald-400" />
                 <span>Conquered</span>
               </div>
-              <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-emerald-500/15 border border-emerald-500/30 text-emerald-300">
+              <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300">
                 {boardColumns.done.length}
               </span>
             </div>
@@ -371,7 +371,7 @@ export default function QuestsPage() {
                 ))}
               </AnimatePresence>
               {boardColumns.done.length === 0 && (
-                <div className="p-8 text-center text-xs text-ink-muted italic border border-dashed border-white/10 rounded-2xl">
+                <div className="p-8 text-center text-xs text-slate-400 dark:text-ink-muted italic border border-dashed border-slate-300 dark:border-white/10 rounded-2xl">
                   No conquered quests yet
                 </div>
               )}

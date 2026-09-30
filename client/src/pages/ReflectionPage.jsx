@@ -25,29 +25,29 @@ export default function ReflectionPage() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-20">
       {/* ── 1. Glassy iOS Cockpit Header (Mindful Teal Theme) ── */}
-      <section className="relative rounded-3xl p-5 sm:p-7 bg-gradient-to-br from-obsidian-900/85 via-obsidian-900/65 to-obsidian-800/75 border border-white/15 shadow-[0_16px_48px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-2xl overflow-hidden">
+      <section className="relative rounded-3xl p-5 sm:p-7 bg-gradient-to-br from-white via-teal-50/40 to-slate-50 border border-slate-200/80 shadow-[0_10px_35px_rgba(0,0,0,0.05)] dark:from-obsidian-900/85 dark:via-obsidian-900/65 dark:to-obsidian-800/75 dark:border-white/15 dark:shadow-[0_16px_48px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-2xl overflow-hidden">
         {/* Ambient atmospheric glows */}
         <div className="absolute -top-24 -left-20 w-80 h-80 bg-teal-500/15 rounded-full blur-[100px] pointer-events-none" />
         <div className="absolute top-1/2 -right-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none" />
 
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/25 text-teal-300 text-xs font-mono font-semibold">
-              <HeartPulse size={13} className="text-teal-400 animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/15 border border-teal-500/30 text-teal-700 dark:text-teal-300 text-xs font-mono font-semibold">
+              <HeartPulse size={13} className="text-teal-600 dark:text-teal-400 animate-pulse" />
               <span>ANTI-BURNOUT DEFENSE • WELLNESS SANCTUARY</span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight font-display">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-ink tracking-tight font-display">
               Evening Reflection & Wellness
             </h1>
 
-            <p className="text-xs sm:text-sm text-ink-muted leading-relaxed max-w-xl">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-ink-muted leading-relaxed max-w-xl">
               A serene decompression zone. Review today’s energy, log 30-day consistency reflections, and activate Rest Mode to shield your character from burnout penalties.
             </p>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <div className="p-3 rounded-2xl bg-teal-500/15 border border-teal-500/30 text-teal-300 flex items-center gap-2 font-mono text-xs">
+            <div className="p-3 rounded-2xl bg-teal-500/10 border border-teal-500/30 text-teal-700 dark:text-teal-300 flex items-center gap-2 font-mono text-xs shadow-xs">
               <Moon size={16} />
               <span>30-Day Heatmap</span>
             </div>

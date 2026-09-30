@@ -43,6 +43,7 @@ import {
 import clsx from 'clsx';
 
 import { Card, ColorCard } from '@/components/ui';
+import { TelemetryHorizonRibbon, RitualSpineDeck, AttributeAstrolabe } from '@/components/dashboard';
 import { useAuth } from '@/features/auth/hooks';
 import { useCharacter } from '@/features/character/hooks';
 import { useHabits, useScoreHabit } from '@/features/habits/hooks';
@@ -568,49 +569,18 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* ── 2. Unified Glance Metric Strip (LifeOS Color Card System) ── */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
-        <GlanceMetricCard
-          icon={CalendarCheck}
-          label="Dailies Due"
-          value={`${completedTodayCount}/${activeDailies.length}`}
-          subtext={`${dailiesRate}% conquered`}
-          badge={dailiesRate === 100 ? 'All Clear' : `${activeDailies.length - completedTodayCount} left`}
-          color="emerald"
-          actionTo="/dailies"
-          actionText="Conquer"
-        />
-        <GlanceMetricCard
-          icon={Flame}
-          label="Habits Tracked"
-          value={activeHabits.length}
-          subtext={bestStreak > 0 ? `Best: ${bestStreak}d` : 'Build a ritual'}
-          badge={activeHabits.length > 0 ? 'Active' : 'Setup'}
-          color="amber"
-          actionTo="/habits"
-          actionText="Score"
-        />
-        <GlanceMetricCard
-          icon={Scroll}
-          label="Active Quests"
-          value={activeQuests.length}
-          subtext={primaryQuest ? primaryQuest.title : 'Ready for duty'}
-          badge={activeQuests.length > 0 ? `${activeQuests.length} live` : 'None'}
-          color="violet"
-          actionTo="/quests"
-          actionText="Board"
-        />
-        <GlanceMetricCard
-          icon={Clock}
-          label="Deep Focus"
-          value={`${totalFocusMinutes}m`}
-          subtext={`${focusSessions.filter((s) => s.status === 'completed').length} sessions logged`}
-          badge={`+${Math.round(totalFocusMinutes * 1.5)} MP`}
-          color="sky"
-          actionTo="/focus"
-          actionText="Enter"
-        />
-      </section>
+      {/* ── 2. Unique Progression Horizon Ribbon (Connected Telemetry Strip) ── */}
+      <TelemetryHorizonRibbon
+        completedTodayCount={completedTodayCount}
+        totalDailiesCount={activeDailies.length}
+        dailiesRate={dailiesRate}
+        activeHabitsCount={activeHabits.length}
+        bestStreak={bestStreak}
+        activeQuestsCount={activeQuests.length}
+        primaryQuestTitle={primaryQuest?.title || ''}
+        totalFocusMinutes={totalFocusMinutes}
+        activeFocus={activeFocus}
+      />
 
       {/* ── 3. Dedicated Mobile Segmented Switcher (iOS Frosted Glass Capsule) ── */}
       <div className="md:hidden sticky top-16 z-30 -mx-3 px-3 py-2 bg-white/90 dark:bg-obsidian-950/80 backdrop-blur-2xl border-y border-slate-200/80 dark:border-white/10">
@@ -664,103 +634,24 @@ export default function DashboardPage() {
 
       {/* ── 4. Main Body: Adaptive Grid (Desktop: Full Cockpit / Mobile: Tab Filtered) ── */}
       <div className="space-y-5">
-        {/* TAB 1: ACTIONS (Today's Dailies Checklist & Quick Habit Scorer) */}
+        {/* TAB 1: ACTIONS (Today's Dailies Waypoint Spine & Action Deck) */}
         <div
           className={clsx(
-            'grid grid-cols-1 lg:grid-cols-12 gap-5',
-            mobileTab !== 'actions' && 'hidden md:grid'
+            'space-y-5',
+            mobileTab !== 'actions' && 'hidden md:block'
           )}
         >
-          {/* ── Reference 3 Modular Hub: Circular Conquest Gauge & 4 Context Tiles ── */}
-          <div className="lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-5">
-            {/* Prominent Circular Progress Ring Card (5 cols on desktop) */}
-            <div className="lg:col-span-5">
-              <Card className="p-5 sm:p-6 h-full flex flex-col justify-between relative overflow-hidden">
-                <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-glass-border pb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-xs font-bold font-display uppercase tracking-wider text-slate-900 dark:text-ink">
-                      Daily Conquest Progress
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-mono text-slate-500 dark:text-ink-muted">
-                    {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                  </span>
-                </div>
+          {/* Unique Connected Ritual Waypoint Spine Deck */}
+          <RitualSpineDeck
+            activeDailies={activeDailies}
+            completedTodayCount={completedTodayCount}
+            dailiesRate={dailiesRate}
+            totalFocusMinutes={totalFocusMinutes}
+          />
 
-                {/* Central Ring Gauge */}
-                <div className="my-5 flex items-center justify-around gap-4">
-                  <div className="relative flex items-center justify-center shrink-0">
-                    <svg className="w-28 h-28 transform -rotate-90" viewBox="0 0 100 100">
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="40"
-                        className="stroke-slate-200 dark:stroke-obsidian-800"
-                        strokeWidth="8"
-                        fill="transparent"
-                      />
-                      <motion.circle
-                        cx="50"
-                        cy="50"
-                        r="40"
-                        stroke="url(#conquest-gradient)"
-                        strokeWidth="8"
-                        strokeDasharray={2 * Math.PI * 40}
-                        strokeDashoffset={2 * Math.PI * 40 * (1 - dailiesRate / 100)}
-                        strokeLinecap="round"
-                        fill="transparent"
-                        initial={{ strokeDashoffset: 2 * Math.PI * 40 }}
-                        animate={{ strokeDashoffset: 2 * Math.PI * 40 * (1 - dailiesRate / 100) }}
-                        transition={spring.gentle}
-                      />
-                      <defs>
-                        <linearGradient id="conquest-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stopColor="#10B981" />
-                          <stop offset="100%" stopColor="#38BDF8" />
-                        </linearGradient>
-                      </defs>
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                      <span className="text-2xl font-black font-display text-slate-900 dark:text-ink tracking-tight">
-                        {dailiesRate}%
-                      </span>
-                      <span className="text-[9px] uppercase tracking-widest text-slate-500 dark:text-ink-muted font-mono font-semibold">
-                        Cleared
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 min-w-0 flex-1">
-                    <div>
-                      <span className="text-xs text-slate-500 dark:text-ink-muted">Dailies Completed</span>
-                      <p className="text-base font-bold font-mono text-slate-900 dark:text-ink">
-                        {completedTodayCount} <span className="text-xs text-slate-500 dark:text-ink-muted">/ {activeDailies.length}</span>
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-xs text-slate-500 dark:text-ink-muted">Cognitive Stamina</span>
-                      <p className="text-base font-bold font-mono text-slate-900 dark:text-ink">
-                        {totalFocusMinutes}m <span className="text-xs text-slate-500 dark:text-ink-muted">Logged</span>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Progress Summary Pill */}
-                <div className="pt-3 border-t border-slate-200/80 dark:border-glass-border flex items-center justify-between text-xs">
-                  <span className="text-slate-500 dark:text-ink-muted">
-                    {dailiesRate === 100 ? 'All dailies conquered today!' : `${activeDailies.length - completedTodayCount} rituals remaining`}
-                  </span>
-                  <Link to="/dailies" className="text-emerald-600 dark:text-emerald-400 font-semibold hover:underline flex items-center gap-0.5">
-                    <span>Manage</span>
-                    <ChevronRight size={13} />
-                  </Link>
-                </div>
-              </Card>
-            </div>
-
-            {/* 4 Modular Context Tiles (7 cols on desktop - Ref 3 inspired 2x2 grid) */}
+          {/* Secondary Action Deck: Context Chamber Tiles (7 cols) & Habit Scorer / Quest Spotlight (5 cols) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            {/* 4 Modular Context Tiles (7 cols on desktop) */}
             <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               {/* Tile 1: Deep Focus Chamber */}
               <ColorCard
@@ -810,164 +701,100 @@ export default function DashboardPage() {
                 onAction={openAttributesDrawer}
               />
             </div>
-          </div>
 
-          {/* Today's Dailies Command Checklist (7 cols) */}
-          <div className="lg:col-span-7">
-            <Card className="p-4 sm:p-6 h-full flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between mb-4 border-b border-glass-border pb-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                      <CalendarCheck size={18} />
+            {/* Quick Habits & Active Quest Spotlight (5 cols) */}
+            <div className="lg:col-span-5 space-y-4">
+              {/* Quick Habits Card */}
+              <Card className="p-4 sm:p-5">
+                <div className="flex items-center justify-between mb-3 border-b border-slate-200/80 dark:border-glass-border pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-gold">
+                      <Flame size={17} />
                     </div>
                     <div>
-                      <h2 className="text-base font-bold font-display text-ink">
-                        Today’s Dailies Checklist
-                      </h2>
-                      <p className="text-[11px] text-ink-muted">
-                        One-click conquest right from the cockpit
-                      </p>
+                      <h3 className="text-sm font-bold font-display text-slate-900 dark:text-ink">Habit Quick-Scorer</h3>
+                      <p className="text-[11px] text-slate-500 dark:text-ink-muted">Tap (+) to score positive habits</p>
                     </div>
                   </div>
-                  <Link
-                    to="/dailies"
-                    className="text-xs text-attr-perception hover:underline font-semibold flex items-center gap-1"
-                  >
-                    <span>Manage</span>
-                    <ArrowRight size={13} />
+                  <Link to="/habits" className="text-xs text-amber-600 dark:text-gold hover:underline font-semibold">
+                    All
                   </Link>
                 </div>
 
-                {activeDailies.length === 0 ? (
-                  <div className="py-10 text-center text-ink-muted text-xs">
-                    <CalendarCheck size={28} className="mx-auto mb-2 opacity-40 text-emerald-400" />
-                    <p className="font-semibold text-ink">No daily rituals for today</p>
-                    <Link to="/dailies" className="text-emerald-400 underline mt-1 inline-block">
-                      + Add your first daily
+                {activeHabits.length === 0 ? (
+                  <div className="py-6 text-center text-slate-500 dark:text-ink-muted text-xs">
+                    <Flame size={24} className="mx-auto mb-1 text-amber-500 opacity-50" />
+                    <p>No habits tracked yet</p>
+                    <Link to="/habits" className="text-amber-600 dark:text-gold underline mt-1 inline-block">
+                      Create habit
                     </Link>
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {activeDailies.map((daily) => (
-                      <DashboardDailyItem key={daily.id} daily={daily} />
+                    {activeHabits.slice(0, 3).map((h) => (
+                      <DashboardHabitItem key={h.id} habit={h} />
                     ))}
                   </div>
                 )}
-              </div>
+              </Card>
 
-              {/* Progress Footer */}
-              {activeDailies.length > 0 && (
-                <div className="pt-3.5 mt-3.5 border-t border-glass-border">
-                  <div className="flex items-center justify-between text-xs mb-1.5">
-                    <span className="text-ink-muted font-medium">Daily Ritual Completion</span>
-                    <span className="font-mono font-bold text-ink">{dailiesRate}%</span>
+              {/* Active Quest Spotlight */}
+              <Card className="p-4 sm:p-5 bg-gradient-to-br from-violet-50/80 to-indigo-50/60 border-violet-200/80 dark:from-obsidian-800 dark:to-obsidian-900 dark:border-glass-border">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center text-violet-600 dark:text-attr-perception">
+                      <Scroll size={16} />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-violet-700 dark:text-attr-perception font-bold">
+                        Priority Quest
+                      </span>
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-ink truncate max-w-[200px]">
+                        {primaryQuest ? primaryQuest.title : 'No Active Quest'}
+                      </h4>
+                    </div>
                   </div>
-                  <div className="h-2 rounded-full bg-obsidian-700 overflow-hidden">
-                    <motion.div
-                      className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${dailiesRate}%` }}
-                      transition={spring.snappy}
-                    />
-                  </div>
-                </div>
-              )}
-            </Card>
-          </div>
-
-          {/* Quick Habits & Active Quest Spotlight (5 cols) */}
-          <div className="lg:col-span-5 space-y-5">
-            {/* Quick Habits Card */}
-            <Card className="p-4 sm:p-5">
-              <div className="flex items-center justify-between mb-3 border-b border-glass-border pb-2.5">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-gold/15 border border-gold/30 flex items-center justify-center text-gold">
-                    <Flame size={17} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold font-display text-ink">Habit Quick-Scorer</h3>
-                    <p className="text-[11px] text-ink-muted">Tap (+) to score positive habits</p>
-                  </div>
-                </div>
-                <Link to="/habits" className="text-xs text-gold hover:underline font-semibold">
-                  All
-                </Link>
-              </div>
-
-              {activeHabits.length === 0 ? (
-                <div className="py-6 text-center text-ink-muted text-xs">
-                  <Flame size={24} className="mx-auto mb-1 text-gold opacity-50" />
-                  <p>No habits tracked yet</p>
-                  <Link to="/habits" className="text-gold underline mt-1 inline-block">
-                    Create habit
+                  <Link to="/quests" className="text-xs text-violet-600 dark:text-attr-perception hover:underline font-semibold">
+                    Board
                   </Link>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  {activeHabits.slice(0, 4).map((h) => (
-                    <DashboardHabitItem key={h.id} habit={h} />
-                  ))}
-                </div>
-              )}
-            </Card>
 
-            {/* Active Quest Spotlight */}
-            <Card className="p-4 sm:p-5 bg-gradient-to-br from-violet-50/80 to-indigo-50/60 border-violet-200/80 dark:from-obsidian-800 dark:to-obsidian-900 dark:border-glass-border">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-violet-500/15 border border-violet-500/30 flex items-center justify-center text-violet-600 dark:text-attr-perception">
-                    <Scroll size={16} />
-                  </div>
+                {primaryQuest ? (
                   <div>
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-violet-700 dark:text-attr-perception font-bold">
-                      Priority Quest
-                    </span>
-                    <h4 className="text-sm font-bold text-slate-900 dark:text-ink truncate max-w-[200px]">
-                      {primaryQuest ? primaryQuest.title : 'No Active Quest'}
-                    </h4>
+                    <p className="text-xs text-slate-600 dark:text-ink-muted line-clamp-2 mb-3">
+                      {primaryQuest.description || 'Advance your hero objectives by completing subtasks.'}
+                    </p>
+                    <div className="flex items-center justify-between text-xs font-mono text-slate-500 dark:text-ink-muted mb-1">
+                      <span>Progress</span>
+                      <span>
+                        {primaryQuest.items?.filter((i) => i.isCompleted).length || 0} /{' '}
+                        {primaryQuest.items?.length || 0} Tasks
+                      </span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-slate-200 dark:bg-obsidian-700 overflow-hidden">
+                      <div
+                        className="h-full bg-violet-500 rounded-full"
+                        style={{
+                          width: `${
+                            primaryQuest.items?.length
+                              ? Math.round(
+                                  ((primaryQuest.items.filter((i) => i.isCompleted).length) /
+                                    primaryQuest.items.length) *
+                                    100
+                                )
+                              : 0
+                          }%`,
+                        }}
+                      />
+                    </div>
                   </div>
-                </div>
-                <Link to="/quests" className="text-xs text-violet-600 dark:text-attr-perception hover:underline font-semibold">
-                  Board
-                </Link>
-              </div>
-
-              {primaryQuest ? (
-                <div>
-                  <p className="text-xs text-slate-600 dark:text-ink-muted line-clamp-2 mb-3">
-                    {primaryQuest.description || 'Advance your hero objectives by completing subtasks.'}
+                ) : (
+                  <p className="text-xs text-slate-500 dark:text-ink-muted">
+                    Accept an epic quest from your Quest Log to earn rare loot and XP bonuses.
                   </p>
-                  <div className="flex items-center justify-between text-xs font-mono text-slate-500 dark:text-ink-muted mb-1">
-                    <span>Progress</span>
-                    <span>
-                      {primaryQuest.items?.filter((i) => i.isCompleted).length || 0} /{' '}
-                      {primaryQuest.items?.length || 0} Tasks
-                    </span>
-                  </div>
-                  <div className="h-1.5 rounded-full bg-slate-200 dark:bg-obsidian-700 overflow-hidden">
-                    <div
-                      className="h-full bg-violet-500 rounded-full"
-                      style={{
-                        width: `${
-                          primaryQuest.items?.length
-                            ? Math.round(
-                                ((primaryQuest.items.filter((i) => i.isCompleted).length) /
-                                  primaryQuest.items.length) *
-                                  100
-                              )
-                            : 0
-                        }%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <p className="text-xs text-ink-muted">
-                  Accept an epic quest from your Quest Log to earn rare loot and XP bonuses.
-                </p>
-              )}
-            </Card>
+                )}
+              </Card>
+            </div>
           </div>
         </div>
 
@@ -1250,6 +1077,11 @@ export default function DashboardPage() {
             mobileTab !== 'overview' && 'hidden md:grid'
           )}
         >
+          {/* Character Resonance Astrolabe (12 cols) */}
+          <div className="lg:col-span-12">
+            <AttributeAstrolabe character={character} />
+          </div>
+
           {/* Character Stats & Attributes Breakdown (12 cols) */}
           <div className="lg:col-span-12">
             <Card className="p-4 sm:p-6">

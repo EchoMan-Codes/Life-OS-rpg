@@ -71,7 +71,7 @@ export function InventoryDrawer({ isOpen, onClose }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm"
+            className="fixed inset-0 bg-slate-900/40 dark:bg-black/70 backdrop-blur-sm"
             onClick={onClose}
           />
 
@@ -88,26 +88,26 @@ export function InventoryDrawer({ isOpen, onClose }) {
               }
               className={clsx(
                 'w-screen max-w-md',
-                'bg-obsidian-900 border-l border-glass-border',
+                'bg-white dark:bg-obsidian-900 border-l border-slate-200 dark:border-glass-border',
                 'flex flex-col shadow-2xl overflow-hidden'
               )}
             >
               {/* Header */}
-              <div className="p-5 border-b border-glass-border flex items-center justify-between">
+              <div className="p-5 border-b border-slate-200 dark:border-glass-border flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gold/15 border border-gold/30 flex items-center justify-center text-gold shadow-glow">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-gold shadow-xs">
                     <Package size={20} />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="text-display-xs text-ink font-semibold">
+                      <h2 className="text-display-xs text-slate-900 dark:text-ink font-semibold">
                         Adventurer&apos;s Inventory
                       </h2>
-                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-ink border border-glass-border">
+                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-ink border border-slate-200 dark:border-glass-border">
                         {totalItemCount}
                       </span>
                     </div>
-                    <p className="text-xs text-ink-muted">
+                    <p className="text-xs text-slate-500 dark:text-ink-muted">
                       Purchased gear, active shields, and custom treats
                     </p>
                   </div>
@@ -117,14 +117,14 @@ export function InventoryDrawer({ isOpen, onClose }) {
                   type="button"
                   onClick={onClose}
                   aria-label="Close inventory"
-                  className="p-2 rounded-xl text-ink-muted hover:text-ink hover:bg-white/5 transition-colors"
+                  className="p-2 rounded-xl text-slate-400 hover:text-slate-800 dark:text-ink-muted dark:hover:text-ink hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
                 >
                   <X size={20} />
                 </button>
               </div>
 
               {/* Filter Tabs */}
-              <div className="px-5 pt-3 pb-2 border-b border-glass-border/60 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+              <div className="px-5 pt-3 pb-2 border-b border-slate-200/80 dark:border-glass-border/60 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
                 {[
                   { id: 'all', label: 'All Items' },
                   { id: 'equipment', label: 'Equipment' },
@@ -138,8 +138,8 @@ export function InventoryDrawer({ isOpen, onClose }) {
                     className={clsx(
                       'px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all',
                       activeFilter === tab.id
-                        ? 'bg-gold/20 text-gold border border-gold/40 shadow-glow'
-                        : 'text-ink-muted hover:text-ink hover:bg-white/5'
+                        ? 'bg-amber-500 text-white dark:bg-gold/20 dark:text-gold border border-amber-500 dark:border-gold/40 shadow-xs'
+                        : 'text-slate-600 dark:text-ink-muted hover:text-slate-900 dark:hover:text-ink hover:bg-slate-100 dark:hover:bg-white/5'
                     )}
                   >
                     {tab.label}
@@ -150,20 +150,20 @@ export function InventoryDrawer({ isOpen, onClose }) {
               {/* Items List */}
               <div className="flex-1 overflow-y-auto p-5 space-y-3.5">
                 {isLoading ? (
-                  <div className="py-12 text-center text-ink-muted text-sm animate-pulse">
+                  <div className="py-12 text-center text-slate-500 dark:text-ink-muted text-sm animate-pulse">
                     Loading inventory...
                   </div>
                 ) : filteredItems.length === 0 ? (
                   <div className="py-16 text-center space-y-3">
-                    <div className="w-14 h-14 rounded-2xl bg-white/5 border border-glass-border flex items-center justify-center text-ink-muted mx-auto">
+                    <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-glass-border flex items-center justify-center text-slate-400 dark:text-ink-muted mx-auto">
                       <Package size={26} />
                     </div>
-                    <h3 className="text-sm font-semibold text-ink">
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-ink">
                       {activeFilter === 'all'
                         ? 'Your pack is empty'
                         : `No ${activeFilter} items found`}
                     </h3>
-                    <p className="text-xs text-ink-muted max-w-xs mx-auto">
+                    <p className="text-xs text-slate-500 dark:text-ink-muted max-w-xs mx-auto">
                       Visit the Reward Shop to exchange your hard-earned gold for treats, shields, and equipment.
                     </p>
                   </div>
@@ -179,7 +179,7 @@ export function InventoryDrawer({ isOpen, onClose }) {
                     return (
                       <div
                         key={inv.id}
-                        className="p-4 rounded-xl bg-obsidian-800/80 border border-glass-border hover:border-glass-border-hover transition-colors flex items-start justify-between gap-3.5"
+                        className="p-4 rounded-xl bg-white/90 dark:bg-obsidian-800/80 border border-slate-200 dark:border-glass-border hover:border-slate-300 dark:hover:border-glass-border-hover transition-colors flex items-start justify-between gap-3.5 shadow-xs"
                       >
                         <div className="flex items-start gap-3">
                           <div

@@ -100,11 +100,11 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
       </nav>
 
       {/* User Session / Auth Section */}
-      <div className="px-3 py-3 border-t border-glass-border">
+      <div className="px-3 py-3 border-t border-slate-200/80 dark:border-glass-border">
         {isAuthenticated && user ? (
           <div
             className={clsx(
-              'flex items-center rounded-panel bg-white/[0.03] border border-glass-border p-2',
+              'flex items-center rounded-panel bg-slate-50/90 dark:bg-white/[0.03] border border-slate-200/90 dark:border-glass-border p-2',
               collapsed ? 'justify-center' : 'justify-between gap-2'
             )}
           >
@@ -113,19 +113,19 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
                 <img
                   src={user.avatarUrl}
                   alt={user.displayName}
-                  className="w-8 h-8 rounded-full border border-attr-perception/40 object-cover shrink-0"
+                  className="w-8 h-8 rounded-full border border-indigo-400 dark:border-attr-perception/40 object-cover shrink-0"
                 />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-attr-perception/20 border border-attr-perception/40 flex items-center justify-center text-attr-perception font-semibold text-xs shrink-0">
+                <div className="w-8 h-8 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 dark:bg-attr-perception/20 dark:border-attr-perception/40 flex items-center justify-center dark:text-attr-perception font-semibold text-xs shrink-0">
                   {user.displayName?.[0]?.toUpperCase() || 'H'}
                 </div>
               )}
               {!collapsed && (
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold text-ink truncate leading-tight">
+                  <p className="text-xs font-semibold text-slate-800 dark:text-ink truncate leading-tight">
                     {user.displayName}
                   </p>
-                  <p className="text-[11px] text-ink-muted truncate leading-tight">
+                  <p className="text-[11px] text-slate-500 dark:text-ink-muted truncate leading-tight">
                     {user.email}
                   </p>
                 </div>
@@ -140,9 +140,9 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
                 aria-label="Log out"
                 title="Log out"
                 className={clsx(
-                  'p-1.5 rounded-chip text-ink-muted hover:text-hp hover:bg-white/10',
+                  'p-1.5 rounded-chip text-slate-400 hover:text-rose-600 dark:text-ink-muted dark:hover:text-hp hover:bg-slate-100 dark:hover:bg-white/10',
                   'transition-colors duration-150',
-                  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-glass-border'
+                  'focus-visible:outline-2 focus-visible:outline-offset-2'
                 )}
               >
                 <LogOut size={16} />
@@ -156,10 +156,10 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
             className={clsx(
               'w-full flex items-center justify-center gap-2',
               'py-2 px-3 rounded-panel',
-              'bg-attr-perception/10 hover:bg-attr-perception/20',
-              'border border-attr-perception/30 text-attr-perception text-xs font-medium',
-              'min-h-[40px] transition-colors duration-150',
-              'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-glass-border'
+              'bg-indigo-50/90 hover:bg-indigo-100/90 text-indigo-700 border border-indigo-200/80',
+              'dark:bg-attr-perception/10 dark:hover:bg-attr-perception/20 dark:border-attr-perception/30 dark:text-attr-perception',
+              'text-xs font-medium min-h-[40px] transition-colors duration-150',
+              'focus-visible:outline-2 focus-visible:outline-offset-2'
             )}
             {...(shouldReduceMotion ? {} : pressable)}
           >
@@ -176,10 +176,10 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
         className={clsx(
           'flex items-center justify-center',
           'h-12 mx-3 mb-4 rounded-panel',
-          'text-ink-muted hover:text-ink hover:bg-glass',
+          'text-slate-500 hover:text-slate-800 hover:bg-slate-100/80 dark:text-ink-muted dark:hover:text-ink dark:hover:bg-glass',
           'transition-colors duration-150',
           'min-h-[44px]',
-          'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-glass-border'
+          'focus-visible:outline-2 focus-visible:outline-offset-2'
         )}
       >
         {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}

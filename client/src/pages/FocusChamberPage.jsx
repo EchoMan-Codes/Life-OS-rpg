@@ -136,15 +136,15 @@ export default function FocusChamberPage() {
         {!currentSession ? (
           <button
             onClick={() => navigate('/')}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-ink-muted hover:text-ink transition-colors min-h-[44px] text-xs font-mono font-medium backdrop-blur-md"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-white/80 hover:bg-white border border-slate-200/80 text-slate-700 hover:text-slate-900 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] dark:border-white/10 dark:text-ink-muted dark:hover:text-ink transition-colors min-h-[44px] text-xs font-mono font-medium shadow-xs backdrop-blur-md"
             title="Return to Dashboard"
           >
             <ArrowLeft size={14} />
             <span>DASHBOARD</span>
           </button>
         ) : (
-          <div className="text-xs font-mono text-sky-400 uppercase tracking-widest flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/25 backdrop-blur-md">
-            <span className="w-2 h-2 rounded-full bg-sky-400 animate-ping" />
+          <div className="text-xs font-mono text-sky-600 dark:text-sky-400 uppercase tracking-widest flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/25 backdrop-blur-md">
+            <span className="w-2 h-2 rounded-full bg-sky-500 dark:bg-sky-400 animate-ping" />
             <span>COGNITIVE FLOW IMMERSION</span>
           </div>
         )}
@@ -319,17 +319,17 @@ export default function FocusChamberPage() {
                 <Sparkles size={13} className="text-sky-400" />
                 <span>COGNITIVE FLOW SANCTUM</span>
               </div>
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-ink tracking-tight font-display">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-ink tracking-tight font-display">
                 Focus Chamber
               </h1>
-              <p className="text-xs sm:text-sm text-ink-muted max-w-sm mx-auto leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-ink-muted max-w-sm mx-auto leading-relaxed">
                 Enter an uninterrupted sprint. Every completed minute regenerates 1.5 Mana for your hero.
               </p>
             </div>
 
-            {/* Duration Preset Cards (iOS Glassy Cards) */}
+            {/* Duration Preset Cards (Adaptive Cards) */}
             <div className="w-full space-y-2 text-left">
-              <label className="text-[11px] font-mono uppercase tracking-wider text-ink-muted block pl-1">
+              <label className="text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-ink-muted block pl-1">
                 Sprint Preset
               </label>
               <div className="grid grid-cols-3 gap-2.5">
@@ -344,14 +344,14 @@ export default function FocusChamberPage() {
                       whileTap={{ scale: 0.96 }}
                       transition={spring.snappy}
                       className={clsx(
-                        'flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl border transition-all text-center min-h-[72px]',
+                        'flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl border transition-all text-center min-h-[72px] shadow-xs',
                         isSelected
-                          ? 'bg-sky-500/15 border-sky-400/60 text-ink shadow-[0_0_20px_rgba(56,189,248,0.2)] ring-1 ring-sky-400/40'
-                          : 'bg-white/[0.02] border-white/10 text-ink-muted hover:border-white/20 hover:text-ink'
+                          ? 'bg-sky-50 dark:bg-sky-500/15 border-sky-400 text-sky-950 dark:text-ink shadow-[0_0_20px_rgba(56,189,248,0.2)] ring-2 ring-sky-400/40'
+                          : 'bg-white/80 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-ink-muted hover:border-slate-300 dark:hover:border-white/20 hover:text-slate-900 dark:hover:text-ink'
                       )}
                     >
                       <span className="text-base sm:text-lg font-bold font-mono">{preset.label}</span>
-                      <span className="text-[10px] text-sky-400 font-mono font-semibold mt-0.5">
+                      <span className="text-[10px] text-sky-600 dark:text-sky-400 font-mono font-semibold mt-0.5">
                         +{preset.mana} MP
                       </span>
                     </motion.button>
@@ -360,9 +360,9 @@ export default function FocusChamberPage() {
               </div>
             </div>
 
-            {/* Ambient Sound Selector (iOS Glassy Cards) */}
+            {/* Ambient Sound Selector (Adaptive Cards) */}
             <div className="w-full space-y-2 text-left">
-              <label className="text-[11px] font-mono uppercase tracking-wider text-ink-muted block pl-1">
+              <label className="text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-ink-muted block pl-1">
                 Ambient Soundscape
               </label>
               <div className="grid grid-cols-3 gap-2.5">
@@ -377,10 +377,10 @@ export default function FocusChamberPage() {
                       whileTap={{ scale: 0.96 }}
                       transition={spring.snappy}
                       className={clsx(
-                        'flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl border text-center transition-all min-h-[64px]',
+                        'flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl border text-center transition-all min-h-[64px] shadow-xs',
                         isSelected
-                          ? 'bg-sky-500/15 border-sky-400/60 text-sky-300 shadow-[0_0_20px_rgba(56,189,248,0.15)] ring-1 ring-sky-400/40'
-                          : 'bg-white/[0.02] border-white/10 text-ink-muted hover:border-white/20 hover:text-ink'
+                          ? 'bg-sky-50 dark:bg-sky-500/15 border-sky-400 text-sky-700 dark:text-sky-300 shadow-[0_0_20px_rgba(56,189,248,0.15)] ring-2 ring-sky-400/40'
+                          : 'bg-white/80 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-ink-muted hover:border-slate-300 dark:hover:border-white/20 hover:text-slate-900 dark:hover:text-ink'
                       )}
                     >
                       <Icon size={16} className="mb-1" />

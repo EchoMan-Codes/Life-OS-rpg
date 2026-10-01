@@ -22,6 +22,7 @@ import {
   Coins,
   BookOpen,
   Trophy,
+  Bell,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -41,6 +42,7 @@ import clsx from 'clsx';
 
 import { Card, ColorCard, WavyHeroScenery, ModeButton } from '@/components/ui';
 import { TelemetryHorizonRibbon, RitualSpineDeck, AttributeAstrolabe } from '@/components/dashboard';
+import { useTheme } from '@/lib/theme';
 import { useAuth } from '@/features/auth/hooks';
 import { useCharacter } from '@/features/character/hooks';
 import { useHabits, useScoreHabit } from '@/features/habits/hooks';
@@ -333,6 +335,8 @@ export default function DashboardPage() {
   const xpPct = Math.max(0, Math.min(100, Math.round((xp / Math.max(1, xpForNextLevel)) * 100)));
   const rankText = level >= 12 ? 'Top 5%' : level >= 7 ? 'Top 10%' : level >= 3 ? 'Top 20%' : 'Top 50%';
 
+  const { isDark } = useTheme();
+
   return (
     <motion.div
       className="space-y-4 sm:space-y-6 max-w-7xl mx-auto pb-16"
@@ -342,8 +346,8 @@ export default function DashboardPage() {
     >
       {/* ── 1. Wavy Atmospheric RPG Hero Cockpit (Natural Scrolling, Zero Clipping) ── */}
       <WavyHeroScenery variant="dashboard" className="p-3.5 sm:p-5 md:p-6">
-        <div className="flex flex-col gap-3 sm:gap-3.5">
-          {/* Row 1: Player Identity & Quick Controls */}
+        <div className="flex flex-col gap-3.5 sm:gap-4">
+          {/* Top Bar: Player Avatar & Top Navigation Controls */}
           <div className="flex items-center justify-between gap-3">
             {/* Left: Avatar + Identity */}
             <Link
@@ -356,10 +360,10 @@ export default function DashboardPage() {
                   <img
                     src={user.avatarUrl}
                     alt={displayName}
-                    className="w-11 h-11 sm:w-13 sm:h-13 rounded-full object-cover border-2 border-amber-400 shadow-md group-hover:scale-105 transition-transform"
+                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-amber-400 shadow-md group-hover:scale-105 transition-transform"
                   />
                 ) : (
-                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-gradient-to-br from-indigo-600 to-purple-800 border-2 border-amber-400/80 flex items-center justify-center text-amber-300 font-display font-bold text-base sm:text-lg shadow-md group-hover:scale-105 transition-transform">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-indigo-600 to-purple-800 border-2 border-amber-400/80 flex items-center justify-center text-amber-300 font-display font-bold text-sm sm:text-base shadow-md group-hover:scale-105 transition-transform">
                     {displayName?.[0]?.toUpperCase() || 'Ω'}
                   </div>
                 )}
@@ -369,74 +373,261 @@ export default function DashboardPage() {
               </div>
 
               <div className="flex flex-col min-w-0">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-base sm:text-lg font-bold font-display text-white tracking-tight leading-tight truncate">
-                    {displayName}
-                  </span>
-                  <span className="text-[10px] sm:text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                    Lv. {level} • {characterTitle}
-                  </span>
-                </div>
-                <p className="text-[11px] text-indigo-200/75 font-mono mt-0.5">
-                  {greeting} • {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                </p>
+                <span className="text-sm sm:text-base font-bold font-display text-slate-900 dark:text-white tracking-tight leading-tight truncate">
+                  {displayName}
+                </span>
+                <span className="text-[10px] sm:text-xs font-mono text-slate-500 dark:text-indigo-200/75 font-medium">
+                  Lv. {level} • {characterTitle}
+                </span>
               </div>
             </Link>
 
-            {/* Right: Quick Action Controls */}
+            {/* Right: Action Controls (Battle, Mode Toggle, Bell) */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               {/* Battle Chronicles */}
               <button
                 type="button"
                 onClick={openBattleLogDrawer}
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-amber-300 flex items-center justify-center transition-all active:scale-95 shadow-xs cursor-pointer"
+                className={clsx(
+                  'w-9 h-9 sm:w-10 sm:h-10 rounded-xl border flex items-center justify-center transition-all active:scale-95 shadow-xs cursor-pointer',
+                  isDark
+                    ? 'bg-white/10 hover:bg-white/20 border-white/15 text-amber-300'
+                    : 'bg-white/80 hover:bg-white border-slate-200/90 text-amber-600 shadow-xs'
+                )}
                 title="Battle Chronicles"
                 aria-label="Battle Chronicles"
               >
                 <Swords size={16} />
               </button>
 
-              {/* Mode Toggle */}
+              {/* Mode Toggle Button */}
               <ModeButton compact />
 
-              {/* Attributes Radar Trigger */}
+              {/* Attributes / Notification Bell */}
               <button
                 type="button"
                 onClick={openAttributesDrawer}
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-purple-300 flex items-center justify-center transition-all active:scale-95 shadow-xs cursor-pointer"
-                title="Attributes Radar"
-                aria-label="Attributes Radar"
+                className={clsx(
+                  'w-9 h-9 sm:w-10 sm:h-10 rounded-xl border flex items-center justify-center transition-all active:scale-95 shadow-xs cursor-pointer',
+                  isDark
+                    ? 'bg-white/10 hover:bg-white/20 border-white/15 text-purple-300'
+                    : 'bg-white/80 hover:bg-white border-slate-200/90 text-purple-600 shadow-xs'
+                )}
+                title="Attributes Radar & Status"
+                aria-label="Attributes Radar & Status"
               >
-                <Shield size={16} />
+                <Bell size={16} />
               </button>
+            </div>
+          </div>
+
+          {/* ── Visual Focal Hero: Good Evening / Morning Greeting Banner ── */}
+          <div
+            className={clsx(
+              'p-3.5 sm:p-5 rounded-2xl border transition-all duration-300 backdrop-blur-md relative overflow-hidden',
+              isDark
+                ? 'bg-black/35 border-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.3)]'
+                : 'bg-white/75 border-indigo-100/90 shadow-[0_4px_16px_rgba(99,102,241,0.06)]'
+            )}
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+              {/* Left: Glowing Level Crest + Greeting */}
+              <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                {/* Illuminated Sigil Emblem */}
+                <div className="relative shrink-0">
+                  <div
+                    className={clsx(
+                      'w-13 h-13 sm:w-15 sm:h-15 rounded-2xl flex flex-col items-center justify-center border transition-all shadow-md',
+                      isDark
+                        ? 'bg-gradient-to-br from-amber-500/20 via-purple-600/20 to-indigo-900/40 border-amber-400/40 shadow-[0_0_20px_rgba(245,158,11,0.25)]'
+                        : 'bg-gradient-to-br from-amber-100 via-purple-50 to-indigo-50 border-amber-300/60 shadow-[0_0_16px_rgba(245,158,11,0.15)]'
+                    )}
+                  >
+                    <Sparkles
+                      size={18}
+                      className={isDark ? 'text-amber-300' : 'text-amber-600'}
+                    />
+                    <span className="text-[10px] font-mono font-bold tracking-tight mt-0.5 text-slate-800 dark:text-amber-300">
+                      Lv.{level}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Typography Hierarchy: Greeting & Date */}
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span
+                      className={clsx(
+                        'text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border',
+                        isDark
+                          ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                          : 'bg-amber-50 border-amber-200 text-amber-700'
+                      )}
+                    >
+                      Hero • Lv. {level}
+                    </span>
+                  </div>
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold font-display tracking-tight leading-tight text-slate-900 dark:text-white truncate">
+                    {greeting},{' '}
+                    <span
+                      className={clsx(
+                        'font-black bg-clip-text text-transparent',
+                        isDark
+                          ? 'bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-200'
+                          : 'bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-600'
+                      )}
+                    >
+                      {displayName}
+                    </span>
+                  </h1>
+                  <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-indigo-200/80 mt-0.5">
+                    {new Date().toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  </p>
+                </div>
+              </div>
+
+              {/* Right: Quick Action Buttons */}
+              <div className="flex items-center gap-2 pt-1 sm:pt-0 shrink-0">
+                <Link
+                  to="/focus"
+                  className={clsx(
+                    'px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 shadow-xs',
+                    isDark
+                      ? 'bg-emerald-500/15 border-emerald-500/35 text-emerald-300 hover:bg-emerald-500/25'
+                      : 'bg-emerald-50 border-emerald-300/80 text-emerald-800 hover:bg-emerald-100'
+                  )}
+                >
+                  <Clock size={13} />
+                  <span>Focus Chamber</span>
+                </Link>
+
+                <Link
+                  to="/reflection"
+                  className={clsx(
+                    'px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 shadow-xs',
+                    isDark
+                      ? 'bg-teal-500/15 border-teal-500/35 text-teal-300 hover:bg-teal-500/25'
+                      : 'bg-teal-50 border-teal-300/80 text-teal-800 hover:bg-teal-100'
+                  )}
+                >
+                  <Moon size={13} />
+                  <span>Reflect</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* Tactical Advisory Prompt Bar */}
+            <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-white/10 flex items-center justify-between gap-2.5 text-xs">
+              <div className="flex items-center gap-2 min-w-0">
+                <div
+                  className={clsx(
+                    'p-1 rounded-lg border shrink-0',
+                    isDark
+                      ? 'bg-white/10 border-white/15 text-amber-300'
+                      : 'bg-amber-50 border-amber-200 text-amber-600'
+                  )}
+                >
+                  <tacticalAdvisory.icon size={13} />
+                </div>
+                <span className="text-slate-700 dark:text-white/90 font-medium truncate text-[11px] sm:text-xs">
+                  {tacticalAdvisory.text}
+                </span>
+              </div>
+              <Link
+                to={tacticalAdvisory.link}
+                className={clsx(
+                  'text-[11px] sm:text-xs font-semibold flex items-center gap-0.5 shrink-0 transition-colors',
+                  isDark
+                    ? 'text-amber-300 hover:text-white'
+                    : 'text-amber-600 hover:text-amber-800'
+                )}
+              >
+                <span>Act</span>
+                <ChevronRight size={13} />
+              </Link>
             </div>
           </div>
 
           {/* Row 2: 3-Pill Lifetime Stats Deck (Coins, Streak, Rank) */}
           <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
-            <div className="flex flex-col items-center justify-center py-2 px-2 rounded-2xl bg-black/35 border border-amber-500/30 text-center shadow-xs backdrop-blur-md">
-              <span className="text-[10px] sm:text-xs font-mono text-amber-300/80 font-medium flex items-center gap-1">
-                <Coins size={12} className="text-amber-400 shrink-0" /> Coins
+            <div
+              className={clsx(
+                'flex flex-col items-center justify-center py-2 px-2 rounded-2xl border text-center shadow-xs backdrop-blur-md transition-colors',
+                isDark
+                  ? 'bg-black/35 border-amber-500/30'
+                  : 'bg-white/80 border-amber-300/60 shadow-xs'
+              )}
+            >
+              <span
+                className={clsx(
+                  'text-[10px] sm:text-xs font-mono font-medium flex items-center gap-1',
+                  isDark ? 'text-amber-300/80' : 'text-amber-700'
+                )}
+              >
+                <Coins size={12} className={isDark ? 'text-amber-400' : 'text-amber-600'} /> Coins
               </span>
-              <span className="font-mono font-bold text-sm sm:text-base text-amber-300 leading-tight mt-0.5">
+              <span
+                className={clsx(
+                  'font-mono font-bold text-sm sm:text-base leading-tight mt-0.5',
+                  isDark ? 'text-amber-300' : 'text-amber-800'
+                )}
+              >
                 {gold}
               </span>
             </div>
 
-            <div className="flex flex-col items-center justify-center py-2 px-2 rounded-2xl bg-black/35 border border-orange-500/30 text-center shadow-xs backdrop-blur-md">
-              <span className="text-[10px] sm:text-xs font-mono text-orange-300/80 font-medium flex items-center gap-1">
-                <Flame size={12} className="text-orange-400 fill-current shrink-0" /> Streak
+            <div
+              className={clsx(
+                'flex flex-col items-center justify-center py-2 px-2 rounded-2xl border text-center shadow-xs backdrop-blur-md transition-colors',
+                isDark
+                  ? 'bg-black/35 border-orange-500/30'
+                  : 'bg-white/80 border-orange-300/60 shadow-xs'
+              )}
+            >
+              <span
+                className={clsx(
+                  'text-[10px] sm:text-xs font-mono font-medium flex items-center gap-1',
+                  isDark ? 'text-orange-300/80' : 'text-orange-700'
+                )}
+              >
+                <Flame size={12} className={clsx('fill-current shrink-0', isDark ? 'text-orange-400' : 'text-orange-600')} /> Streak
               </span>
-              <span className="font-mono font-bold text-sm sm:text-base text-white leading-tight mt-0.5">
+              <span
+                className={clsx(
+                  'font-mono font-bold text-sm sm:text-base leading-tight mt-0.5',
+                  isDark ? 'text-white' : 'text-slate-900'
+                )}
+              >
                 {bestStreak}d
               </span>
             </div>
 
-            <div className="flex flex-col items-center justify-center py-2 px-2 rounded-2xl bg-black/35 border border-purple-500/30 text-center shadow-xs backdrop-blur-md">
-              <span className="text-[10px] sm:text-xs font-mono text-purple-300/80 font-medium flex items-center gap-1">
-                <Trophy size={12} className="text-purple-400 shrink-0" /> Rank
+            <div
+              className={clsx(
+                'flex flex-col items-center justify-center py-2 px-2 rounded-2xl border text-center shadow-xs backdrop-blur-md transition-colors',
+                isDark
+                  ? 'bg-black/35 border-purple-500/30'
+                  : 'bg-white/80 border-purple-300/60 shadow-xs'
+              )}
+            >
+              <span
+                className={clsx(
+                  'text-[10px] sm:text-xs font-mono font-medium flex items-center gap-1',
+                  isDark ? 'text-purple-300/80' : 'text-purple-700'
+                )}
+              >
+                <Trophy size={12} className={isDark ? 'text-purple-400' : 'text-purple-600'} /> Rank
               </span>
-              <span className="font-mono font-bold text-sm sm:text-base text-purple-300 leading-tight mt-0.5">
+              <span
+                className={clsx(
+                  'font-mono font-bold text-sm sm:text-base leading-tight mt-0.5',
+                  isDark ? 'text-purple-300' : 'text-purple-800'
+                )}
+              >
                 {rankText}
               </span>
             </div>
@@ -445,17 +636,24 @@ export default function DashboardPage() {
           {/* Row 3: Dual Vitals (HP & MP) */}
           <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
             {/* HP Bar */}
-            <div className="px-3 py-2 rounded-2xl bg-black/35 border border-rose-500/25 flex flex-col gap-1 backdrop-blur-md">
+            <div
+              className={clsx(
+                'px-3 py-2 rounded-2xl border flex flex-col gap-1 backdrop-blur-md transition-colors',
+                isDark
+                  ? 'bg-black/35 border-rose-500/25'
+                  : 'bg-white/80 border-rose-200/80 shadow-xs'
+              )}
+            >
               <div className="flex items-center justify-between text-[11px] leading-tight font-mono">
-                <div className="flex items-center gap-1 font-bold text-rose-400">
+                <div className="flex items-center gap-1 font-bold text-rose-500 dark:text-rose-400">
                   <Heart size={12} className="fill-rose-500/40 shrink-0" />
                   <span>HP</span>
                 </div>
-                <span className="text-white font-semibold">
-                  {hp}<span className="text-white/50 text-[10px]">/{maxHp}</span>
+                <span className="text-slate-800 dark:text-white font-semibold">
+                  {hp}<span className="text-slate-400 dark:text-white/50 text-[10px]">/{maxHp}</span>
                 </span>
               </div>
-              <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+              <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-rose-600 to-rose-400 transition-all duration-300 shadow-[0_0_10px_rgba(244,63,94,0.5)]"
                   style={{ width: `${hpPct}%` }}
@@ -464,17 +662,24 @@ export default function DashboardPage() {
             </div>
 
             {/* MP Bar */}
-            <div className="px-3 py-2 rounded-2xl bg-black/35 border border-sky-500/25 flex flex-col gap-1 backdrop-blur-md">
+            <div
+              className={clsx(
+                'px-3 py-2 rounded-2xl border flex flex-col gap-1 backdrop-blur-md transition-colors',
+                isDark
+                  ? 'bg-black/35 border-sky-500/25'
+                  : 'bg-white/80 border-sky-200/80 shadow-xs'
+              )}
+            >
               <div className="flex items-center justify-between text-[11px] leading-tight font-mono">
-                <div className="flex items-center gap-1 font-bold text-sky-400">
+                <div className="flex items-center gap-1 font-bold text-sky-600 dark:text-sky-400">
                   <Zap size={12} className="fill-sky-500/40 shrink-0" />
                   <span>MP</span>
                 </div>
-                <span className="text-white font-semibold">
-                  {mana}<span className="text-white/50 text-[10px]">/{maxMana}</span>
+                <span className="text-slate-800 dark:text-white font-semibold">
+                  {mana}<span className="text-slate-400 dark:text-white/50 text-[10px]">/{maxMana}</span>
                 </span>
               </div>
-              <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+              <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-sky-600 to-cyan-400 transition-all duration-300 shadow-[0_0_10px_rgba(56,189,248,0.5)]"
                   style={{ width: `${manaPct}%` }}
@@ -484,16 +689,23 @@ export default function DashboardPage() {
           </div>
 
           {/* Row 4: Golden XP Progress Ribbon */}
-          <div className="px-3 py-2 rounded-2xl bg-black/35 border border-amber-500/30 flex flex-col gap-1 backdrop-blur-md">
+          <div
+            className={clsx(
+              'px-3 py-2 rounded-2xl border flex flex-col gap-1 backdrop-blur-md transition-colors',
+              isDark
+                ? 'bg-black/35 border-amber-500/30'
+                : 'bg-white/80 border-amber-300/70 shadow-xs'
+            )}
+          >
             <div className="flex items-center justify-between text-[11px] font-mono leading-tight">
-              <span className="text-amber-300 font-bold flex items-center gap-1">
-                <Sparkles size={12} className="text-amber-400 shrink-0" /> XP Progress
+              <span className="text-amber-600 dark:text-amber-300 font-bold flex items-center gap-1">
+                <Sparkles size={12} className="text-amber-500 dark:text-amber-400 shrink-0" /> XP Progress
               </span>
-              <span className="text-white/90">
-                {xp} <span className="text-white/50 text-[10px]">/ {xpForNextLevel} ({xpPct}%)</span>
+              <span className="text-slate-700 dark:text-white/90">
+                {xp} <span className="text-slate-400 dark:text-white/50 text-[10px]">/ {xpForNextLevel} ({xpPct}%)</span>
               </span>
             </div>
-            <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+            <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-300 transition-all duration-300 shadow-[0_0_12px_rgba(245,158,11,0.6)]"
                 style={{ width: `${xpPct}%` }}
@@ -504,11 +716,47 @@ export default function DashboardPage() {
           {/* Row 5: Life Areas Fast Category Pills (Focus, Habit, Study, Quest, Finance) */}
           <div className="grid grid-cols-5 gap-1.5 sm:gap-2 pt-0.5">
             {[
-              { label: 'Focus', icon: Clock, to: '/focus', color: 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30 hover:bg-emerald-500/25' },
-              { label: 'Habit', icon: Flame, to: '/habits', color: 'text-amber-400 bg-amber-500/15 border-amber-500/30 hover:bg-amber-500/25' },
-              { label: 'Study', icon: BookOpen, to: '/focus', color: 'text-purple-300 bg-purple-500/15 border-purple-500/30 hover:bg-purple-500/25' },
-              { label: 'Quest', icon: Scroll, to: '/quests', color: 'text-yellow-300 bg-yellow-500/15 border-yellow-500/30 hover:bg-yellow-500/25' },
-              { label: 'Finance', icon: Coins, to: '/shop', color: 'text-teal-300 bg-teal-500/15 border-teal-500/30 hover:bg-teal-500/25', hint: 'Phase 6' },
+              {
+                label: 'Focus',
+                icon: Clock,
+                to: '/focus',
+                color: isDark
+                  ? 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30 hover:bg-emerald-500/25'
+                  : 'text-emerald-700 bg-emerald-50 border-emerald-300/80 hover:bg-emerald-100 shadow-xs',
+              },
+              {
+                label: 'Habit',
+                icon: Flame,
+                to: '/habits',
+                color: isDark
+                  ? 'text-amber-400 bg-amber-500/15 border-amber-500/30 hover:bg-amber-500/25'
+                  : 'text-amber-700 bg-amber-50 border-amber-300/80 hover:bg-amber-100 shadow-xs',
+              },
+              {
+                label: 'Study',
+                icon: BookOpen,
+                to: '/focus',
+                color: isDark
+                  ? 'text-purple-300 bg-purple-500/15 border-purple-500/30 hover:bg-purple-500/25'
+                  : 'text-purple-700 bg-purple-50 border-purple-300/80 hover:bg-purple-100 shadow-xs',
+              },
+              {
+                label: 'Quest',
+                icon: Scroll,
+                to: '/quests',
+                color: isDark
+                  ? 'text-yellow-300 bg-yellow-500/15 border-yellow-500/30 hover:bg-yellow-500/25'
+                  : 'text-indigo-700 bg-indigo-50 border-indigo-300/80 hover:bg-indigo-100 shadow-xs',
+              },
+              {
+                label: 'Finance',
+                icon: Coins,
+                to: '/shop',
+                color: isDark
+                  ? 'text-teal-300 bg-teal-500/15 border-teal-500/30 hover:bg-teal-500/25'
+                  : 'text-teal-700 bg-teal-50 border-teal-300/80 hover:bg-teal-100 shadow-xs',
+                hint: 'Phase 6',
+              },
             ].map((cat) => {
               const Icon = cat.icon;
               return (
@@ -530,25 +778,6 @@ export default function DashboardPage() {
                 </Link>
               );
             })}
-          </div>
-
-          {/* Row 6: Tactical Advisory Banner */}
-          <div className="mt-0.5 pt-2 border-t border-white/10 flex items-center justify-between gap-2.5 text-xs">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className={clsx('p-1.5 rounded-xl bg-white/10 border border-white/15 shrink-0 shadow-xs', tacticalAdvisory.color)}>
-                <tacticalAdvisory.icon size={13} />
-              </div>
-              <span className="text-white/90 font-medium truncate text-[11px] sm:text-xs">
-                {tacticalAdvisory.text}
-              </span>
-            </div>
-            <Link
-              to={tacticalAdvisory.link}
-              className="text-[11px] sm:text-xs text-amber-300 hover:text-white flex items-center gap-0.5 shrink-0 font-semibold transition-colors"
-            >
-              <span>Act</span>
-              <ChevronRight size={13} />
-            </Link>
           </div>
         </div>
       </WavyHeroScenery>

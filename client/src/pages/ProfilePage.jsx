@@ -43,7 +43,7 @@ import {
 } from 'recharts';
 import clsx from 'clsx';
 
-import { Card, WavyHeroScenery } from '@/components/ui';
+import { Card, WavyHeroScenery, ModeButton } from '@/components/ui';
 import { spring } from '@/lib/motionVariants';
 import { useAuth } from '@/features/auth/hooks';
 import { useCharacter, useAllocateAttribute } from '@/features/character/hooks';
@@ -353,6 +353,7 @@ export default function ProfilePage() {
           >
             <Swords size={17} />
           </button>
+          <ModeButton compact />
           <button
             type="button"
             onClick={() => setActiveTab('settings')}

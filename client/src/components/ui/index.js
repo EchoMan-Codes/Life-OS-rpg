@@ -6,3 +6,5 @@ export { Input, Textarea } from './Input';
 export { ModeButton } from './ModeButton';
 export { ColorCard } from './ColorCard';
 export { WavyHeroScenery } from './WavyHeroScenery';
+export { ThemeRippleOverlay } from './ThemeRippleOverlay';
+

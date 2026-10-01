@@ -5,6 +5,8 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import clsx from 'clsx';
 
 import { useAuth } from '@/features/auth/hooks';
+import { ArrowLeft, Sparkles } from 'lucide-react';
+import { ModeButton } from '@/components/ui';
 import { TOTAL_STEPS } from './constants';
 import { OnboardingBanner } from './components/OnboardingBanner';
 import { Step1Goal } from './components/Step1Goal';
@@ -152,23 +154,104 @@ export default function OnboardingPage({ defaultMode = 'onboarding' }) {
   // If directly in Login mode
   if (showAuthDirect) {
     return (
-      <div className="min-h-screen bg-[#07080C] text-ink flex flex-col justify-center items-center p-4">
-        <div className="w-full max-w-md p-6 sm:p-8 rounded-3xl bg-white/[0.03] border border-white/10 backdrop-blur-2xl shadow-2xl">
-          <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-6">
-            <h2 className="text-xl font-bold font-display text-white">Sign In to LifeOS</h2>
-            <button
-              onClick={() => setShowAuthDirect(false)}
-              className="text-xs text-purple-400 hover:text-purple-300 font-semibold"
-            >
-              Start Personalization
-            </button>
+      <div className="min-h-screen bg-[#07080C] text-ink flex flex-col justify-between selection:bg-purple-600 selection:text-white relative overflow-hidden">
+        {/* Ambient atmospheric lighting */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+          <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[140px]" />
+          <div className="absolute top-1/2 -right-40 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[140px]" />
+          <div className="absolute -bottom-40 left-1/3 w-[600px] h-[600px] bg-pink-500/5 rounded-full blur-[160px]" />
+        </div>
+
+        {/* Top Navigation Bar: Back + Mode Toggle */}
+        <div className="relative z-20 w-full max-w-md mx-auto px-4 pt-4 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => {
+              if (location.pathname === '/login') {
+                navigate('/');
+              } else {
+                setShowAuthDirect(false);
+              }
+            }}
+            className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-slate-300 flex items-center justify-center transition-all cursor-pointer"
+            title="Return"
+          >
+            <ArrowLeft size={16} />
+          </button>
+
+          <ModeButton compact />
+        </div>
+
+        {/* Main Content Container */}
+        <div className="relative z-10 w-full max-w-md mx-auto px-4 py-3 flex-1 flex flex-col justify-center">
+          {/* Hero Atmospheric Traveler Illustration */}
+          <div className="w-full h-44 sm:h-52 rounded-t-3xl overflow-hidden relative shadow-lg border-t border-x border-purple-500/30 bg-gradient-to-b from-[#1E0A3C] via-[#3B0764] to-[#0A071E]">
+            <svg viewBox="0 0 360 170" preserveAspectRatio="none" className="w-full h-full">
+              <defs>
+                <linearGradient id="loginSky" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#1E0A3C" />
+                  <stop offset="45%" stopColor="#4A154B" />
+                  <stop offset="75%" stopColor="#9333EA" />
+                  <stop offset="90%" stopColor="#F472B6" />
+                  <stop offset="100%" stopColor="#FEF08A" />
+                </linearGradient>
+              </defs>
+              <rect width="360" height="170" fill="url(#loginSky)" />
+              {/* Sun / Moon disc */}
+              <circle cx="260" cy="55" r="22" fill="#FEF08A" opacity="0.85" filter="drop-shadow(0 0 16px #F59E0B)" />
+              {/* Celestial stars */}
+              <circle cx="35" cy="25" r="1.1" fill="#FFFFFF" opacity="0.8" />
+              <circle cx="85" cy="40" r="1" fill="#FFFFFF" opacity="0.7" />
+              <circle cx="150" cy="20" r="1.4" fill="#FDE047" opacity="0.85" />
+              <circle cx="320" cy="35" r="1.1" fill="#FFFFFF" opacity="0.75" />
+              {/* Mountain Ridges */}
+              <path d="M0 170 L0 115 L60 80 L130 115 L200 65 L280 120 L360 85 L360 170 Z" fill="#2E1065" opacity="0.7" />
+              <path d="M0 170 L0 135 L80 100 L160 130 L240 85 L320 125 L360 110 L360 170 Z" fill="#1A0738" opacity="0.85" />
+              {/* Cliff ledge with traveler */}
+              <path d="M0 170 L0 90 L85 105 L115 170 Z" fill="#0D041C" />
+              {/* Traveler silhouette */}
+              <circle cx="58" cy="80" r="4.5" fill="#0D041C" stroke="#FEF08A" strokeWidth="0.8" />
+              <path d="M53 85 L63 85 L65 104 L51 104 Z" fill="#0D041C" stroke="#C084FC" strokeWidth="0.5" />
+              <rect x="49" y="86" width="3.5" height="8" rx="1.5" fill="#0D041C" stroke="#FEF08A" strokeWidth="0.6" />
+              <line x1="55" y1="104" x2="53" y2="114" stroke="#0D041C" strokeWidth="2.5" />
+              <line x1="61" y1="104" x2="63" y2="114" stroke="#0D041C" strokeWidth="2.5" />
+              {/* Bottom organic curve */}
+              <path d="M0 145 C110 125, 220 165, 360 140 L360 170 L0 170 Z" fill="#0D0B1E" />
+            </svg>
           </div>
-          <StepAuth
-            answers={answers}
-            onEditPreferences={() => setShowAuthDirect(false)}
-            onComplete={() => navigate('/', { replace: true })}
-            initialMode="login"
-          />
+
+          {/* Lower Authentication Panel */}
+          <div className="p-5 sm:p-7 rounded-b-3xl bg-[#0D0B1E] border-b border-x border-white/10 backdrop-blur-2xl shadow-2xl relative space-y-4">
+            {/* LifeOS Brand Header */}
+            <div className="text-center space-y-1">
+              <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-xs font-mono font-bold">
+                <Sparkles size={12} className="text-purple-400" />
+                <span>LifeOS</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-black font-display text-white tracking-tight">
+                LifeOS
+              </h2>
+              <p className="text-xs text-slate-400 max-w-xs mx-auto">
+                Your Personal Operating System for a Better Tomorrow.
+              </p>
+            </div>
+
+            {/* Auth Form Card */}
+            <StepAuth
+              answers={answers}
+              onEditPreferences={() => setShowAuthDirect(false)}
+              onComplete={() => navigate('/', { replace: true })}
+              initialMode="login"
+              hideDossier={true}
+            />
+          </div>
+        </div>
+
+        {/* Motivational Footer */}
+        <div className="relative z-20 py-4 text-center">
+          <p className="text-[11px] font-mono text-slate-500">
+            &ldquo;Disciplined today. A better tomorrow.&rdquo;
+          </p>
         </div>
       </div>
     );

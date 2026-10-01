@@ -107,6 +107,86 @@ export function toggleTheme() {
 }
 
 /**
+ * Toggles directly between Light and Dark mode with cinematic radial reveal.
+ * Starts from the exact button coordinates and expands across the viewport.
+ * Respects prefers-reduced-motion.
+ */
+export async function toggleThemeWithTransition(event) {
+  const current = getSavedThemeMode();
+  const next = current === 'dark' || current === 'dim' ? 'light' : 'dark';
+
+  if (typeof window === 'undefined') {
+    setSavedTheme(next);
+    return next;
+  }
+
+  const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Extract coordinates of the trigger button or click
+  let x = window.innerWidth / 2;
+  let y = 0;
+  if (event) {
+    const el = event.currentTarget || event.target;
+    if (el && typeof el.getBoundingClientRect === 'function') {
+      const rect = el.getBoundingClientRect();
+      x = rect.left + rect.width / 2;
+      y = rect.top + rect.height / 2;
+    } else if (typeof event.clientX === 'number') {
+      x = event.clientX;
+      y = event.clientY;
+    }
+  }
+
+  const maxRadius = Math.hypot(
+    Math.max(x, window.innerWidth - x),
+    Math.max(y, window.innerHeight - y)
+  );
+
+  // Broadcast cinematic ripple event for the radiant halo/sun flare or cosmic wave
+  try {
+    window.dispatchEvent(
+      new CustomEvent('lifeos-theme-cinematic-ripple', {
+        detail: { x, y, nextMode: next, maxRadius, prefersReduced },
+      })
+    );
+  } catch {
+    // ignore
+  }
+
+  // Check if View Transition API is supported and reduced motion is off
+  if (!document.startViewTransition || prefersReduced) {
+    setSavedTheme(next);
+    return next;
+  }
+
+  const transition = document.startViewTransition(() => {
+    applyThemeToDOM(next);
+    setSavedTheme(next);
+  });
+
+  try {
+    await transition.ready;
+    document.documentElement.animate(
+      {
+        clipPath: [
+          `circle(0px at ${x}px ${y}px)`,
+          `circle(${maxRadius}px at ${x}px ${y}px)`,
+        ],
+      },
+      {
+        duration: 680,
+        easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+        pseudoElement: '::view-transition-new(root)',
+      }
+    );
+  } catch {
+    // animation fallback
+  }
+
+  return next;
+}
+
+/**
  * React hook to read and update the application theme mode in full sync.
  */
 export function useTheme() {
@@ -148,8 +228,8 @@ export function useTheme() {
     setSavedTheme(newMode);
   }, []);
 
-  const toggle = useCallback(() => {
-    return toggleTheme();
+  const toggle = useCallback((event) => {
+    return toggleThemeWithTransition(event);
   }, []);
 
   return {
@@ -157,6 +237,8 @@ export function useTheme() {
     isDark: mode === 'dark' || mode === 'dim',
     setMode,
     toggleTheme: toggle,
+    toggleThemeDirect: toggleTheme,
+    toggleThemeWithTransition,
     availableModes: APPEARANCE_MODES,
   };
 }

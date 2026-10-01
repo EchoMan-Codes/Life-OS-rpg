@@ -10,6 +10,7 @@ import { BattleActivityDrawer } from '@/components/hud/BattleActivityDrawer';
 import { LevelUpModal } from '@/components/celebration/LevelUpModal';
 import { LootDropPopup } from '@/components/celebration/LootDropPopup';
 import { LIFEOS_OPEN_BATTLE_LOG_EVENT } from '@/features/celebration/celebrationEvents';
+import { ThemeRippleOverlay } from '@/components/ui';
 import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
 
@@ -41,6 +42,7 @@ export function AppShell({ children }) {
   if (isOnboardingPage) {
     return (
       <ToastProvider>
+        <ThemeRippleOverlay />
         <div className="min-h-screen bg-obsidian text-ink">
           {children}
         </div>
@@ -50,6 +52,7 @@ export function AppShell({ children }) {
 
   return (
     <ToastProvider>
+      <ThemeRippleOverlay />
       <div className="min-h-screen bg-obsidian">
         {/* Desktop: Sidebar */}
         {isDesktop && (

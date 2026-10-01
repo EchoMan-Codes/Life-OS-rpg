@@ -1,22 +1,17 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Flame,
   CalendarCheck,
   Scroll,
   TrendingUp,
-  Activity,
   Zap,
   Target,
   Clock,
-  Brain,
   Heart,
   Smile,
-  CheckCircle2,
-  Circle,
   Plus,
-  ArrowRight,
   Shield,
   Swords,
   Moon,
@@ -24,9 +19,9 @@ import {
   Award,
   ChevronRight,
   AlertCircle,
-  Check,
   Coins,
   BookOpen,
+  Trophy,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -44,12 +39,12 @@ import {
 } from 'recharts';
 import clsx from 'clsx';
 
-import { Card, ColorCard } from '@/components/ui';
+import { Card, ColorCard, WavyHeroScenery, ModeButton } from '@/components/ui';
 import { TelemetryHorizonRibbon, RitualSpineDeck, AttributeAstrolabe } from '@/components/dashboard';
 import { useAuth } from '@/features/auth/hooks';
 import { useCharacter } from '@/features/character/hooks';
 import { useHabits, useScoreHabit } from '@/features/habits/hooks';
-import { useDailies, useCompleteDaily } from '@/features/dailies/hooks';
+import { useDailies } from '@/features/dailies/hooks';
 import { useQuests } from '@/features/quests/hooks';
 import { useReflections, useTodayReflection } from '@/features/reflections/hooks';
 import { useFocusHistory, useCurrentFocus } from '@/features/focus/hooks';
@@ -76,96 +71,6 @@ function CustomChartTooltip({ active, payload, label }) {
         </div>
       ))}
     </div>
-  );
-}
-
-/**
- * Single interactive Daily row for the Dashboard Action Deck.
- */
-function DashboardDailyItem({ daily }) {
-  const completeMutation = useCompleteDaily(daily.id, daily);
-  const isPending = completeMutation.isPending;
-
-  const handleToggle = () => {
-    if (!daily.isCompleteToday && !isPending) {
-      completeMutation.mutate();
-    }
-  };
-
-  return (
-    <motion.div
-      whileTap={{ scale: 0.98 }}
-      transition={spring.ios}
-      onClick={handleToggle}
-      className={clsx(
-        'group flex items-center justify-between p-3 sm:p-3.5 rounded-2xl border transition-all cursor-pointer min-h-[52px]',
-        'backdrop-blur-md shadow-[0_2px_8px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.06)]',
-        daily.isCompleteToday
-          ? 'bg-emerald-50/70 border-emerald-200/80 dark:bg-white/[0.02] dark:border-white/5 opacity-75'
-          : 'bg-white/85 border-slate-200/90 text-slate-800 hover:border-emerald-300 hover:bg-white dark:bg-white/[0.04] dark:border-white/10 dark:text-ink dark:hover:border-white/20 dark:hover:bg-white/[0.06]'
-      )}
-    >
-      <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-        <motion.button
-          type="button"
-          whileTap={{ scale: 0.86 }}
-          disabled={daily.isCompleteToday || isPending}
-          className={clsx(
-            'w-7 h-7 rounded-xl border flex items-center justify-center transition-all shrink-0',
-            daily.isCompleteToday
-              ? 'bg-emerald-500/25 border-emerald-500/60 text-emerald-600 dark:text-emerald-400 shadow-sm'
-              : 'border-slate-300 dark:border-white/20 bg-slate-100/80 dark:bg-white/[0.04] group-hover:border-emerald-500 text-transparent'
-          )}
-        >
-          {daily.isCompleteToday ? (
-            <Check size={14} className="stroke-[3]" />
-          ) : (
-            <Circle size={10} className="group-hover:text-emerald-500/40" />
-          )}
-        </motion.button>
-        <div className="min-w-0">
-          <p
-            className={clsx(
-              'text-xs sm:text-sm font-semibold truncate transition-all',
-              daily.isCompleteToday ? 'line-through text-slate-400 dark:text-ink-muted' : 'text-slate-900 dark:text-ink'
-            )}
-          >
-            {daily.title}
-          </p>
-          <div className="flex items-center gap-2 mt-0.5">
-            <span
-              className={clsx(
-                'text-[9px] sm:text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border',
-                daily.difficulty === 'hard'
-                  ? 'bg-rose-500/15 border-rose-500/30 text-rose-600 dark:text-hp'
-                  : daily.difficulty === 'medium'
-                  ? 'bg-amber-500/15 border-amber-500/30 text-amber-700 dark:text-gold'
-                  : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-attr-vitality'
-              )}
-            >
-              {daily.difficulty || 'easy'}
-            </span>
-            {daily.currentStreak > 0 && (
-              <span className="text-[10px] text-amber-600 dark:text-gold font-mono flex items-center gap-0.5 font-semibold">
-                <Flame size={11} className="fill-current" /> {daily.currentStreak}d streak
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="text-right shrink-0 pl-2">
-        {daily.isCompleteToday ? (
-          <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-mono">
-            <CheckCircle2 size={13} /> Conquered
-          </span>
-        ) : (
-          <span className="text-[11px] text-slate-400 dark:text-ink-muted group-hover:text-emerald-600 dark:group-hover:text-attr-perception transition-colors font-mono font-bold">
-            +XP
-          </span>
-        )}
-      </div>
-    </motion.div>
   );
 }
 
@@ -219,29 +124,10 @@ function DashboardHabitItem({ habit }) {
 }
 
 /**
- * Reusable Glance Metric Card powered by the LifeOS Color Card System.
- */
-function GlanceMetricCard({ icon, label, value, subtext, color = 'indigo', badge, actionTo, actionText, onClick }) {
-  return (
-    <ColorCard
-      color={color}
-      icon={icon}
-      title={label}
-      value={value}
-      subtitle={subtext}
-      badge={badge}
-      actionTo={actionTo}
-      actionText={actionText}
-      onAction={onClick}
-    />
-  );
-}
-
-/**
  * Main RPG Command Center Dashboard
  */
 export default function DashboardPage() {
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const { data: character } = useCharacter();
   const { data: habits = [] } = useHabits();
   const { data: dailies = [] } = useDailies();
@@ -434,6 +320,18 @@ export default function DashboardPage() {
   }, []);
 
   const displayName = user?.displayName || 'Rohit';
+  const level = character?.level ?? 1;
+  const hp = character?.hp ?? 62;
+  const maxHp = character?.maxHp ?? 80;
+  const mana = character?.mana ?? 30;
+  const maxMana = character?.maxMana ?? 50;
+  const xp = character?.xp ?? 320;
+  const xpForNextLevel = character?.xpForNextLevel ?? 604;
+  const gold = character?.gold ?? 145;
+  const hpPct = Math.max(0, Math.min(100, Math.round((hp / Math.max(1, maxHp)) * 100)));
+  const manaPct = Math.max(0, Math.min(100, Math.round((mana / Math.max(1, maxMana)) * 100)));
+  const xpPct = Math.max(0, Math.min(100, Math.round((xp / Math.max(1, xpForNextLevel)) * 100)));
+  const rankText = level >= 12 ? 'Top 5%' : level >= 7 ? 'Top 10%' : level >= 3 ? 'Top 20%' : 'Top 50%';
 
   return (
     <motion.div
@@ -442,137 +340,220 @@ export default function DashboardPage() {
       animate={{ opacity: 1, y: 0 }}
       transition={spring.snappy}
     >
-      {/* ── 1. Hero Cockpit & RPG Tactical Header ── */}
-      <section className="relative rounded-3xl p-4 sm:p-7 bg-gradient-to-br from-white via-slate-50 to-indigo-50/40 border border-slate-200/80 shadow-[0_10px_35px_rgba(0,0,0,0.05)] dark:from-obsidian-900/85 dark:via-obsidian-900/65 dark:to-obsidian-800/75 dark:border-white/15 dark:shadow-[0_16px_48px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-2xl overflow-hidden">
-        {/* Ambient atmospheric glows */}
-        <div className="absolute -top-24 right-10 w-72 h-72 bg-indigo-500/10 dark:bg-attr-perception/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 left-10 w-72 h-72 bg-amber-500/10 dark:bg-gold/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-5">
-          {/* Hero Identity */}
-          <div className="flex items-start sm:items-center gap-3 sm:gap-4">
-            <div className="relative shrink-0">
-              {user?.avatarUrl ? (
-                <img
-                  src={user.avatarUrl}
-                  alt={displayName}
-                  className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl object-cover border-2 border-amber-400 dark:border-gold/50 shadow-md"
-                />
-              ) : (
-                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-amber-400/20 to-indigo-500/20 border-2 border-amber-400/50 flex items-center justify-center text-amber-600 dark:text-gold font-display font-extrabold text-xl sm:text-2xl shadow-md">
-                  Ω
-                </div>
-              )}
-              <div className="absolute -bottom-1 -right-1 bg-white dark:bg-obsidian-950 text-amber-700 dark:text-gold border border-amber-300 dark:border-gold/60 rounded-full px-2 py-0.2 text-[9px] sm:text-[10px] font-mono font-bold shadow-xs">
-                Lv.{character?.level || 1}
-              </div>
-            </div>
-
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                <span className="text-[11px] sm:text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-gold border border-amber-500/30">
-                  {characterTitle}
-                </span>
-                {bestStreak > 0 && (
-                  <span className="text-[11px] sm:text-xs font-mono px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-700 dark:text-hp border border-rose-500/30 flex items-center gap-1">
-                    <Flame size={12} className="fill-current" /> {bestStreak}d streak
-                  </span>
+      {/* ── 1. Wavy Atmospheric RPG Hero Cockpit (Natural Scrolling, Zero Clipping) ── */}
+      <WavyHeroScenery variant="dashboard" className="p-3.5 sm:p-5 md:p-6">
+        <div className="flex flex-col gap-3 sm:gap-3.5">
+          {/* Row 1: Player Identity & Quick Controls */}
+          <div className="flex items-center justify-between gap-3">
+            {/* Left: Avatar + Identity */}
+            <Link
+              to="/profile"
+              className="flex items-center gap-2.5 sm:gap-3 group -ml-0.5 text-left focus:outline-none"
+              title="View Character Profile"
+            >
+              <div className="relative shrink-0">
+                {user?.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={displayName}
+                    className="w-11 h-11 sm:w-13 sm:h-13 rounded-full object-cover border-2 border-amber-400 shadow-md group-hover:scale-105 transition-transform"
+                  />
+                ) : (
+                  <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-gradient-to-br from-indigo-600 to-purple-800 border-2 border-amber-400/80 flex items-center justify-center text-amber-300 font-display font-bold text-base sm:text-lg shadow-md group-hover:scale-105 transition-transform">
+                    {displayName?.[0]?.toUpperCase() || 'Ω'}
+                  </div>
                 )}
+                <span className="absolute -bottom-1 -right-1 bg-obsidian-950 text-amber-300 border border-amber-400/70 rounded-full px-1.5 py-0.2 text-[9px] font-mono font-bold leading-tight shadow">
+                  {level}
+                </span>
               </div>
-              <h1 className="text-xl sm:text-3xl font-extrabold font-display text-slate-900 dark:text-ink tracking-tight mt-1 truncate">
-                {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-orange-500 to-indigo-600 dark:from-gold dark:via-amber-200 dark:to-attr-perception">{displayName}</span>
-              </h1>
-              <p className="text-[11px] sm:text-xs text-slate-500 dark:text-ink-muted font-mono mt-0.5">
-                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-              </p>
+
+              <div className="flex flex-col min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-base sm:text-lg font-bold font-display text-white tracking-tight leading-tight truncate">
+                    {displayName}
+                  </span>
+                  <span className="text-[10px] sm:text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                    Lv. {level} • {characterTitle}
+                  </span>
+                </div>
+                <p className="text-[11px] text-indigo-200/75 font-mono mt-0.5">
+                  {greeting} • {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                </p>
+              </div>
+            </Link>
+
+            {/* Right: Quick Action Controls */}
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              {/* Battle Chronicles */}
+              <button
+                type="button"
+                onClick={openBattleLogDrawer}
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-amber-300 flex items-center justify-center transition-all active:scale-95 shadow-xs cursor-pointer"
+                title="Battle Chronicles"
+                aria-label="Battle Chronicles"
+              >
+                <Swords size={16} />
+              </button>
+
+              {/* Mode Toggle */}
+              <ModeButton compact />
+
+              {/* Attributes Radar Trigger */}
+              <button
+                type="button"
+                onClick={openAttributesDrawer}
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-purple-300 flex items-center justify-center transition-all active:scale-95 shadow-xs cursor-pointer"
+                title="Attributes Radar"
+                aria-label="Attributes Radar"
+              >
+                <Shield size={16} />
+              </button>
             </div>
           </div>
 
-          {/* Quick Action Dock */}
-          <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
-            <Link
-              to="/focus"
-              className={clsx(
-                'flex items-center gap-1.5 sm:gap-2 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-xs min-h-[42px] active:scale-95',
-                activeFocus
-                  ? 'bg-sky-500 text-white shadow-sky-500/30 animate-pulse'
-                  : 'bg-sky-500/15 hover:bg-sky-500/25 text-sky-700 dark:text-mana border border-sky-500/40 backdrop-blur-md'
-              )}
-            >
-              <Clock size={15} />
-              <span>{activeFocus ? 'Active Focus' : 'Focus Chamber'}</span>
-            </Link>
-
-            <Link
-              to="/reflection"
-              className="flex items-center gap-1.5 sm:gap-2 px-3.5 py-2.5 rounded-2xl bg-teal-500/15 hover:bg-teal-500/25 text-teal-700 dark:text-teal-300 border border-teal-500/40 text-xs font-bold transition-all min-h-[42px] backdrop-blur-md active:scale-95"
-            >
-              <Moon size={15} />
-              <span>{todayReflection ? 'Reflection' : 'Reflect'}</span>
-            </Link>
-
-            <button
-              type="button"
-              onClick={openBattleLogDrawer}
-              className="flex items-center gap-1.5 sm:gap-2 px-3.5 py-2.5 rounded-2xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-gold border border-amber-500/40 text-xs font-bold transition-all min-h-[42px] backdrop-blur-md active:scale-95"
-              title="Battle Chronicles"
-            >
-              <Swords size={15} />
-              <span className="hidden sm:inline">Chronicles</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Tactical Advisory Pill */}
-        <div className="mt-3.5 pt-3 border-t border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-2.5 text-xs">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className={clsx('p-1.5 rounded-xl bg-white/90 dark:bg-obsidian-950/70 border border-slate-200 dark:border-white/10 shrink-0 shadow-xs', tacticalAdvisory.color)}>
-              <tacticalAdvisory.icon size={14} />
-            </div>
-            <span className="text-slate-800 dark:text-ink font-medium truncate text-[11px] sm:text-xs">{tacticalAdvisory.text}</span>
-          </div>
-          <Link
-            to={tacticalAdvisory.link}
-            className="text-[11px] sm:text-xs text-slate-500 hover:text-slate-900 dark:text-ink-muted dark:hover:text-ink flex items-center gap-0.5 shrink-0 font-semibold transition-colors"
-          >
-            <span>Act</span>
-            <ChevronRight size={13} />
-          </Link>
-        </div>
-      </section>
-
-      {/* ── 2. Life Area Fast Category Pills (Matching Image 3) ── */}
-      <div className="grid grid-cols-5 gap-2 sm:gap-3 py-1">
-        {[
-          { label: 'Focus', icon: Clock, to: '/focus', bg: 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/25' },
-          { label: 'Habit', icon: Flame, to: '/habits', bg: 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/25' },
-          { label: 'Study', icon: BookOpen, to: '/focus', bg: 'bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/25' },
-          { label: 'Quest', icon: Scroll, to: '/quests', bg: 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-gold border-amber-500/25' },
-          { label: 'Finance', icon: Coins, to: '/shop', bg: 'bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 border-teal-500/25' },
-        ].map((item) => {
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.label}
-              to={item.to}
-              className={clsx(
-                'flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl border transition-all duration-150',
-                'backdrop-blur-md shadow-2xs hover:shadow-xs active:scale-95 group text-center',
-                item.bg
-              )}
-            >
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110">
-                <Icon size={18} />
-              </div>
-              <span className="text-[11px] font-bold tracking-tight mt-1 leading-none font-display">
-                {item.label}
+          {/* Row 2: 3-Pill Lifetime Stats Deck (Coins, Streak, Rank) */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
+            <div className="flex flex-col items-center justify-center py-2 px-2 rounded-2xl bg-black/35 border border-amber-500/30 text-center shadow-xs backdrop-blur-md">
+              <span className="text-[10px] sm:text-xs font-mono text-amber-300/80 font-medium flex items-center gap-1">
+                <Coins size={12} className="text-amber-400 shrink-0" /> Coins
               </span>
-            </Link>
-          );
-        })}
-      </div>
+              <span className="font-mono font-bold text-sm sm:text-base text-amber-300 leading-tight mt-0.5">
+                {gold}
+              </span>
+            </div>
 
-      {/* ── 3. Progression Horizon Ribbon (Connected Telemetry Strip) ── */}
+            <div className="flex flex-col items-center justify-center py-2 px-2 rounded-2xl bg-black/35 border border-orange-500/30 text-center shadow-xs backdrop-blur-md">
+              <span className="text-[10px] sm:text-xs font-mono text-orange-300/80 font-medium flex items-center gap-1">
+                <Flame size={12} className="text-orange-400 fill-current shrink-0" /> Streak
+              </span>
+              <span className="font-mono font-bold text-sm sm:text-base text-white leading-tight mt-0.5">
+                {bestStreak}d
+              </span>
+            </div>
+
+            <div className="flex flex-col items-center justify-center py-2 px-2 rounded-2xl bg-black/35 border border-purple-500/30 text-center shadow-xs backdrop-blur-md">
+              <span className="text-[10px] sm:text-xs font-mono text-purple-300/80 font-medium flex items-center gap-1">
+                <Trophy size={12} className="text-purple-400 shrink-0" /> Rank
+              </span>
+              <span className="font-mono font-bold text-sm sm:text-base text-purple-300 leading-tight mt-0.5">
+                {rankText}
+              </span>
+            </div>
+          </div>
+
+          {/* Row 3: Dual Vitals (HP & MP) */}
+          <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
+            {/* HP Bar */}
+            <div className="px-3 py-2 rounded-2xl bg-black/35 border border-rose-500/25 flex flex-col gap-1 backdrop-blur-md">
+              <div className="flex items-center justify-between text-[11px] leading-tight font-mono">
+                <div className="flex items-center gap-1 font-bold text-rose-400">
+                  <Heart size={12} className="fill-rose-500/40 shrink-0" />
+                  <span>HP</span>
+                </div>
+                <span className="text-white font-semibold">
+                  {hp}<span className="text-white/50 text-[10px]">/{maxHp}</span>
+                </span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-rose-600 to-rose-400 transition-all duration-300 shadow-[0_0_10px_rgba(244,63,94,0.5)]"
+                  style={{ width: `${hpPct}%` }}
+                />
+              </div>
+            </div>
+
+            {/* MP Bar */}
+            <div className="px-3 py-2 rounded-2xl bg-black/35 border border-sky-500/25 flex flex-col gap-1 backdrop-blur-md">
+              <div className="flex items-center justify-between text-[11px] leading-tight font-mono">
+                <div className="flex items-center gap-1 font-bold text-sky-400">
+                  <Zap size={12} className="fill-sky-500/40 shrink-0" />
+                  <span>MP</span>
+                </div>
+                <span className="text-white font-semibold">
+                  {mana}<span className="text-white/50 text-[10px]">/{maxMana}</span>
+                </span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-sky-600 to-cyan-400 transition-all duration-300 shadow-[0_0_10px_rgba(56,189,248,0.5)]"
+                  style={{ width: `${manaPct}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Row 4: Golden XP Progress Ribbon */}
+          <div className="px-3 py-2 rounded-2xl bg-black/35 border border-amber-500/30 flex flex-col gap-1 backdrop-blur-md">
+            <div className="flex items-center justify-between text-[11px] font-mono leading-tight">
+              <span className="text-amber-300 font-bold flex items-center gap-1">
+                <Sparkles size={12} className="text-amber-400 shrink-0" /> XP Progress
+              </span>
+              <span className="text-white/90">
+                {xp} <span className="text-white/50 text-[10px]">/ {xpForNextLevel} ({xpPct}%)</span>
+              </span>
+            </div>
+            <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-300 transition-all duration-300 shadow-[0_0_12px_rgba(245,158,11,0.6)]"
+                style={{ width: `${xpPct}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Row 5: Life Areas Fast Category Pills (Focus, Habit, Study, Quest, Finance) */}
+          <div className="grid grid-cols-5 gap-1.5 sm:gap-2 pt-0.5">
+            {[
+              { label: 'Focus', icon: Clock, to: '/focus', color: 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30 hover:bg-emerald-500/25' },
+              { label: 'Habit', icon: Flame, to: '/habits', color: 'text-amber-400 bg-amber-500/15 border-amber-500/30 hover:bg-amber-500/25' },
+              { label: 'Study', icon: BookOpen, to: '/focus', color: 'text-purple-300 bg-purple-500/15 border-purple-500/30 hover:bg-purple-500/25' },
+              { label: 'Quest', icon: Scroll, to: '/quests', color: 'text-yellow-300 bg-yellow-500/15 border-yellow-500/30 hover:bg-yellow-500/25' },
+              { label: 'Finance', icon: Coins, to: '/shop', color: 'text-teal-300 bg-teal-500/15 border-teal-500/30 hover:bg-teal-500/25', hint: 'Phase 6' },
+            ].map((cat) => {
+              const Icon = cat.icon;
+              return (
+                <Link
+                  key={cat.label}
+                  to={cat.to}
+                  className={clsx(
+                    'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 group text-center backdrop-blur-md',
+                    cat.color
+                  )}
+                  title={cat.hint ? `${cat.label} (${cat.hint} expansion)` : cat.label}
+                >
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Icon size={16} />
+                  </div>
+                  <span className="text-[10px] sm:text-[11px] font-bold tracking-tight mt-0.5 leading-none font-display">
+                    {cat.label}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Row 6: Tactical Advisory Banner */}
+          <div className="mt-0.5 pt-2 border-t border-white/10 flex items-center justify-between gap-2.5 text-xs">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className={clsx('p-1.5 rounded-xl bg-white/10 border border-white/15 shrink-0 shadow-xs', tacticalAdvisory.color)}>
+                <tacticalAdvisory.icon size={13} />
+              </div>
+              <span className="text-white/90 font-medium truncate text-[11px] sm:text-xs">
+                {tacticalAdvisory.text}
+              </span>
+            </div>
+            <Link
+              to={tacticalAdvisory.link}
+              className="text-[11px] sm:text-xs text-amber-300 hover:text-white flex items-center gap-0.5 shrink-0 font-semibold transition-colors"
+            >
+              <span>Act</span>
+              <ChevronRight size={13} />
+            </Link>
+          </div>
+        </div>
+      </WavyHeroScenery>
+
+      {/* ── 2. Progression Horizon Ribbon (Connected Telemetry Strip) ── */}
       <TelemetryHorizonRibbon
         completedTodayCount={completedTodayCount}
         totalDailiesCount={activeDailies.length}
@@ -586,7 +567,7 @@ export default function DashboardPage() {
       />
 
       {/* ── 3. Dedicated Mobile Segmented Switcher (iOS Frosted Glass Capsule) ── */}
-      <div className="md:hidden sticky top-16 z-30 -mx-3 px-3 py-2 bg-white/90 dark:bg-obsidian-950/80 backdrop-blur-2xl border-y border-slate-200/80 dark:border-white/10">
+      <div className="md:hidden sticky top-0 z-30 -mx-3 px-3 py-2 bg-white/90 dark:bg-obsidian-950/80 backdrop-blur-2xl border-y border-slate-200/80 dark:border-white/10">
         <div className="grid grid-cols-4 gap-1 p-1 rounded-full bg-slate-100/90 dark:bg-obsidian-900/80 border border-slate-200 dark:border-white/10 shadow-inner backdrop-blur-md">
           {[
             { id: 'actions', label: 'Actions', icon: Zap },

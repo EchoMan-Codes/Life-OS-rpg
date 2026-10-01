@@ -89,7 +89,9 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false, onOpenB
   const xpPct = Math.max(0, Math.min(100, Math.round((xp / Math.max(1, xpForNextLevel)) * 100)));
   const isLowHp = hpPct < 25;
 
-  if (location.pathname === '/profile') {
+  // On Profile page, or on Dashboard on mobile: do not render sticky/fixed HUD.
+  // Both pages have their own natural-scrolling hero cockpit in the regular document flow.
+  if (location.pathname === '/profile' || (!isDesktop && isDashboard)) {
     return (
       <AttributesDrawer
         isOpen={drawerOpen}

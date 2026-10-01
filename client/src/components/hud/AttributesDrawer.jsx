@@ -519,6 +519,52 @@ export function AttributesDrawer({ isOpen, onClose, character = {} }) {
                 </div>
 
                 <div className="space-y-2">
+                  {/* Appearance Mode Selector */}
+                  <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/10 space-y-2">
+                    <div className="flex items-center justify-between text-xs text-ink">
+                      <div className="flex items-center gap-2.5">
+                        {mode === 'light' ? (
+                          <Sun size={16} className="text-amber-500" />
+                        ) : mode === 'dim' ? (
+                          <Sparkles size={16} className="text-indigo-400" />
+                        ) : (
+                          <Moon size={16} className="text-indigo-400" />
+                        )}
+                        <span>Appearance Mode</span>
+                      </div>
+                      <span className="font-mono text-[11px] text-ink-muted capitalize">
+                        {mode}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-1.5 pt-0.5">
+                      {[
+                        { id: 'light', label: 'Light', icon: Sun },
+                        { id: 'dark', label: 'Dark', icon: Moon },
+                        { id: 'dim', label: 'Dim', icon: Sparkles },
+                      ].map((item) => {
+                        const Icon = item.icon;
+                        const isSelected = mode === item.id;
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => setMode(item.id)}
+                            className={clsx(
+                              'py-1.5 px-2 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer',
+                              isSelected
+                                ? 'bg-amber-500/20 border border-amber-500/40 text-gold font-bold shadow-xs'
+                                : 'bg-white/[0.03] hover:bg-white/[0.06] text-ink-muted border border-white/5'
+                            )}
+                          >
+                            <Icon size={12} />
+                            <span>{item.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   {/* Sound FX Toggle */}
                   <button
                     type="button"

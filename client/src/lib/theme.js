@@ -36,6 +36,7 @@ export function getSavedThemeMode() {
  * Applies the theme data attribute and root classes to the document element.
  */
 export function applyThemeToDOM(mode) {
+  if (typeof document === 'undefined') return;
   const root = document.documentElement;
   let effective = mode;
 
@@ -64,25 +65,98 @@ export function applyThemeToDOM(mode) {
   }
 }
 
+// Immediate initial execution on module load to prevent theme flicker
+try {
+  if (typeof window !== 'undefined') {
+    applyThemeToDOM(getSavedThemeMode());
+  }
+} catch {
+  // ignore
+}
+
+// Cross-component listener registry
+const themeListeners = new Set();
+
 /**
- * React hook to read and update the application theme mode.
+ * Saves and applies a new theme mode, broadcasting to all subscribers.
+ */
+export function setSavedTheme(newMode) {
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, newMode);
+  } catch {
+    // ignore
+  }
+  applyThemeToDOM(newMode);
+  themeListeners.forEach((listener) => {
+    try {
+      listener(newMode);
+    } catch {
+      // ignore
+    }
+  });
+}
+
+/**
+ * Toggles directly between Light and Dark mode.
+ */
+export function toggleTheme() {
+  const current = getSavedThemeMode();
+  const next = current === 'dark' || current === 'dim' ? 'light' : 'dark';
+  setSavedTheme(next);
+  return next;
+}
+
+/**
+ * React hook to read and update the application theme mode in full sync.
  */
 export function useTheme() {
   const [mode, setModeState] = useState(getSavedThemeMode);
 
   useEffect(() => {
+    // Sync current state on mount
     applyThemeToDOM(mode);
+
+    const handleListener = (newMode) => {
+      setModeState(newMode);
+    };
+    themeListeners.add(handleListener);
+
+    const handleCustomEvent = (e) => {
+      if (e?.detail?.mode) {
+        setModeState(e.detail.mode);
+      }
+    };
+    window.addEventListener('lifeos-theme-change', handleCustomEvent);
+
+    const handleStorage = (e) => {
+      if (e.key === THEME_STORAGE_KEY) {
+        const nextMode = getSavedThemeMode();
+        setModeState(nextMode);
+        applyThemeToDOM(nextMode);
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    return () => {
+      themeListeners.delete(handleListener);
+      window.removeEventListener('lifeos-theme-change', handleCustomEvent);
+      window.removeEventListener('storage', handleStorage);
+    };
   }, [mode]);
 
   const setMode = useCallback((newMode) => {
-    setModeState(newMode);
-    try {
-      localStorage.setItem(THEME_STORAGE_KEY, newMode);
-    } catch {
-      // ignore
-    }
-    applyThemeToDOM(newMode);
+    setSavedTheme(newMode);
   }, []);
 
-  return { mode, setMode, availableModes: APPEARANCE_MODES };
+  const toggle = useCallback(() => {
+    return toggleTheme();
+  }, []);
+
+  return {
+    mode,
+    isDark: mode === 'dark' || mode === 'dim',
+    setMode,
+    toggleTheme: toggle,
+    availableModes: APPEARANCE_MODES,
+  };
 }

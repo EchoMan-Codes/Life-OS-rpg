@@ -11,6 +11,28 @@
       href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap"
       rel="stylesheet"
     />
+    <script>
+      (function() {
+        try {
+          var mode = localStorage.getItem('lifeos_appearance_mode') || 'light';
+          var effective = mode;
+          if (mode === 'system') {
+            effective = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          document.documentElement.setAttribute('data-theme', effective);
+          if (effective === 'light') {
+            document.documentElement.classList.add('theme-light');
+            document.documentElement.classList.remove('theme-dim', 'theme-dark', 'dark');
+          } else if (effective === 'dim') {
+            document.documentElement.classList.add('theme-dim', 'dark');
+            document.documentElement.classList.remove('theme-light', 'theme-dark');
+          } else {
+            document.documentElement.classList.add('theme-dark', 'dark');
+            document.documentElement.classList.remove('theme-light', 'theme-dim');
+          }
+        } catch(e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -4,7 +4,7 @@ import clsx from 'clsx';
 
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { AuthModal } from '@/features/auth/components/AuthModal';
-import { PlayerHud, FloatingTextContainer, MobileProgressionHud } from '@/components/hud';
+import { PlayerHud, FloatingTextContainer } from '@/components/hud';
 import { ToastProvider } from '@/components/ui/Toast';
 import { BattleActivityDrawer } from '@/components/hud/BattleActivityDrawer';
 import { LevelUpModal } from '@/components/celebration/LevelUpModal';
@@ -28,6 +28,7 @@ export function AppShell({ children }) {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [battleDrawerOpen, setBattleDrawerOpen] = useState(false);
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const isDashboard = location.pathname === '/';
 
   // Listen for global open battle log events
   useEffect(() => {
@@ -71,20 +72,17 @@ export function AppShell({ children }) {
         {/* Main content area */}
         <main
           className={clsx(
-            'min-h-screen pt-16 transition-[margin] duration-200',
+            'min-h-screen transition-[margin,padding] duration-200',
             isDesktop
               ? sidebarCollapsed
-                ? 'ml-20'
-                : 'ml-64'
-              : 'pb-28 sm:pb-32' // clearance for floating capsule bottom nav on mobile
+                ? isDashboard ? 'pt-20 ml-20' : 'pt-[72px] ml-20'
+                : isDashboard ? 'pt-20 ml-64' : 'pt-[72px] ml-64'
+              : isDashboard
+                ? 'pt-[128px] pb-28 sm:pb-32'
+                : 'pt-[70px] pb-28 sm:pb-32' // Streamlined clearance for focused pages
           )}
         >
           <div className="p-3 sm:p-5 md:p-6 lg:p-8 max-w-7xl mx-auto">
-            {!isDesktop && (
-              <div className="mb-3.5">
-                <MobileProgressionHud />
-              </div>
-            )}
             {children}
           </div>
         </main>

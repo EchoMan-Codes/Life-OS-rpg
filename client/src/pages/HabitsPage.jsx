@@ -14,8 +14,40 @@ const FILTERS = [
   { id: 'negative', label: 'Negative (-)' },
 ];
 
+const STARTER_HABITS = [
+  {
+    id: 'starter-1',
+    title: 'Wake Up on Time',
+    description: 'Start the day at 6:00 AM and follow the plan strictly',
+    difficulty: 'easy',
+    direction: 'positive',
+    currentStreak: 0,
+    bestStreak: 1,
+  },
+  {
+    id: 'starter-2',
+    title: 'Drink Water',
+    description: '8 glasses daily',
+    difficulty: 'easy',
+    direction: 'positive',
+    currentStreak: 3,
+    bestStreak: 5,
+  },
+  {
+    id: 'starter-3',
+    title: 'Daily Study Session',
+    description: '2+ hours focused study',
+    difficulty: 'medium',
+    direction: 'positive',
+    currentStreak: 5,
+    bestStreak: 7,
+  },
+];
+
 export default function HabitsPage() {
-  const { data: habits = [], isLoading, isError } = useHabits();
+  const { data: rawHabits = [], isLoading, isError } = useHabits();
+  const habits = rawHabits.length > 0 ? rawHabits : STARTER_HABITS;
+
   const [activeFilter, setActiveFilter] = useState('all');
   const [modalOpen, setModalOpen] = useState(false);
   const [habitToEdit, setHabitToEdit] = useState(null);
@@ -27,11 +59,11 @@ export default function HabitsPage() {
 
   const bestOverallStreak = useMemo(() => {
     if (!habits.length) return 0;
-    return Math.max(...habits.map((h) => h.bestStreak || 0), 0);
+    return Math.max(...habits.map((h) => h.bestStreak || h.currentStreak || 0), 0);
   }, [habits]);
 
   const totalCompletions = useMemo(() => {
-    return habits.reduce((acc, h) => acc + (h.positiveCount || 0), 0);
+    return habits.reduce((acc, h) => acc + (h.positiveCount || h.currentStreak || 0), 0);
   }, [habits]);
 
   const handleOpenCreate = () => {

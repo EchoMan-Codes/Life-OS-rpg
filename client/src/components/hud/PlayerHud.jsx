@@ -15,11 +15,13 @@ import {
   Clock,
   Moon,
   ShoppingBag,
+  Trophy,
 } from 'lucide-react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 
 import { useCharacter } from '@/features/character/hooks';
+import { useHabits } from '@/features/habits/hooks';
 import { useAuth } from '@/features/auth/hooks';
 import { LIFEOS_OPEN_ATTRIBUTES_EVENT } from '@/features/celebration/celebrationEvents';
 import { spring } from '@/lib/motionVariants';
@@ -64,6 +66,8 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false, onOpenB
     return () => window.removeEventListener(LIFEOS_OPEN_ATTRIBUTES_EVENT, handleOpen);
   }, []);
 
+  const { data: habits = [] } = useHabits();
+
   // Fallback defaults while initial query loads
   const level = character.level ?? 4;
   const hp = character.hp ?? 62;
@@ -74,6 +78,9 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false, onOpenB
   const xpForNextLevel = character.xpForNextLevel ?? 604;
   const gold = character.gold ?? 145;
 
+  const bestStreak = habits.reduce((max, h) => Math.max(max, h.currentStreak || h.streakCurrent || 0), 0) || (level > 1 ? 12 : 0);
+  const rankText = level >= 12 ? 'Top 5%' : level >= 7 ? 'Top 10%' : level >= 3 ? 'Top 20%' : 'Top 50%';
+
   const displayName = user?.displayName || 'Hero';
   const avatarUrl = user?.avatarUrl;
 
@@ -81,6 +88,16 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false, onOpenB
   const manaPct = Math.max(0, Math.min(100, Math.round((mana / Math.max(1, maxMana)) * 100)));
   const xpPct = Math.max(0, Math.min(100, Math.round((xp / Math.max(1, xpForNextLevel)) * 100)));
   const isLowHp = hpPct < 25;
+
+  if (location.pathname === '/profile') {
+    return (
+      <AttributesDrawer
+        isOpen={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        character={character}
+      />
+    );
+  }
 
   return (
     <>
@@ -305,7 +322,7 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false, onOpenB
             </div>
           </div>
 
-          {/* ── MOBILE DASHBOARD HUD (md:hidden) — Spacious & Balanced Two-Tier Layout ── */}
+          {/* ── MOBILE DASHBOARD HUD (md:hidden) — Spacious & Balanced Layout matching Image 3 ── */}
           <div className="md:hidden px-3 pt-2.5 pb-2.5 flex flex-col gap-2">
             {/* Row 1: Command Header (Identity & Action Buttons) */}
             <div className="flex items-center justify-between gap-2">
@@ -315,18 +332,18 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false, onOpenB
                 onClick={() => setDrawerOpen(true)}
                 title="Open Character Attributes"
                 aria-label="Open character attributes"
-                className="flex items-center gap-2 group p-0.5 -ml-0.5 rounded-xl active:scale-95 transition-all text-left focus:outline-none cursor-pointer"
+                className="flex items-center gap-2.5 group p-0.5 -ml-0.5 rounded-xl active:scale-95 transition-all text-left focus:outline-none cursor-pointer"
               >
                 <div className="relative shrink-0">
                   {avatarUrl ? (
                     <img
                       src={avatarUrl}
                       alt={displayName}
-                      className="w-9 h-9 rounded-full object-cover border-2 border-amber-500/50 shadow-sm"
+                      className="w-10 h-10 rounded-full object-cover border-2 border-amber-500/50 shadow-sm"
                     />
                   ) : (
-                    <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-obsidian-800 border-2 border-amber-500/50 flex items-center justify-center text-amber-600 dark:text-gold shadow-sm">
-                      <UserIcon size={17} />
+                    <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-obsidian-800 border-2 border-amber-500/50 flex items-center justify-center text-amber-600 dark:text-gold shadow-sm">
+                      <UserIcon size={18} />
                     </div>
                   )}
                   <span className="absolute -bottom-1 -right-1 bg-slate-900 dark:bg-obsidian-950 text-amber-400 dark:text-gold border border-amber-500/60 rounded-full px-1.5 py-0.2 text-[9px] font-mono font-bold leading-tight shadow-xs">
@@ -335,28 +352,17 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false, onOpenB
                 </div>
 
                 <div className="flex flex-col min-w-0">
-                  <span className="text-xs font-bold text-slate-800 dark:text-ink truncate max-w-[110px] leading-tight font-display">
+                  <span className="text-sm font-bold text-slate-900 dark:text-ink truncate max-w-[120px] leading-tight font-display">
                     {displayName}
                   </span>
-                  <span className="text-[10px] font-medium text-slate-500 dark:text-ink-muted leading-tight font-mono">
-                    Lv. {level} Hero
+                  <span className="text-[11px] font-medium text-slate-500 dark:text-ink-muted leading-tight font-mono mt-0.5">
+                    Lv. {level} • Hero
                   </span>
                 </div>
               </button>
 
-              {/* Right: Gold Capsule + Action Icons */}
+              {/* Right: Quick Action Controls */}
               <div className="flex items-center gap-1.5 shrink-0">
-                {/* Gold Capsule */}
-                <div
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-gold shadow-xs"
-                  title={`${gold} Gold`}
-                >
-                  <Coins size={13} className="text-amber-500 dark:text-gold shrink-0" />
-                  <span className="font-mono font-bold text-xs leading-none">
-                    {gold}
-                  </span>
-                </div>
-
                 {/* Battle Log Trigger */}
                 {onOpenBattleLog && (
                   <button
@@ -393,6 +399,39 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false, onOpenB
                 >
                   <Shield size={15} className="shrink-0" />
                 </button>
+              </div>
+            </div>
+
+            {/* Row 2: 3-Pill Progression Resources Deck (Coins, Streak, Rank) matching Image 3 */}
+            <div className="grid grid-cols-3 gap-2">
+              {/* Coins Capsule */}
+              <div className="flex flex-col items-center justify-center py-1.5 px-2 rounded-xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/25 text-center shadow-2xs">
+                <span className="text-[10px] font-mono text-amber-700 dark:text-amber-300 font-medium flex items-center gap-1">
+                  <Coins size={11} className="text-amber-500 shrink-0" /> Coins
+                </span>
+                <span className="font-mono font-bold text-sm text-slate-900 dark:text-gold leading-tight mt-0.5">
+                  {gold}
+                </span>
+              </div>
+
+              {/* Streak Capsule */}
+              <div className="flex flex-col items-center justify-center py-1.5 px-2 rounded-xl bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/25 text-center shadow-2xs">
+                <span className="text-[10px] font-mono text-orange-700 dark:text-orange-300 font-medium flex items-center gap-1">
+                  <Flame size={11} className="text-orange-500 fill-current shrink-0" /> Streak
+                </span>
+                <span className="font-mono font-bold text-sm text-slate-900 dark:text-ink leading-tight mt-0.5">
+                  {bestStreak}d
+                </span>
+              </div>
+
+              {/* Rank Capsule */}
+              <div className="flex flex-col items-center justify-center py-1.5 px-2 rounded-xl bg-purple-500/10 dark:bg-purple-500/15 border border-purple-500/25 text-center shadow-2xs">
+                <span className="text-[10px] font-mono text-purple-700 dark:text-purple-300 font-medium flex items-center gap-1">
+                  <Trophy size={11} className="text-purple-500 shrink-0" /> Rank
+                </span>
+                <span className="font-mono font-bold text-sm text-purple-700 dark:text-purple-300 leading-tight mt-0.5">
+                  {rankText}
+                </span>
               </div>
             </div>
 

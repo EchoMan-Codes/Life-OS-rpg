@@ -16,6 +16,7 @@ import {
   LogIn,
   LogOut,
   Shield,
+  User as UserIcon,
 } from 'lucide-react';
 
 import { useAuth } from '@/features/auth/hooks';
@@ -31,6 +32,14 @@ const primaryNavItems = [
 ];
 
 const moreNavItems = [
+  {
+    to: '/profile',
+    icon: UserIcon,
+    label: 'Character Profile',
+    desc: 'Identity, progress analytics & attributes',
+    color: 'text-indigo-600 dark:text-indigo-400',
+    bg: 'bg-indigo-500/15 border-indigo-500/30',
+  },
   {
     to: '/focus',
     icon: Clock,
@@ -66,7 +75,7 @@ export function BottomNav({ onOpenAuth }) {
   const location = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
 
-  const isMoreActive = ['/focus', '/reflection', '/shop'].includes(location.pathname);
+  const isMoreActive = ['/profile', '/focus', '/reflection', '/shop'].includes(location.pathname);
 
   return (
     <>

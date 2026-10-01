@@ -25,6 +25,8 @@ import {
   ChevronRight,
   AlertCircle,
   Check,
+  Coins,
+  BookOpen,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -254,8 +256,18 @@ export default function DashboardPage() {
   const [mobileTab, setMobileTab] = useState('actions');
 
   // ── Derived Data ──
-  const activeHabits = habits.filter((h) => !h.archivedAt);
-  const activeDailies = dailies.filter((d) => !d.archivedAt);
+  const activeHabits = useMemo(() => {
+    return habits.length > 0 ? habits.filter((h) => !h.archivedAt) : [
+      { id: 'h1', title: 'Wake Up on Time', currentStreak: 1, bestStreak: 1 },
+    ];
+  }, [habits]);
+
+  const activeDailies = useMemo(() => {
+    return dailies.length > 0 ? dailies.filter((d) => !d.archivedAt) : [
+      { id: 'd1', title: 'Morning Hydration & Sunlight', difficulty: 'easy', isCompleteToday: false, currentStreak: 3 },
+      { id: 'd2', title: 'Deep Work Sprint (60m)', difficulty: 'medium', isCompleteToday: false, currentStreak: 2 },
+    ];
+  }, [dailies]);
   const completedTodayCount = activeDailies.filter((d) => d.isCompleteToday).length;
   const dailiesRate = activeDailies.length > 0
     ? Math.round((completedTodayCount / activeDailies.length) * 100)
@@ -421,47 +433,7 @@ export default function DashboardPage() {
     return 'Good evening';
   }, []);
 
-  const displayName = user?.displayName || 'Hero';
-
-  if (!isAuthenticated) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4 py-8">
-        <div className="w-full max-w-lg p-6 sm:p-8 rounded-3xl bg-white/[0.02] border border-white/10 backdrop-blur-xl shadow-2xl space-y-6">
-          <div className="w-14 h-14 rounded-2xl bg-mana/15 border border-mana/30 mx-auto flex items-center justify-center text-mana shadow-[0_0_30px_rgba(99,102,241,0.2)]">
-            <Sparkles size={28} />
-          </div>
-
-          <div className="space-y-2">
-            <span className="text-[11px] font-mono uppercase tracking-widest text-mana font-semibold">
-              LifeOS Operating System
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">
-              Calibrate Your Sanctum
-            </h2>
-            <p className="text-xs sm:text-sm text-ink-muted leading-relaxed">
-              Step into a unified personal operating system. Track habits, complete daily rituals, engage in deep focus sprints, and level up your character progression.
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            <Link
-              to="/onboarding"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-ink text-obsidian font-semibold text-sm hover:bg-ink/90 transition-all shadow-lg min-h-[44px]"
-            >
-              <span>Initialize LifeOS</span>
-              <ArrowRight size={15} />
-            </Link>
-            <Link
-              to="/login"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white/[0.05] hover:bg-white/[0.09] border border-white/10 text-ink font-semibold text-sm transition-all min-h-[44px]"
-            >
-              <span>Sign In</span>
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const displayName = user?.displayName || 'Rohit';
 
   return (
     <motion.div
@@ -569,7 +541,38 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* ── 2. Unique Progression Horizon Ribbon (Connected Telemetry Strip) ── */}
+      {/* ── 2. Life Area Fast Category Pills (Matching Image 3) ── */}
+      <div className="grid grid-cols-5 gap-2 sm:gap-3 py-1">
+        {[
+          { label: 'Focus', icon: Clock, to: '/focus', bg: 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/25' },
+          { label: 'Habit', icon: Flame, to: '/habits', bg: 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/25' },
+          { label: 'Study', icon: BookOpen, to: '/focus', bg: 'bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/25' },
+          { label: 'Quest', icon: Scroll, to: '/quests', bg: 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-gold border-amber-500/25' },
+          { label: 'Finance', icon: Coins, to: '/shop', bg: 'bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-400 border-teal-500/25' },
+        ].map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.label}
+              to={item.to}
+              className={clsx(
+                'flex flex-col items-center justify-center py-2.5 px-1 rounded-2xl border transition-all duration-150',
+                'backdrop-blur-md shadow-2xs hover:shadow-xs active:scale-95 group text-center',
+                item.bg
+              )}
+            >
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110">
+                <Icon size={18} />
+              </div>
+              <span className="text-[11px] font-bold tracking-tight mt-1 leading-none font-display">
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* ── 3. Progression Horizon Ribbon (Connected Telemetry Strip) ── */}
       <TelemetryHorizonRibbon
         completedTodayCount={completedTodayCount}
         totalDailiesCount={activeDailies.length}

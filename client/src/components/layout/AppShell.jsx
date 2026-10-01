@@ -29,6 +29,7 @@ export function AppShell({ children }) {
   const [battleDrawerOpen, setBattleDrawerOpen] = useState(false);
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isDashboard = location.pathname === '/';
+  const isProfile = location.pathname === '/profile';
 
   // Listen for global open battle log events
   useEffect(() => {
@@ -75,10 +76,12 @@ export function AppShell({ children }) {
             'min-h-screen transition-[margin,padding] duration-200',
             isDesktop
               ? sidebarCollapsed
-                ? isDashboard ? 'pt-20 ml-20' : 'pt-[72px] ml-20'
-                : isDashboard ? 'pt-20 ml-64' : 'pt-[72px] ml-64'
+                ? isDashboard ? 'pt-20 ml-20' : isProfile ? 'pt-6 ml-20' : 'pt-[72px] ml-20'
+                : isDashboard ? 'pt-20 ml-64' : isProfile ? 'pt-6 ml-64' : 'pt-[72px] ml-64'
               : isDashboard
-                ? 'pt-[128px] pb-28 sm:pb-32'
+                ? 'pt-[172px] pb-28 sm:pb-32'
+                : isProfile
+                ? 'pt-3 pb-28 sm:pb-32'
                 : 'pt-[70px] pb-28 sm:pb-32' // Streamlined clearance for focused pages
           )}
         >

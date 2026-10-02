@@ -18,9 +18,10 @@ import {
 
 import { spring, pressable } from '@/lib/motionVariants';
 import { useAuth } from '@/features/auth/hooks';
+import { JeevanLogo } from '@/components/ui/JeevanLogo';
 
 /**
- * Navigation items for primary RPG LifeOS features.
+ * Navigation items for primary Jeevan features.
  */
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -54,23 +55,20 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
       transition={shouldReduceMotion ? { duration: 0 } : spring.snappy}
     >
       {/* Logo / App title */}
-      <div className="flex items-center h-16 px-5 border-b border-slate-200/80 dark:border-glass-border">
+      <div className="flex items-center h-16 px-4 border-b border-slate-200/80 dark:border-glass-border">
         {!collapsed && (
           <motion.div
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 overflow-hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.05 }}
           >
-            <div className="w-8 h-8 rounded-lg bg-gold/15 border border-gold/40 flex items-center justify-center text-gold font-bold font-display text-sm">
-              Ω
-            </div>
-            <span className="text-display-sm text-slate-800 dark:text-ink truncate">Life OS</span>
+            <JeevanLogo variant="lockup" size="sm" showTagline={false} />
           </motion.div>
         )}
         {collapsed && (
-          <div className="w-8 h-8 rounded-lg bg-gold/15 border border-gold/40 flex items-center justify-center text-gold font-bold font-display text-sm mx-auto">
-            Ω
+          <div className="mx-auto">
+            <JeevanLogo variant="emblem" size="sm" />
           </div>
         )}
       </div>

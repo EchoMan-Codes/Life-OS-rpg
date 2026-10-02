@@ -18,7 +18,7 @@ export function Step5AiHelp({ selectedAiHelp = [], onToggle, onComplete, onBack 
       {/* Header */}
       <div className="text-center space-y-1">
         <h2 className="text-xl sm:text-2xl font-black font-display text-white tracking-tight">
-          How should LifeOS help you?
+          How should Jeevan help you?
         </h2>
         <p className="text-xs sm:text-sm text-slate-400">
           Choose what you want from AI.

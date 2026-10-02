@@ -5,6 +5,8 @@ import clsx from 'clsx';
 
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { JeevanLoader } from '@/components/ui/JeevanLoader';
+import { useJeevanTransition } from '@/context/JeevanTransitionContext';
 import { ShopItemIcon } from './shopIcons';
 import { useCreateShopItem, useUpdateShopItem } from '@/features/shop/hooks';
 
@@ -25,6 +27,7 @@ export function ShopItemModal({ isOpen, onClose, initialData = null }) {
   const isEditing = Boolean(initialData);
   const createMutation = useCreateShopItem();
   const updateMutation = useUpdateShopItem();
+  const { triggerTransition } = useJeevanTransition();
 
   const [prevSnapshot, setPrevSnapshot] = useState({ isOpen: false, initialData: null });
   const [title, setTitle] = useState('');
@@ -85,6 +88,12 @@ export function ShopItemModal({ isOpen, onClose, initialData = null }) {
         });
       }
       onClose();
+      triggerTransition({
+        variant: 'medium',
+        message: isEditing ? 'Updating Reward...' : 'Stocking New Reward...',
+        submessage: 'Jeevan Reward Shop',
+        duration: 750,
+      });
     } catch (err) {
       setError(err?.response?.data?.error?.message || 'Failed to save reward item');
     }
@@ -214,9 +223,18 @@ export function ShopItemModal({ isOpen, onClose, initialData = null }) {
             type="submit"
             variant="primary"
             disabled={isPending}
-            className="bg-gold hover:bg-gold/90 text-obsidian font-semibold"
+            className="bg-gold hover:bg-gold/90 text-obsidian font-semibold inline-flex items-center justify-center gap-2"
           >
-            {isPending ? 'Saving...' : isEditing ? 'Update Reward' : 'Create Reward'}
+            {isPending ? (
+              <>
+                <JeevanLoader variant="micro" />
+                <span>Saving...</span>
+              </>
+            ) : isEditing ? (
+              'Update Reward'
+            ) : (
+              'Create Reward'
+            )}
           </Button>
         </div>
       </form>

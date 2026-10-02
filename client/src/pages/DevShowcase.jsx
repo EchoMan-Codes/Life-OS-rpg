@@ -92,9 +92,9 @@ export default function DevShowcase() {
     <div className="space-y-10 max-w-4xl mx-auto pb-12">
       {/* Header — verifies display font */}
       <div>
-        <h1 className="text-display-lg text-ink mb-2">Life OS</h1>
+        <h1 className="text-display-lg text-ink mb-2">Jeevan</h1>
         <p className="text-body text-ink-muted">
-          Design system, dual-token auth & real-time HUD stat visualizer — Phase 1.1, 1.2 & 2.1
+          Design system, dual-token auth & real-time HUD stat visualizer — Jeevan Personal Life OS
         </p>
       </div>
 

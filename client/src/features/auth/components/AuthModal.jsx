@@ -4,9 +4,10 @@ import clsx from 'clsx';
 import { X, Sparkles, Shield, Mail, Lock, User, AlertCircle } from 'lucide-react';
 
 import { modalPanel, pressable } from '@/lib/motionVariants';
-import { Button, Card, Badge } from '@/components/ui';
+import { Button, Card, Badge, JeevanLogo } from '@/components/ui';
 import { useAuth } from '../hooks';
 import { PasswordMeter } from './PasswordMeter';
+import { useJeevanTransition } from '@/context/JeevanTransitionContext';
 
 /**
  * Split-screen glassmorphic authentication modal.
@@ -40,6 +41,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
 
   const modalRef = useRef(null);
   const { login, register, isLoggingIn, isRegistering } = useAuth();
+  const { triggerTransition } = useJeevanTransition();
   const isSubmitting = isLoggingIn || isRegistering;
 
   // Manage body scroll lock
@@ -86,6 +88,12 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
       try {
         await register({ email, password, displayName });
         onClose();
+        triggerTransition({
+          variant: 'full',
+          message: 'Welcome to Jeevan',
+          submessage: 'Initializing Your Personal Operating System',
+          duration: 1600,
+        });
       } catch (err) {
         let errorMsg =
           err?.response?.data?.error?.message ||
@@ -103,6 +111,12 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
       try {
         await login({ email, password });
         onClose();
+        triggerTransition({
+          variant: 'full',
+          message: 'Welcome Back to Jeevan',
+          submessage: 'Synchronizing Discipline & Character Progress',
+          duration: 1600,
+        });
       } catch (err) {
         let errorMsg = err?.response?.data?.error?.message;
         if (!errorMsg) {
@@ -188,19 +202,16 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                   <div>
                     {/* Header */}
                     <div className="mb-6">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <Shield className="w-5 h-5 text-attr-perception" />
-                        <span className="text-xs font-semibold tracking-wide text-attr-perception">
-                          AUTHENTICATION
-                        </span>
+                      <div className="mb-3">
+                        <JeevanLogo variant="lockup" size="sm" showTagline />
                       </div>
                       <h2 className="text-display-sm text-ink">
                         {mode === 'login' ? 'Welcome Back' : 'Begin Your Journey'}
                       </h2>
                       <p className="text-body-sm text-ink-muted mt-1">
                         {mode === 'login'
-                          ? 'Enter your credentials to resume your quest.'
-                          : 'Create an account to forge your character.'}
+                          ? 'Enter your credentials to enter Jeevan.'
+                          : 'Create an account to initialize your personal operating system.'}
                       </p>
                     </div>
 
@@ -420,7 +431,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                   {/* Central RPG Visual Motif */}
                   <div className="relative z-10 my-auto py-8 text-center">
                     <motion.div
-                      className="w-20 h-20 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-attr-willpower/30 via-glass to-attr-perception/30 border border-white/20 flex items-center justify-center shadow-glow-willpower"
+                      className="w-24 h-24 mx-auto mb-5 flex items-center justify-center"
                       animate={
                         shouldReduceMotion
                           ? {}
@@ -434,19 +445,19 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
                         ease: 'easeInOut',
                       }}
                     >
-                      <Sparkles className="w-10 h-10 text-attr-perception" />
+                      <JeevanLogo variant="emblem" size="lg" animated />
                     </motion.div>
 
-                    <h3 className="text-display-sm text-ink mb-2">Turn Life into an RPG</h3>
+                    <h3 className="text-display-sm text-ink mb-2">Welcome to Jeevan</h3>
                     <p className="text-body-sm text-ink-muted max-w-xs mx-auto">
-                      Build daily habits, defeat tasks, level up attributes, and redeem gold in the reward shop.
+                      Build daily habits, conquer quests, level up character attributes, and master your life.
                     </p>
                   </div>
 
                   {/* Bottom quote */}
                   <div className="relative z-10 p-3 rounded-panel bg-white/5 border border-glass-border">
                     <p className="text-[12px] italic text-ink-muted">
-                      “Every completed daily quest fuels your legend.”
+                      “Live. Track. Grow. — Every completed daily quest fuels your legend.”
                     </p>
                   </div>
                 </div>

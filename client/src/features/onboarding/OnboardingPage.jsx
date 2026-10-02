@@ -7,6 +7,7 @@ import clsx from 'clsx';
 import { useAuth } from '@/features/auth/hooks';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { ModeButton } from '@/components/ui';
+import { JeevanLogo } from '@/components/ui/JeevanLogo';
 import { TOTAL_STEPS } from './constants';
 import { OnboardingBanner } from './components/OnboardingBanner';
 import { Step1Goal } from './components/Step1Goal';
@@ -249,17 +250,13 @@ export default function OnboardingPage({ defaultMode = 'onboarding' }) {
 
           {/* Lower Authentication Panel */}
           <div className="p-5 sm:p-7 rounded-b-3xl bg-[#0D0B1E] border-b border-x border-white/10 backdrop-blur-2xl shadow-2xl relative space-y-4">
-            {/* LifeOS Brand Header */}
-            <div className="text-center space-y-1">
-              <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-xs font-mono font-bold">
-                <Sparkles size={12} className="text-purple-400" />
-                <span>LifeOS</span>
+            {/* Jeevan Brand Header */}
+            <div className="text-center space-y-2">
+              <div className="flex justify-center">
+                <JeevanLogo variant="lockup" size="md" showTagline />
               </div>
-              <h2 className="text-xl sm:text-2xl font-black font-display text-white tracking-tight">
-                LifeOS
-              </h2>
               <p className="text-xs text-slate-400 max-w-xs mx-auto">
-                Your Personal Operating System for a Better Tomorrow.
+                Your Personal Operating System. Live. Track. Grow.
               </p>
             </div>
 
@@ -464,7 +461,7 @@ export default function OnboardingPage({ defaultMode = 'onboarding' }) {
 
         {/* ── Subdued Minimalist Footer ── */}
         <div className="pt-4 flex items-center justify-between text-[11px] font-mono text-slate-500">
-          <span>LifeOS Adaptive Engine</span>
+          <span>Jeevan Adaptive Engine</span>
           <button
             type="button"
             onClick={() => setShowAuthDirect(true)}

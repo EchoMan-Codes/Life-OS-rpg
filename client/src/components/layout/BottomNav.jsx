@@ -23,6 +23,7 @@ import { useAuth } from '@/features/auth/hooks';
 import { openBattleLogDrawer, openAttributesDrawer } from '@/features/celebration/celebrationEvents';
 import { spring } from '@/lib/motionVariants';
 import { ModeButton } from '@/components/ui/ModeButton';
+import { JeevanLogo } from '@/components/ui/JeevanLogo';
 
 const primaryNavItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -197,12 +198,10 @@ export function BottomNav({ onOpenAuth }) {
                 <div className="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-white/25 mb-3.5" />
                 <div className="w-full flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-gold font-bold text-xs shadow-inner">
-                      Ω
-                    </div>
+                    <JeevanLogo variant="emblem" size="xs" />
                     <div>
                       <span className="text-sm font-bold font-display text-slate-900 dark:text-ink block leading-tight">
-                        Life OS Command Hub
+                        Jeevan Command Hub
                       </span>
                       <span className="text-[10px] text-slate-500 dark:text-ink-muted leading-tight">
                         Secondary Chambers & Arsenal

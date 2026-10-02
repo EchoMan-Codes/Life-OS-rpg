@@ -6,6 +6,8 @@ import clsx from 'clsx';
 
 import { modalPanel } from '@/lib/motionVariants';
 import { useCreateDaily, useUpdateDaily } from '@/features/dailies/hooks';
+import { JeevanLoader } from '@/components/ui/JeevanLoader';
+import { useJeevanTransition } from '@/context/JeevanTransitionContext';
 
 const DIFFICULTIES = [
   { value: 'trivial', label: 'Trivial' },
@@ -34,6 +36,7 @@ const DAYS_OF_WEEK = [
 function DailyForm({ dailyToEdit, onClose }) {
   const createMutation = useCreateDaily();
   const updateMutation = useUpdateDaily();
+  const { triggerTransition } = useJeevanTransition();
 
   const [title, setTitle] = useState(() => dailyToEdit?.title || '');
   const [description, setDescription] = useState(() => dailyToEdit?.description || '');
@@ -86,6 +89,12 @@ function DailyForm({ dailyToEdit, onClose }) {
         });
       }
       onClose();
+      triggerTransition({
+        variant: 'medium',
+        message: dailyToEdit ? 'Updating Daily Ritual...' : 'Inscribing Daily Ritual...',
+        submessage: 'Jeevan Daily Rituals Deck',
+        duration: 750,
+      });
     } catch (err) {
       setError(err?.response?.data?.error?.message || 'Failed to save daily ritual.');
     }
@@ -240,9 +249,18 @@ function DailyForm({ dailyToEdit, onClose }) {
         <button
           type="submit"
           disabled={isPending}
-          className="px-5 py-2.5 text-xs font-bold text-obsidian-950 bg-gradient-to-r from-emerald-500 to-teal-400 rounded-2xl transition-all min-h-[42px] shadow-md hover:opacity-90 active:scale-95 disabled:opacity-50"
+          className="px-5 py-2.5 text-xs font-bold text-obsidian-950 bg-gradient-to-r from-emerald-500 to-teal-400 rounded-2xl transition-all min-h-[42px] shadow-md hover:opacity-90 active:scale-95 disabled:opacity-50 inline-flex items-center justify-center gap-2"
         >
-          {isPending ? 'Saving...' : dailyToEdit ? 'Save Changes' : 'Create Ritual'}
+          {isPending ? (
+            <>
+              <JeevanLoader variant="micro" />
+              <span>Saving...</span>
+            </>
+          ) : dailyToEdit ? (
+            'Save Changes'
+          ) : (
+            'Create Ritual'
+          )}
         </button>
       </div>
     </form>

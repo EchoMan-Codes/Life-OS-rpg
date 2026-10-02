@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 
 import { useMediaQuery } from '@/hooks/useMediaQuery';
@@ -10,7 +11,7 @@ import { BattleActivityDrawer } from '@/components/hud/BattleActivityDrawer';
 import { LevelUpModal } from '@/components/celebration/LevelUpModal';
 import { LootDropPopup } from '@/components/celebration/LootDropPopup';
 import { LIFEOS_OPEN_BATTLE_LOG_EVENT } from '@/features/celebration/celebrationEvents';
-import { ThemeRippleOverlay } from '@/components/ui';
+import { ThemeRippleOverlay, JeevanLoader } from '@/components/ui';
 import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
 
@@ -32,6 +33,21 @@ export function AppShell({ children }) {
   const isDashboard = location.pathname === '/';
   const isProfile = location.pathname === '/profile';
 
+  const [hasLaunched, setHasLaunched] = useState(() => {
+    try {
+      return sessionStorage.getItem('jeevan_session_launched') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const handleLaunchComplete = () => {
+    setHasLaunched(true);
+    try {
+      sessionStorage.setItem('jeevan_session_launched', 'true');
+    } catch {}
+  };
+
   // Listen for global open battle log events
   useEffect(() => {
     const handleOpenBattleLog = () => setBattleDrawerOpen(true);
@@ -43,6 +59,17 @@ export function AppShell({ children }) {
     return (
       <ToastProvider>
         <ThemeRippleOverlay />
+        <AnimatePresence>
+          {!hasLaunched && (
+            <JeevanLoader
+              variant="full"
+              message="Launching Jeevan OS..."
+              submessage="Live. Track. Grow."
+              duration={1300}
+              onComplete={handleLaunchComplete}
+            />
+          )}
+        </AnimatePresence>
         <div className="min-h-screen bg-obsidian text-ink">
           {children}
         </div>
@@ -53,6 +80,17 @@ export function AppShell({ children }) {
   return (
     <ToastProvider>
       <ThemeRippleOverlay />
+      <AnimatePresence>
+        {!hasLaunched && (
+          <JeevanLoader
+            variant="full"
+            message="Launching Jeevan OS..."
+            submessage="Live. Track. Grow."
+            duration={1300}
+            onComplete={handleLaunchComplete}
+          />
+        )}
+      </AnimatePresence>
       <div className="min-h-screen bg-obsidian">
         {/* Desktop: Sidebar */}
         {isDesktop && (

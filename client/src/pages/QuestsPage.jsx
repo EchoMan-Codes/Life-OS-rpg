@@ -133,7 +133,7 @@ export default function QuestsPage() {
               to="/onboarding"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-ink text-obsidian font-semibold text-sm hover:bg-ink/90 transition-all shadow-lg min-h-[44px]"
             >
-              <span>Initialize LifeOS</span>
+              <span>Initialize Jeevan</span>
             </Link>
             <Link
               to="/login"

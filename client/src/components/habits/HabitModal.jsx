@@ -7,6 +7,8 @@ import clsx from 'clsx';
 import { modalPanel } from '@/lib/motionVariants';
 import { useCreateHabit, useUpdateHabit } from '@/features/habits/hooks';
 import { DIFFICULTY_REWARDS } from '@/features/habits/rewardTable';
+import { JeevanLoader } from '@/components/ui/JeevanLoader';
+import { useJeevanTransition } from '@/context/JeevanTransitionContext';
 
 const DIRECTIONS = [
   { value: 'positive', label: 'Positive (+)', description: 'Earn XP & Gold for good deeds' },
@@ -24,6 +26,7 @@ const DIFFICULTIES = [
 function HabitForm({ habitToEdit, onClose }) {
   const createMutation = useCreateHabit();
   const updateMutation = useUpdateHabit();
+  const { triggerTransition } = useJeevanTransition();
 
   const [title, setTitle] = useState(() => habitToEdit?.title || '');
   const [description, setDescription] = useState(() => habitToEdit?.description || '');
@@ -53,6 +56,12 @@ function HabitForm({ habitToEdit, onClose }) {
         });
       }
       onClose();
+      triggerTransition({
+        variant: 'medium',
+        message: habitToEdit ? 'Updating Habit Momentum...' : 'Inscribing New Habit...',
+        submessage: 'Jeevan Habits Deck',
+        duration: 750,
+      });
     } catch (err) {
       setError(err?.response?.data?.error?.message || 'Failed to save habit.');
     }
@@ -168,9 +177,18 @@ function HabitForm({ habitToEdit, onClose }) {
         <button
           type="submit"
           disabled={isPending}
-          className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-xp to-gold text-obsidian-950 font-bold text-xs hover:opacity-90 active:scale-95 disabled:opacity-50 transition-all shadow-md min-h-[42px]"
+          className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-xp to-gold text-obsidian-950 font-bold text-xs hover:opacity-90 active:scale-95 disabled:opacity-50 transition-all shadow-md min-h-[42px] inline-flex items-center justify-center gap-2"
         >
-          {isPending ? 'Saving...' : habitToEdit ? 'Save Changes' : 'Create Habit'}
+          {isPending ? (
+            <>
+              <JeevanLoader variant="micro" />
+              <span>Saving...</span>
+            </>
+          ) : habitToEdit ? (
+            'Save Changes'
+          ) : (
+            'Create Habit'
+          )}
         </button>
       </div>
     </form>

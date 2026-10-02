@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
 import clsx from 'clsx';
+import { JeevanLogo } from '@/components/ui/JeevanLogo';
+import { JeevanLoader } from '@/components/ui/JeevanLoader';
 
 const STAGES = [
   'Creating your dashboard',
@@ -15,12 +17,12 @@ const STAGES = [
 /**
  * Cinematic Gateway Setup Transition Screen.
  * Renders the mystical arched portal gateway with traveler silhouette,
- * progressive checklist, glowing progress bar, and "Enter LifeOS →" button.
- * Inspired directly by the visual reference.
+ * progressive checklist, glowing progress bar, and "Enter Jeevan →" button.
  */
 export function SetupTransitionScreen({ onFinish }) {
   const [currentStageIndex, setCurrentStageIndex] = useState(0);
   const [isReady, setIsReady] = useState(false);
+  const [isEntering, setIsEntering] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -113,8 +115,11 @@ export function SetupTransitionScreen({ onFinish }) {
 
         {/* Title */}
         <div className="space-y-1">
+          <div className="flex justify-center mb-1">
+            <JeevanLogo variant="emblem" size="sm" />
+          </div>
           <h2 className="text-2xl sm:text-3xl font-black font-display text-white tracking-tight">
-            Building your LifeOS...
+            Building your Jeevan...
           </h2>
           <p className="text-xs text-slate-400">
             Synthesizing your personal operating system
@@ -171,17 +176,17 @@ export function SetupTransitionScreen({ onFinish }) {
         {/* Ready Announcement and Final CTA Button */}
         <div className="w-full pt-2">
           <p className="text-sm font-display font-semibold text-white/90 mb-3">
-            &ldquo;Your LifeOS is ready.&rdquo;
+            &ldquo;Your Jeevan is ready.&rdquo;
           </p>
 
           <motion.button
             type="button"
-            onClick={onFinish}
+            onClick={() => setIsEntering(true)}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.96 }}
             className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold font-display text-sm sm:text-base flex items-center justify-center gap-2 shadow-[0_4px_24px_rgba(168,85,247,0.4)] transition-all cursor-pointer"
           >
-            <span>Enter LifeOS</span>
+            <span>Enter Jeevan</span>
             <ArrowRight size={18} />
           </motion.button>
         </div>
@@ -189,6 +194,19 @@ export function SetupTransitionScreen({ onFinish }) {
 
       {/* ── Bottom Spacer ── */}
       <div className="w-full h-2" />
+
+      {/* Full Cinematic Entrance Animation when Enter Jeevan is tapped */}
+      <AnimatePresence>
+        {isEntering && (
+          <JeevanLoader
+            variant="full"
+            message="Entering Jeevan..."
+            submessage="Live. Track. Grow."
+            duration={1800}
+            onComplete={onFinish}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

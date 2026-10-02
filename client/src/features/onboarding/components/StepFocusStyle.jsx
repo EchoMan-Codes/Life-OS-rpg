@@ -29,7 +29,7 @@ export function StepFocusStyle({ selectedId, onSelect, onContinue }) {
             How do you prefer to work?
           </h2>
           <p className="text-xs sm:text-sm text-ink-muted leading-relaxed max-w-lg">
-            Choose your default cognitive sprint duration. Deep work sessions in LifeOS regenerate Mana and build Willpower.
+            Choose your default cognitive sprint duration. Deep work sessions in Jeevan regenerate Mana and build Willpower.
           </p>
         </div>
 

@@ -17,6 +17,8 @@ import clsx from 'clsx';
 import { useAuth } from '@/features/auth/hooks';
 import { PasswordMeter } from '@/features/auth/components/PasswordMeter';
 import { generateSystemSynthesis } from '../constants';
+import { JeevanLoader } from '@/components/ui/JeevanLoader';
+import { useJeevanTransition } from '@/context/JeevanTransitionContext';
 
 /**
  * StepAuth
@@ -40,6 +42,7 @@ export function StepAuth({
   const [localError, setLocalError] = useState('');
 
   const { login, register, isLoggingIn, isRegistering } = useAuth();
+  const { triggerTransition } = useJeevanTransition();
   const isSubmitting = isLoggingIn || isRegistering;
 
   const synthesis = answers ? generateSystemSynthesis(answers) : null;
@@ -61,6 +64,12 @@ export function StepAuth({
       }
       try {
         await register({ email, password, displayName: displayName.trim() });
+        await triggerTransition({
+          variant: 'full',
+          message: 'Welcome to Jeevan',
+          submessage: 'Activating Personal Operating System',
+          duration: 1500,
+        });
         onComplete();
       } catch (err) {
         let errorMsg =
@@ -82,6 +91,12 @@ export function StepAuth({
       // Login mode
       try {
         await login({ email, password });
+        await triggerTransition({
+          variant: 'full',
+          message: 'Entering Jeevan...',
+          submessage: 'Synchronizing Account & Character Data',
+          duration: 1500,
+        });
         onComplete();
       } catch (err) {
         let errorMsg = err?.response?.data?.error?.message;
@@ -322,7 +337,7 @@ export function StepAuth({
         >
           {isSubmitting ? (
             <>
-              <Loader2 size={16} className="animate-spin text-white" />
+              <JeevanLoader variant="micro" className="text-white" />
               <span>
                 {mode === 'register' ? 'Initializing Character...' : 'Authenticating...'}
               </span>

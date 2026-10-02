@@ -6,6 +6,8 @@ import clsx from 'clsx';
 
 import { modalPanel } from '@/lib/motionVariants';
 import { useCreateQuest, useUpdateQuest } from '@/features/quests/hooks';
+import { JeevanLoader } from '@/components/ui/JeevanLoader';
+import { useJeevanTransition } from '@/context/JeevanTransitionContext';
 
 const PRIORITIES = [
   { value: 'low', label: 'Low' },
@@ -24,6 +26,7 @@ const DIFFICULTIES = [
 function QuestForm({ questToEdit, onClose }) {
   const createMutation = useCreateQuest();
   const updateMutation = useUpdateQuest();
+  const { triggerTransition } = useJeevanTransition();
 
   const [title, setTitle] = useState(() => questToEdit?.title || '');
   const [description, setDescription] = useState(() => questToEdit?.description || '');
@@ -76,6 +79,12 @@ function QuestForm({ questToEdit, onClose }) {
         await createMutation.mutateAsync(payload);
       }
       onClose();
+      triggerTransition({
+        variant: 'medium',
+        message: isEditing ? 'Updating Quest Campaign...' : 'Initiating New Quest...',
+        submessage: 'Jeevan Quest Log',
+        duration: 750,
+      });
     } catch (err) {
       setError(err?.response?.data?.error?.message || 'Failed to save quest.');
     }
@@ -258,9 +267,18 @@ function QuestForm({ questToEdit, onClose }) {
         <button
           type="submit"
           disabled={isPending || !title.trim()}
-          className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-attr-intelligence to-cyan-400 text-obsidian-950 font-bold text-xs hover:opacity-90 shadow-md disabled:opacity-50 transition-all cursor-pointer min-h-[42px] active:scale-95"
+          className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-attr-intelligence to-cyan-400 text-obsidian-950 font-bold text-xs hover:opacity-90 shadow-md disabled:opacity-50 transition-all cursor-pointer min-h-[42px] active:scale-95 inline-flex items-center justify-center gap-2"
         >
-          {isPending ? 'Saving...' : isEditing ? 'Update Quest' : 'Accept Quest'}
+          {isPending ? (
+            <>
+              <JeevanLoader variant="micro" />
+              <span>Saving...</span>
+            </>
+          ) : isEditing ? (
+            'Update Quest'
+          ) : (
+            'Accept Quest'
+          )}
         </button>
       </div>
     </form>

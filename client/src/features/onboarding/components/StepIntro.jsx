@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
 import { ArrowRight, ShieldCheck, Compass, Zap, LogIn, Sparkles } from 'lucide-react';
+import { JeevanLogo } from '@/components/ui/JeevanLogo';
 
 /**
  * Step 1: Welcome & Manifesto Screen.
@@ -11,20 +12,23 @@ export function StepIntro({ onContinue, onJumpToAuth }) {
   return (
     <div className="flex flex-col justify-between h-full min-h-[440px] py-2">
       <div className="space-y-6 sm:space-y-8">
-        {/* Subtle System Status Pill */}
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] backdrop-blur-md">
-          <span className="w-1.5 h-1.5 rounded-full bg-mana animate-pulse" />
-          <span className="text-[11px] font-mono uppercase tracking-widest text-ink-muted">
-            Personal Operating System
-          </span>
+        {/* Jeevan Brand Header */}
+        <div className="flex items-center justify-between">
+          <JeevanLogo variant="lockup" size="sm" showTagline />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] backdrop-blur-md">
+            <span className="w-1.5 h-1.5 rounded-full bg-mana animate-pulse" />
+            <span className="text-[11px] font-mono uppercase tracking-widest text-ink-muted">
+              Personal Operating System
+            </span>
+          </div>
         </div>
 
-        {/* Dominant Welcome Headline (Reference 2) */}
+        {/* Dominant Welcome Headline */}
         <div className="space-y-3.5">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-ink leading-[1.08] font-display">
             Welcome to{' '}
-            <span className="bg-gradient-to-r from-ink via-ink to-attr-perception bg-clip-text text-transparent">
-              LifeOS
+            <span className="bg-gradient-to-r from-ink via-amber-300 to-attr-perception bg-clip-text text-transparent">
+              Jeevan
             </span>
           </h1>
           <p className="text-sm sm:text-base text-ink-muted leading-relaxed max-w-xl font-normal">
@@ -86,7 +90,7 @@ export function StepIntro({ onContinue, onJumpToAuth }) {
           whileTap={{ scale: 0.98 }}
           className="order-1 sm:order-2 w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-2xl bg-ink text-obsidian font-bold text-sm hover:bg-white transition-all shadow-[0_4px_24px_rgba(255,255,255,0.15)] min-h-[48px]"
         >
-          <span>Build my LifeOS</span>
+          <span>Build my Jeevan</span>
           <ArrowRight size={16} />
         </motion.button>
       </div>

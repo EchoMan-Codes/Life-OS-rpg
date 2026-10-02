@@ -803,7 +803,7 @@ export default function ProfilePage() {
                       RPG Attribute Pentagon
                     </h3>
                     <p className="text-[11px] text-slate-500 dark:text-ink-muted">
-                      Balanced character attributes shaping your LifeOS specialization
+                      Balanced character attributes shaping your Jeevan specialization
                     </p>
                   </div>
                 </div>

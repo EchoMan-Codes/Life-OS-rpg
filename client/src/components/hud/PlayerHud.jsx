@@ -28,6 +28,7 @@ import { spring } from '@/lib/motionVariants';
 import { StatBar } from './StatBar';
 import { AttributesDrawer } from './AttributesDrawer';
 import { ModeButton } from '@/components/ui/ModeButton';
+import { JeevanLogo } from '@/components/ui/JeevanLogo';
 
 const PAGE_META = {
   '/habits': { title: 'Habits & Momentum', icon: Flame, color: 'text-amber-500 bg-amber-500/10 border-amber-500/30' },
@@ -121,7 +122,12 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false, onOpenB
         >
           <div className="h-full px-3.5 sm:px-6 flex items-center justify-between gap-3">
             {/* Left: Contextual Page Title + Compact Hero Badge */}
-            <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex items-center gap-2 min-w-0">
+              {!isDesktop && (
+                <div className="shrink-0 mr-0.5">
+                  <JeevanLogo variant="emblem" size="xs" />
+                </div>
+              )}
               <div className="flex items-center gap-2 min-w-0">
                 <div
                   className={clsx(

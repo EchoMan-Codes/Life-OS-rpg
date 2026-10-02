@@ -26,7 +26,7 @@ export function StepRitualCadence({ selectedId, onSelect, onContinue }) {
             How do you prefer to pace your days?
           </h2>
           <p className="text-xs sm:text-sm text-ink-muted leading-relaxed max-w-lg">
-            Choose your natural energy rhythm. LifeOS arranges your daily reset alarms, priority decks, and evening reflections to match your peak hours.
+            Choose your natural energy rhythm. Jeevan arranges your daily reset alarms, priority decks, and evening reflections to match your peak hours.
           </p>
         </div>
 

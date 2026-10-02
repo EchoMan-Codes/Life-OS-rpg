@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
 
 import { refreshToken } from '@/features/auth/api';
 import { setAccessToken } from '@/lib/axios';
 import { ME_QUERY_KEY } from '@/features/auth/hooks';
-import { Card } from '@/components/ui';
+import { Card, JeevanLoader } from '@/components/ui';
 
 /**
  * OAuth Callback Landing Page.
@@ -39,13 +38,11 @@ export default function AuthCallback() {
     <div className="min-h-[60vh] flex items-center justify-center p-4">
       <Card variant="hud" className="p-8 max-w-md w-full text-center space-y-4">
         {!errorMsg ? (
-          <>
-            <Loader2 className="w-8 h-8 mx-auto animate-spin text-attr-perception" />
-            <h2 className="text-display-sm text-ink">Completing Authentication</h2>
-            <p className="text-body-sm text-ink-muted">
-              Establishing your secure session with Life OS...
-            </p>
-          </>
+          <JeevanLoader
+            variant="medium"
+            message="Completing Authentication..."
+            submessage="Establishing your secure session with Jeevan"
+          />
         ) : (
           <>
             <h2 className="text-display-sm text-attr-strength">Authentication Error</h2>

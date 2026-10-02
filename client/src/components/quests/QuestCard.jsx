@@ -28,6 +28,7 @@ import {
 } from '@/features/quests/hooks';
 import { ItemActionMenu } from '@/components/ui';
 import { useJeevanTransition } from '@/context/JeevanTransitionContext';
+import { triggerHaptic } from '@/lib/native';
 import { QuestItemRow } from './QuestItemRow';
 
 const PRIORITY_CONFIG = {
@@ -120,6 +121,7 @@ export function QuestCard({ quest, onEdit }) {
     if (completeQuestMutation.isPending || isCompleted) return;
 
     playSound('quest_complete');
+    triggerHaptic('success');
     spawnFloatingText(`+${quest.reward?.xp || 35} XP`, 'xp');
     setTimeout(() => {
       spawnFloatingText(`+${quest.reward?.gold || 18} Gold`, 'gold');

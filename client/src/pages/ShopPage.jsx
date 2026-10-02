@@ -33,6 +33,7 @@ import { ItemInspectionModal } from '@/components/shop/ItemInspectionModal';
 import { InventoryDrawer } from '@/components/shop/InventoryDrawer';
 import { SpoilsVaultRibbon } from '@/components/shop/SpoilsVaultRibbon';
 import { useJeevanTransition } from '@/context/JeevanTransitionContext';
+import { triggerHaptic } from '@/lib/native';
 import { spring } from '@/lib/motionVariants';
 
 const CATEGORIES = [
@@ -127,6 +128,7 @@ export default function ShopPage() {
       itemId: item.id,
       item,
     });
+    triggerHaptic('success');
     triggerTransition({
       variant: 'medium',
       message: 'Claiming Reward...',

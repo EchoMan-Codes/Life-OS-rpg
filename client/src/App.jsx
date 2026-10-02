@@ -1,6 +1,8 @@
-import { Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 
 import { AppShell } from '@/components/layout';
+import { initNativeApp, initNativeStatusBar } from '@/lib/native';
 import AuthCallback from '@/pages/AuthCallback';
 import DashboardPage from '@/pages/DashboardPage';
 import HabitsPage from '@/pages/HabitsPage';
@@ -15,6 +17,15 @@ import DevShowcase from '@/pages/DevShowcase';
 import OnboardingPage from '@/features/onboarding/OnboardingPage';
 
 export default function App() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    initNativeStatusBar();
+    const cleanup = initNativeApp({
+      onNavigate: (path) => navigate(path),
+    });
+    return cleanup;
+  }, [navigate]);
   return (
     <AppShell>
       <Routes>

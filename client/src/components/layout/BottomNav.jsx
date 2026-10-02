@@ -80,7 +80,10 @@ export function BottomNav({ onOpenAuth }) {
 
   return (
     <>
-      <div className="fixed bottom-4 inset-x-3 sm:inset-x-6 max-w-md mx-auto z-40 md:hidden pointer-events-none">
+      <div
+        style={{ bottom: 'max(1rem, calc(0.5rem + env(safe-area-inset-bottom, 0px)))' }}
+        className="fixed inset-x-3 sm:inset-x-6 max-w-md mx-auto z-40 md:hidden pointer-events-none"
+      >
         <nav
           className={clsx(
             'pointer-events-auto relative',
@@ -191,7 +194,8 @@ export function BottomNav({ onOpenAuth }) {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={spring.ios}
-              className="relative z-10 rounded-t-[36px] bg-white/95 dark:bg-obsidian-900/95 backdrop-blur-3xl border-t border-slate-200/90 dark:border-white/15 p-5 pb-8 shadow-[0_-12px_40px_rgba(0,0,0,0.12)] dark:shadow-[0_-12px_40px_rgba(0,0,0,0.65)] space-y-4 max-h-[85vh] overflow-y-auto"
+              style={{ paddingBottom: 'max(2rem, calc(1.5rem + env(safe-area-inset-bottom, 0px)))' }}
+              className="relative z-10 rounded-t-[36px] bg-white/95 dark:bg-obsidian-900/95 backdrop-blur-3xl border-t border-slate-200/90 dark:border-white/15 p-5 shadow-[0_-12px_40px_rgba(0,0,0,0.12)] dark:shadow-[0_-12px_40px_rgba(0,0,0,0.65)] space-y-4 max-h-[85vh] overflow-y-auto"
             >
               {/* iOS Grabber Handle & Header */}
               <div className="flex flex-col items-center">

@@ -109,6 +109,10 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false, onOpenB
          * 1. FOCUSED PAGE HEADER: Sleek, compact, distraction-free
          * ══════════════════════════════════════════════════════════════ */
         <header
+          style={{
+            paddingTop: 'env(safe-area-inset-top, 0px)',
+            height: 'calc(3.5rem + env(safe-area-inset-top, 0px))',
+          }}
           className={clsx(
             'fixed top-0 right-0 z-40 h-14 transition-[left] duration-200',
             'bg-white/90 dark:bg-obsidian-950/85 backdrop-blur-2xl border-b border-slate-200/80 dark:border-white/10',

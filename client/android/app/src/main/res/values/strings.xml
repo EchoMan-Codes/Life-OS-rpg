@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Jeevan</string>
+    <string name="title_activity_main">Jeevan</string>
+    <string name="package_name">com.jeevan.lifeos</string>
+    <string name="custom_url_scheme">com.jeevan.lifeos</string>
+</resources>

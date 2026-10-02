@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { spring } from '@/lib/motionVariants';
 import { useCompleteDaily } from '@/features/dailies/hooks';
+import { triggerHaptic } from '@/lib/native';
 
 /**
  * Editorial single ritual waypoint item along the connected vertical spine.
@@ -15,6 +16,7 @@ function RitualWayointRow({ daily, isLast }) {
 
   const handleToggle = () => {
     if (!daily.isCompleteToday && !isPending) {
+      triggerHaptic('medium');
       completeMutation.mutate();
     }
   };

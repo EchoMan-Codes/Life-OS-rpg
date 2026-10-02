@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { Capacitor } from '@capacitor/core';
 
 let inMemoryAccessToken = typeof window !== 'undefined' ? localStorage.getItem('jeevan_access_token') : null;
 let activeRefreshPromise = null;
@@ -37,6 +38,16 @@ export function getAccessToken() {
 function getBaseUrl() {
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL;
+  }
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('jeevan_api_base_url');
+      if (stored) return stored;
+    } catch {}
+  }
+  if (Capacitor.isNativePlatform()) {
+    // Default development LAN endpoint when testing on phone connected to host Wi-Fi
+    return 'http://10.119.50.108:5000/api/v1';
   }
   if (
     typeof window !== 'undefined' &&

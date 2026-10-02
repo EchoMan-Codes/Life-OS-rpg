@@ -8,6 +8,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { updateNativeStatusBar } from './native';
 
 export const THEME_STORAGE_KEY = 'lifeos_appearance_mode';
 
@@ -60,6 +61,7 @@ export function applyThemeToDOM(mode) {
   // Dispatch global event for components listening to theme change
   try {
     window.dispatchEvent(new CustomEvent('lifeos-theme-change', { detail: { mode, effective } }));
+    updateNativeStatusBar(effective !== 'light');
   } catch {
     // ignore
   }

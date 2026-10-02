@@ -2,6 +2,26 @@
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, [data-theme="dim"], [data-theme="dim"] *, .dark, .dark *));
 
+/* ── Mobile & Native Safe Area Insets ── */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+}
+
+.pt-safe {
+  padding-top: max(env(safe-area-inset-top, 0px), 0.5rem);
+}
+
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 0.5rem);
+}
+
+.safe-bottom-margin {
+  margin-bottom: max(env(safe-area-inset-bottom, 0px), 1rem);
+}
+
 /*
  * ══════════════════════════════════════════════
  *  Life OS — Design Tokens (Tailwind v4 @theme)

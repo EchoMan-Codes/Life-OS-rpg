@@ -32,6 +32,7 @@ router.post('/', validate(createDailySchema), (req, res, next) => dailyControlle
 router.get('/:id', (req, res, next) => dailyController.getDaily(req, res, next));
 router.patch('/:id', validate(updateDailySchema), (req, res, next) => dailyController.updateDaily(req, res, next));
 router.delete('/:id', (req, res, next) => dailyController.archiveDaily(req, res, next));
+router.post('/:id/restore', (req, res, next) => dailyController.restoreDaily(req, res, next));
 router.post('/:id/complete', (req, res, next) => dailyController.completeDaily(req, res, next));
 router.post('/:id/undo', (req, res, next) => dailyController.undoDaily(req, res, next));
 

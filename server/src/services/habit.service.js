@@ -211,6 +211,56 @@ export class HabitService {
   }
 
   /**
+   * Permanently delete a habit from the database.
+   *
+   * @param {string} userId - User UUID
+   * @param {string} habitId - Habit UUID
+   * @returns {Promise<{ id: string, deleted: boolean }>}
+   */
+  async deleteHabitPermanently(userId, habitId) {
+    const result = await query(
+      'DELETE FROM habits WHERE id = $1 AND user_id = $2 RETURNING id',
+      [habitId, userId]
+    );
+
+    if (result.rows.length === 0) {
+      const err = new Error('Habit not found');
+      err.status = 404;
+      err.code = 'HABIT_NOT_FOUND';
+      throw err;
+    }
+
+    return { id: result.rows[0].id, deleted: true };
+  }
+
+  /**
+   * Restore an archived habit.
+   *
+   * @param {string} userId - User UUID
+   * @param {string} habitId - Habit UUID
+   * @returns {Promise<object>}
+   */
+  async restoreHabit(userId, habitId) {
+    const result = await query(
+      `UPDATE habits
+       SET archived_at = NULL
+       WHERE id = $1 AND user_id = $2
+       RETURNING id, user_id, title, description, direction, difficulty,
+                 current_streak, best_streak, last_scored_at, created_at, archived_at`,
+      [habitId, userId]
+    );
+
+    if (result.rows.length === 0) {
+      const err = new Error('Habit not found');
+      err.status = 404;
+      err.code = 'HABIT_NOT_FOUND';
+      throw err;
+    }
+
+    return formatHabit(result.rows[0]);
+  }
+
+  /**
    * Score a habit atomically.
    *
    * In a transaction:

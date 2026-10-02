@@ -227,6 +227,55 @@ export class DailyService {
   }
 
   /**
+   * Permanently delete a daily from the database.
+   *
+   * @param {string} userId - User UUID
+   * @param {string} dailyId - Daily UUID
+   * @returns {Promise<{ id: string, deleted: boolean }>}
+   */
+  async deleteDailyPermanently(userId, dailyId) {
+    const result = await query(
+      'DELETE FROM dailies WHERE id = $1 AND user_id = $2 RETURNING id',
+      [dailyId, userId]
+    );
+
+    if (result.rows.length === 0) {
+      const err = new Error('Daily not found');
+      err.status = 404;
+      err.code = 'DAILY_NOT_FOUND';
+      throw err;
+    }
+
+    return { id: result.rows[0].id, deleted: true };
+  }
+
+  /**
+   * Restore an archived daily.
+   *
+   * @param {string} userId - User UUID
+   * @param {string} dailyId - Daily UUID
+   * @returns {Promise<object>}
+   */
+  async restoreDaily(userId, dailyId) {
+    const result = await query(
+      `UPDATE dailies
+       SET archived_at = NULL
+       WHERE id = $1 AND user_id = $2
+       RETURNING *`,
+      [dailyId, userId]
+    );
+
+    if (result.rows.length === 0) {
+      const err = new Error('Daily not found');
+      err.status = 404;
+      err.code = 'DAILY_NOT_FOUND';
+      throw err;
+    }
+
+    return formatDaily(result.rows[0]);
+  }
+
+  /**
    * Complete a daily for today.
    *
    * In a transaction:

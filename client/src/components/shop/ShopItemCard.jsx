@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
-import { Coins, Check, MoreVertical, Edit2, Trash2 } from 'lucide-react';
+import { Coins, Check } from 'lucide-react';
 
 import { spring, pressable } from '@/lib/motionVariants';
 import { ShopItemIcon } from './shopIcons';
+import { ItemActionMenu } from '@/components/ui';
 
 const CATEGORY_STYLES = {
   streak_shield: {
@@ -37,11 +38,13 @@ export function ShopItemCard({
   onInspect,
   onEdit,
   onDelete,
+  onArchive,
+  onRestore,
+  onMove,
   onQuickBuy,
   isBuying = false,
 }) {
   const shouldReduceMotion = useReducedMotion();
-  const [menuOpen, setMenuOpen] = useState(false);
 
   const title = item.name || item.title || 'Untitled Reward';
   const costGold = item.costGold ?? item.cost_gold ?? 0;
@@ -50,7 +53,14 @@ export function ShopItemCard({
 
   const isAffordable = userGold >= costGold;
   const isOwnedEquipment = rewardType === 'equipment' && Boolean(item.owned);
-  const isCustom = rewardType === 'custom';
+  const isCustom = rewardType === 'custom' || item.userId || item.user_id;
+  const isArchived = Boolean(item.archivedAt || item.archived_at);
+
+  const moveOptions = [
+    { id: 'custom', label: 'Custom Treat', current: rewardType === 'custom' },
+    { id: 'streak_shield', label: 'Streak Shield', current: rewardType === 'streak_shield' },
+    { id: 'equipment', label: 'Equipment Piece', current: rewardType === 'equipment' },
+  ];
 
   const categoryStyle = CATEGORY_STYLES[rewardType] || CATEGORY_STYLES.custom;
 
@@ -110,50 +120,20 @@ export function ShopItemCard({
           </div>
         </div>
 
-        {/* Custom item edit/delete actions */}
+        {/* Custom item edit/move/archive/delete actions */}
         {isCustom && (
-          <div className="relative" data-stop-propagation>
-            <button
-              type="button"
-              onClick={() => setMenuOpen((prev) => !prev)}
-              aria-label="Item actions"
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 dark:text-ink-muted dark:hover:text-ink hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
-            >
-              <MoreVertical size={16} />
-            </button>
-
-            {menuOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-20"
-                  onClick={() => setMenuOpen(false)}
-                />
-                <div className="absolute right-0 top-8 z-30 w-32 bg-white dark:bg-obsidian-900 border border-slate-200 dark:border-glass-border rounded-xl shadow-xl py-1 text-sm">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      onEdit(item);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-1.5 text-slate-800 dark:text-ink hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-left"
-                  >
-                    <Edit2 size={13} className="text-slate-400 dark:text-ink-muted" />
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      onDelete(item);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-1.5 text-rose-600 dark:text-attr-strength hover:bg-rose-50 dark:hover:bg-attr-strength/10 transition-colors text-left"
-                  >
-                    <Trash2 size={13} />
-                    Delete
-                  </button>
-                </div>
-              </>
-            )}
+          <div data-stop-propagation>
+            <ItemActionMenu
+              title={title}
+              entityName="Reward"
+              onEdit={onEdit ? () => onEdit(item) : undefined}
+              moveOptions={moveOptions}
+              onMove={onMove ? (destId) => onMove(item, destId) : undefined}
+              onArchive={onArchive ? () => onArchive(item) : undefined}
+              isArchived={isArchived}
+              onRestore={onRestore ? () => onRestore(item) : undefined}
+              onDelete={onDelete ? () => onDelete(item) : undefined}
+            />
           </div>
         )}
       </div>

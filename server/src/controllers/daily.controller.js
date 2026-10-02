@@ -70,7 +70,24 @@ export class DailyController {
    */
   async archiveDaily(req, res, next) {
     try {
+      const permanent = req.query.permanent === 'true';
+      if (permanent) {
+        const result = await dailyService.deleteDailyPermanently(req.user.id, req.params.id);
+        return res.status(200).json({ data: result });
+      }
       const result = await dailyService.archiveDaily(req.user.id, req.params.id);
+      return res.status(200).json({ data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * POST /api/v1/dailies/:id/restore
+   */
+  async restoreDaily(req, res, next) {
+    try {
+      const result = await dailyService.restoreDaily(req.user.id, req.params.id);
       return res.status(200).json({ data: result });
     } catch (err) {
       next(err);

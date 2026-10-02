@@ -12,19 +12,29 @@ const FILTERS = [
   { id: 'due', label: 'Due Today' },
   { id: 'completed', label: 'Conquered' },
   { id: 'pending', label: 'Pending' },
+  { id: 'archived', label: 'Archived' },
 ];
 
 export default function DailiesPage() {
-  const { data: dailies = [], isLoading, isError } = useDailies();
+  const { data: dailies = [], isLoading, isError } = useDailies({ includeArchived: true });
   const [activeFilter, setActiveFilter] = useState('all');
   const [modalOpen, setModalOpen] = useState(false);
   const [dailyToEdit, setDailyToEdit] = useState(null);
 
   const currentWeekday = new Date().getDay();
 
+  // Active (non-archived) dailies
+  const activeDailies = useMemo(() => {
+    return dailies.filter((d) => !d.archivedAt);
+  }, [dailies]);
+
   // Filtered dailies
   const filteredDailies = useMemo(() => {
-    return dailies.filter((d) => {
+    if (activeFilter === 'archived') {
+      return dailies.filter((d) => Boolean(d.archivedAt));
+    }
+
+    return activeDailies.filter((d) => {
       const isDue = (d.activeDays || [0, 1, 2, 3, 4, 5, 6]).includes(currentWeekday);
       const isDone = Boolean(d.isCompleteToday);
 
@@ -33,21 +43,21 @@ export default function DailiesPage() {
       if (activeFilter === 'pending') return isDue && !isDone;
       return true;
     });
-  }, [dailies, activeFilter, currentWeekday]);
+  }, [dailies, activeDailies, activeFilter, currentWeekday]);
 
   // Statistics
   const dueCount = useMemo(() => {
-    return dailies.filter((d) => (d.activeDays || [0, 1, 2, 3, 4, 5, 6]).includes(currentWeekday)).length;
-  }, [dailies, currentWeekday]);
+    return activeDailies.filter((d) => (d.activeDays || [0, 1, 2, 3, 4, 5, 6]).includes(currentWeekday)).length;
+  }, [activeDailies, currentWeekday]);
 
   const completedCount = useMemo(() => {
-    return dailies.filter((d) => Boolean(d.isCompleteToday)).length;
-  }, [dailies]);
+    return activeDailies.filter((d) => Boolean(d.isCompleteToday)).length;
+  }, [activeDailies]);
 
   const bestOverallStreak = useMemo(() => {
-    if (!dailies.length) return 0;
-    return Math.max(...dailies.map((d) => d.streakBest || 0), 0);
-  }, [dailies]);
+    if (!activeDailies.length) return 0;
+    return Math.max(...activeDailies.map((d) => d.streakBest || 0), 0);
+  }, [activeDailies]);
 
   const completionPercent = dueCount > 0 ? Math.round((completedCount / dueCount) * 100) : 100;
 
@@ -158,14 +168,20 @@ export default function DailiesPage() {
             <Sparkles size={26} />
           </div>
           <h3 className="text-lg sm:text-xl font-bold text-ink">
-            {dailies.length === 0 ? 'No Daily Rituals Enrolled' : 'No Rituals Match Filter'}
+            {activeFilter === 'archived'
+              ? 'No Archived Rituals'
+              : dailies.length === 0
+              ? 'No Daily Rituals Enrolled'
+              : 'No Rituals Match Filter'}
           </h3>
           <p className="text-xs sm:text-sm text-ink-muted max-w-sm mx-auto leading-relaxed">
-            {dailies.length === 0
+            {activeFilter === 'archived'
+              ? 'You have not archived any daily rituals yet. Active rituals can be archived from their options menu.'
+              : dailies.length === 0
               ? 'Establish recurring daily rituals to gain XP, secure Gold, and protect your HP from nighttime penalties.'
               : 'Try selecting a different filter tab above to view other daily rituals.'}
           </p>
-          {dailies.length === 0 && (
+          {dailies.length === 0 && activeFilter !== 'archived' && (
             <motion.button
               type="button"
               onClick={handleOpenCreate}

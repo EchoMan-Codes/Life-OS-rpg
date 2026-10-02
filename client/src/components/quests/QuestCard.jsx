@@ -11,9 +11,6 @@ import {
   ChevronDown,
   ChevronUp,
   Plus,
-  MoreVertical,
-  Edit2,
-  Trash2,
   Trophy,
 } from 'lucide-react';
 import clsx from 'clsx';
@@ -21,7 +18,15 @@ import clsx from 'clsx';
 import { spring } from '@/lib/motionVariants';
 import { playSound } from '@/lib/sound';
 import { useFloatingText } from '@/features/character/floatingText';
-import { useAddQuestItem, useCompleteQuest, useArchiveQuest } from '@/features/quests/hooks';
+import {
+  useAddQuestItem,
+  useCompleteQuest,
+  useArchiveQuest,
+  useDeleteQuest,
+  useRestoreQuest,
+  useUpdateQuest,
+} from '@/features/quests/hooks';
+import { ItemActionMenu } from '@/components/ui';
 import { QuestItemRow } from './QuestItemRow';
 
 const PRIORITY_CONFIG = {
@@ -58,13 +63,31 @@ export function QuestCard({ quest, onEdit }) {
   const shouldReduceMotion = useReducedMotion();
   const { spawnFloatingText } = useFloatingText();
   const [itemsExpanded, setItemsExpanded] = useState(true);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [newItemTitle, setNewItemTitle] = useState('');
   const [isAddingItem, setIsAddingItem] = useState(false);
 
   const addItemMutation = useAddQuestItem();
   const completeQuestMutation = useCompleteQuest();
   const archiveMutation = useArchiveQuest();
+  const deleteMutation = useDeleteQuest();
+  const restoreMutation = useRestoreQuest();
+  const updateMutation = useUpdateQuest();
+
+  const isArchived = Boolean(quest.archivedAt);
+
+  const moveOptions = [
+    { id: 'critical', label: 'Critical Priority', current: quest.priority === 'critical' },
+    { id: 'high', label: 'High Priority', current: quest.priority === 'high' },
+    { id: 'medium', label: 'Medium Priority', current: quest.priority === 'medium' },
+    { id: 'low', label: 'Low Priority', current: quest.priority === 'low' },
+  ];
+
+  const handleMove = (destinationId) => {
+    updateMutation.mutate({
+      questId: quest.id,
+      data: { priority: destinationId },
+    });
+  };
 
   const isCompleted = quest.status === 'completed';
   const priorityInfo = PRIORITY_CONFIG[quest.priority] || PRIORITY_CONFIG.medium;
@@ -151,47 +174,18 @@ export function QuestCard({ quest, onEdit }) {
           )}
         </div>
 
-        {/* Action Menu (>= 44x44px target) */}
-        <div className="relative shrink-0">
-          <button
-            type="button"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Quest options"
-            className="flex items-center justify-center w-11 h-11 -mr-2 -mt-2 rounded-full text-ink-muted hover:text-ink hover:bg-glass/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-attr-intelligence"
-          >
-            <MoreVertical className="w-4 h-4" />
-          </button>
-
-          {menuOpen && (
-            <>
-              <div className="fixed inset-0 z-20" onClick={() => setMenuOpen(false)} />
-              <div className="absolute right-0 top-10 w-36 py-1 z-30 rounded-lg bg-obsidian-900 border border-glass-border shadow-panel backdrop-blur-glass">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    onEdit?.(quest);
-                  }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-body-sm text-ink hover:bg-glass/10 transition-colors text-left"
-                >
-                  <Edit2 className="w-3.5 h-3.5" />
-                  <span>Edit Quest</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    archiveMutation.mutate(quest.id);
-                  }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-body-sm text-hp hover:bg-hp/10 transition-colors text-left"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Archive</span>
-                </button>
-              </div>
-            </>
-          )}
-        </div>
+        {/* Action Menu */}
+        <ItemActionMenu
+          title={quest.title}
+          entityName="Quest"
+          onEdit={onEdit ? () => onEdit(quest) : undefined}
+          moveOptions={moveOptions}
+          onMove={handleMove}
+          onArchive={() => archiveMutation.mutate(quest.id)}
+          isArchived={isArchived}
+          onRestore={() => restoreMutation.mutate(quest.id)}
+          onDelete={() => deleteMutation.mutate(quest.id)}
+        />
       </div>
 
       {/* ── Title & Description ── */}

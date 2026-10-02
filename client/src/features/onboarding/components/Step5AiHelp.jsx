@@ -11,6 +11,8 @@ import { spring } from '@/lib/motionVariants';
  * "🤖 How should LifeOS help you?"
  */
 export function Step5AiHelp({ selectedAiHelp = [], onToggle, onComplete, onBack }) {
+  const safeAiHelp = Array.isArray(selectedAiHelp) ? selectedAiHelp : [];
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -26,7 +28,7 @@ export function Step5AiHelp({ selectedAiHelp = [], onToggle, onComplete, onBack 
       {/* AI Help Options List (Multi-Select) */}
       <div className="space-y-2 max-h-[340px] sm:max-h-[380px] overflow-y-auto pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {AI_HELP_OPTIONS.map((item) => {
-          const isSelected = selectedAiHelp.includes(item.id);
+          const isSelected = safeAiHelp.includes(item.id);
 
           return (
             <motion.button
@@ -91,10 +93,10 @@ export function Step5AiHelp({ selectedAiHelp = [], onToggle, onComplete, onBack 
           type="button"
           whileTap={{ scale: 0.96 }}
           onClick={onComplete}
-          disabled={selectedAiHelp.length === 0}
+          disabled={safeAiHelp.length === 0}
           className={clsx(
             'inline-flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm shadow-[0_4px_20px_rgba(168,85,247,0.35)] active:scale-95 transition-all cursor-pointer',
-            selectedAiHelp.length === 0 && 'opacity-50 pointer-events-none'
+            safeAiHelp.length === 0 && 'opacity-50 pointer-events-none'
           )}
         >
           <span>Get Started</span>

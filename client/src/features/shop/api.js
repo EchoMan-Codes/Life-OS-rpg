@@ -7,9 +7,9 @@ import { api } from '@/lib/axios';
  * @param {'all' | 'custom' | 'equipment' | 'streak_shield'} [params.category='all']
  * @returns {Promise<Array<object>>}
  */
-export async function fetchShopItems({ category = 'all' } = {}) {
+export async function fetchShopItems({ category = 'all', includeArchived = false, status } = {}) {
   const response = await api.get('/shop/items', {
-    params: { category },
+    params: { category, includeArchived, status },
   });
   return response.data.data;
 }
@@ -61,6 +61,7 @@ export async function updateShopItem(itemId, data) {
     ...(data.costGold !== undefined || data.cost_gold !== undefined
       ? { costGold: data.costGold ?? data.cost_gold }
       : {}),
+    ...(data.type || data.reward_type ? { type: data.type || data.reward_type } : {}),
     ...(data.icon ? { icon: data.icon } : {}),
   };
   const response = await api.patch(`/shop/items/${itemId}`, payload);
@@ -68,13 +69,37 @@ export async function updateShopItem(itemId, data) {
 }
 
 /**
- * Archive / delete a custom reward shop item.
+ * Archive a custom reward shop item.
  *
  * @param {string} itemId
  * @returns {Promise<{ success: boolean }>}
  */
 export async function archiveShopItem(itemId) {
   const response = await api.delete(`/shop/items/${itemId}`);
+  return response.data.data;
+}
+
+/**
+ * Permanently delete a custom reward shop item.
+ *
+ * @param {string} itemId
+ * @returns {Promise<{ success: boolean }>}
+ */
+export async function deleteShopItemPermanently(itemId) {
+  const response = await api.delete(`/shop/items/${itemId}`, {
+    params: { permanent: 'true' },
+  });
+  return response.data.data;
+}
+
+/**
+ * Restore an archived custom reward shop item.
+ *
+ * @param {string} itemId
+ * @returns {Promise<object>}
+ */
+export async function restoreShopItem(itemId) {
+  const response = await api.post(`/shop/items/${itemId}/restore`);
   return response.data.data;
 }
 

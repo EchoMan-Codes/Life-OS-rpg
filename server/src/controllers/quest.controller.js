@@ -10,7 +10,8 @@ export class QuestController {
   async listQuests(req, res, next) {
     try {
       const status = req.query.status || 'active';
-      const quests = await questService.listQuests(req.user.id, { status });
+      const includeArchived = req.query.includeArchived === 'true' || req.query.include_archived === 'true';
+      const quests = await questService.listQuests(req.user.id, { status, includeArchived });
       return res.status(200).json({ data: quests });
     } catch (err) {
       next(err);
@@ -73,7 +74,24 @@ export class QuestController {
    */
   async archiveQuest(req, res, next) {
     try {
+      const permanent = req.query.permanent === 'true';
+      if (permanent) {
+        const result = await questService.deleteQuestPermanently(req.user.id, req.params.id);
+        return res.status(200).json({ data: result });
+      }
       const result = await questService.archiveQuest(req.user.id, req.params.id);
+      return res.status(200).json({ data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * POST /api/v1/quests/:id/restore
+   */
+  async restoreQuest(req, res, next) {
+    try {
+      const result = await questService.restoreQuest(req.user.id, req.params.id);
       return res.status(200).json({ data: result });
     } catch (err) {
       next(err);

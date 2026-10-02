@@ -42,13 +42,37 @@ export async function updateHabit(habitId, data) {
 }
 
 /**
- * Archive / delete a habit.
+ * Archive a habit.
  *
  * @param {string} habitId
  * @returns {Promise<{ id: string, archived: boolean }>}
  */
 export async function archiveHabit(habitId) {
   const response = await api.delete(`/habits/${habitId}`);
+  return response.data.data;
+}
+
+/**
+ * Permanently delete a habit.
+ *
+ * @param {string} habitId
+ * @returns {Promise<{ id: string, deleted: boolean }>}
+ */
+export async function deleteHabitPermanently(habitId) {
+  const response = await api.delete(`/habits/${habitId}`, {
+    params: { permanent: 'true' },
+  });
+  return response.data.data;
+}
+
+/**
+ * Restore an archived habit.
+ *
+ * @param {string} habitId
+ * @returns {Promise<object>}
+ */
+export async function restoreHabit(habitId) {
+  const response = await api.post(`/habits/${habitId}/restore`);
   return response.data.data;
 }
 

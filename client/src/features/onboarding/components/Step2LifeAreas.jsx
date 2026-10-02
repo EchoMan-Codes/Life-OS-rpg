@@ -34,6 +34,8 @@ const ICONS = {
  * "📊 Which areas do you want to improve?"
  */
 export function Step2LifeAreas({ selectedAreas = [], onToggle, onNext, onBack }) {
+  const safeAreas = Array.isArray(selectedAreas) ? selectedAreas : [];
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -50,7 +52,7 @@ export function Step2LifeAreas({ selectedAreas = [], onToggle, onNext, onBack })
       <div className="grid grid-cols-2 gap-2.5 sm:gap-3 max-h-[340px] sm:max-h-[380px] overflow-y-auto pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {LIFE_AREA_OPTIONS.map((area) => {
           const Icon = ICONS[area.icon] || Sparkles;
-          const isSelected = selectedAreas.includes(area.id);
+          const isSelected = safeAreas.includes(area.id);
 
           return (
             <motion.button
@@ -113,10 +115,10 @@ export function Step2LifeAreas({ selectedAreas = [], onToggle, onNext, onBack })
           type="button"
           whileTap={{ scale: 0.96 }}
           onClick={onNext}
-          disabled={selectedAreas.length === 0}
+          disabled={safeAreas.length === 0}
           className={clsx(
             'inline-flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs sm:text-sm shadow-md active:scale-95 transition-all cursor-pointer',
-            selectedAreas.length === 0 && 'opacity-50 pointer-events-none'
+            safeAreas.length === 0 && 'opacity-50 pointer-events-none'
           )}
         >
           <span>Next</span>

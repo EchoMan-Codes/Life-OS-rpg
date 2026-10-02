@@ -36,6 +36,7 @@ router.post('/', validate(createHabitSchema), (req, res, next) => habitControlle
 router.get('/:id', (req, res, next) => habitController.getHabit(req, res, next));
 router.patch('/:id', validate(updateHabitSchema), (req, res, next) => habitController.updateHabit(req, res, next));
 router.delete('/:id', (req, res, next) => habitController.archiveHabit(req, res, next));
+router.post('/:id/restore', (req, res, next) => habitController.restoreHabit(req, res, next));
 router.post('/:id/score', validate(scoreHabitSchema), (req, res, next) => habitController.scoreHabit(req, res, next));
 
 export default router;

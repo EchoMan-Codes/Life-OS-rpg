@@ -53,6 +53,9 @@ export class ShopController {
   async listItems(req, res, next) {
     try {
       const type = req.query.type || (req.query.category && req.query.category !== 'all' ? req.query.category : undefined);
+      const includeArchived = req.query.includeArchived === 'true' || req.query.include_archived === 'true';
+      const archivedOnly = req.query.status === 'archived' || req.query.archivedOnly === 'true';
+
       if (type && !['custom', 'equipment', 'streak_shield'].includes(type)) {
         return res.status(400).json({
           error: {
@@ -62,7 +65,7 @@ export class ShopController {
         });
       }
 
-      const items = await shopService.listShopItems(req.user.id, { type });
+      const items = await shopService.listShopItems(req.user.id, { type, includeArchived, archivedOnly });
       res.json({ data: items });
     } catch (err) {
       next(err);
@@ -120,8 +123,22 @@ export class ShopController {
 
   async archiveItem(req, res, next) {
     try {
+      const permanent = req.query.permanent === 'true';
+      if (permanent) {
+        const result = await shopService.deleteShopItemPermanently(req.user.id, req.params.id);
+        return res.json({ data: result });
+      }
       await shopService.archiveShopItem(req.user.id, req.params.id);
       res.json({ data: { success: true } });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async restoreItem(req, res, next) {
+    try {
+      const item = await shopService.restoreShopItem(req.user.id, req.params.id);
+      res.json({ data: item });
     } catch (err) {
       next(err);
     }

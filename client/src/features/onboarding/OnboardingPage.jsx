@@ -18,6 +18,8 @@ import { SetupTransitionScreen } from './components/SetupTransitionScreen';
 import { StepAuth } from './components/StepAuth';
 import { spring } from '@/lib/motionVariants';
 
+import { OnboardingErrorBoundary } from './components/OnboardingErrorBoundary';
+
 const LOCAL_STORAGE_ANSWERS_KEY = 'lifeos_onboarding_answers';
 export const LOCAL_STORAGE_COMPLETED_KEY = 'lifeos_onboarding_completed';
 
@@ -31,6 +33,31 @@ const DEFAULT_ANSWERS = {
   challenges: ['procrastination', 'inconsistent'],
   aiHelp: ['plan-day', 'quests-tasks', 'track-progress'],
 };
+
+/**
+ * Ensures saved or incoming onboarding answers are strictly formed and never produce undefined arrays.
+ */
+function sanitizeAnswers(raw) {
+  const data = raw && typeof raw === 'object' ? raw : {};
+  return {
+    goalId: typeof data.goalId === 'string' && data.goalId ? data.goalId : DEFAULT_ANSWERS.goalId,
+    goalLabel: typeof data.goalLabel === 'string' && data.goalLabel ? data.goalLabel : DEFAULT_ANSWERS.goalLabel,
+    lifeAreas: Array.isArray(data.lifeAreas) && data.lifeAreas.length > 0
+      ? data.lifeAreas.filter((x) => typeof x === 'string')
+      : [...DEFAULT_ANSWERS.lifeAreas],
+    wakeTime: typeof data.wakeTime === 'string' && data.wakeTime ? data.wakeTime : DEFAULT_ANSWERS.wakeTime,
+    sleepTime: typeof data.sleepTime === 'string' && data.sleepTime ? data.sleepTime : DEFAULT_ANSWERS.sleepTime,
+    commitments: Array.isArray(data.commitments)
+      ? data.commitments.filter((x) => typeof x === 'string')
+      : [...DEFAULT_ANSWERS.commitments],
+    challenges: Array.isArray(data.challenges)
+      ? data.challenges.filter((x) => typeof x === 'string')
+      : [...DEFAULT_ANSWERS.challenges],
+    aiHelp: Array.isArray(data.aiHelp)
+      ? data.aiHelp.filter((x) => typeof x === 'string')
+      : [...DEFAULT_ANSWERS.aiHelp],
+  };
+}
 
 /**
  * Master Onboarding Flow (5-Step Adaptive Personalization).
@@ -54,7 +81,7 @@ export default function OnboardingPage({ defaultMode = 'onboarding' }) {
   const [answers, setAnswers] = useState(() => {
     try {
       const saved = localStorage.getItem(LOCAL_STORAGE_ANSWERS_KEY);
-      return saved ? JSON.parse(saved) : DEFAULT_ANSWERS;
+      return saved ? sanitizeAnswers(JSON.parse(saved)) : DEFAULT_ANSWERS;
     } catch {
       return DEFAULT_ANSWERS;
     }
@@ -315,113 +342,124 @@ export default function OnboardingPage({ defaultMode = 'onboarding' }) {
 
         {/* ── Active Step Card Container ── */}
         <div className="p-4 sm:p-6 rounded-3xl bg-white/[0.02] border border-white/10 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.06)] relative overflow-hidden flex-1 flex flex-col justify-between">
-          <AnimatePresence mode="wait" custom={direction}>
-            <motion.div
-              key={currentStepIndex}
-              custom={direction}
-              variants={slideVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              className="w-full flex-1 flex flex-col justify-between"
-            >
-              {currentStepIndex === 1 && (
-                <Step1Goal
-                  selectedGoal={answers.goalId}
-                  onSelect={(id, label) =>
-                    setAnswers((prev) => ({ ...prev, goalId: id, goalLabel: label }))
-                  }
-                  onNext={handleNext}
-                  onSkip={handleSkip}
-                />
-              )}
+          <OnboardingErrorBoundary onReset={() => setAnswers(DEFAULT_ANSWERS)}>
+            <AnimatePresence mode="wait" custom={direction}>
+              <motion.div
+                key={currentStepIndex}
+                custom={direction}
+                variants={slideVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="w-full flex-1 flex flex-col justify-between"
+              >
+                {currentStepIndex === 1 && (
+                  <Step1Goal
+                    selectedGoal={answers?.goalId}
+                    onSelect={(id, label) =>
+                      setAnswers((prev) => ({ ...prev, goalId: id, goalLabel: label }))
+                    }
+                    onNext={handleNext}
+                    onSkip={handleSkip}
+                  />
+                )}
 
-              {currentStepIndex === 2 && (
-                <Step2LifeAreas
-                  selectedAreas={answers.lifeAreas}
-                  onToggle={(id) =>
-                    setAnswers((prev) => {
-                      const exists = prev.lifeAreas.includes(id);
-                      return {
-                        ...prev,
-                        lifeAreas: exists
-                          ? prev.lifeAreas.filter((a) => a !== id)
-                          : [...prev.lifeAreas, id],
-                      };
-                    })
-                  }
-                  onNext={handleNext}
-                  onBack={handleBack}
-                />
-              )}
+                {currentStepIndex === 2 && (
+                  <Step2LifeAreas
+                    selectedAreas={answers?.lifeAreas}
+                    onToggle={(id) =>
+                      setAnswers((prev) => {
+                        const currentAreas = Array.isArray(prev?.lifeAreas) ? prev.lifeAreas : [];
+                        const exists = currentAreas.includes(id);
+                        return {
+                          ...prev,
+                          lifeAreas: exists
+                            ? currentAreas.filter((a) => a !== id)
+                            : [...currentAreas, id],
+                        };
+                      })
+                    }
+                    onNext={handleNext}
+                    onBack={handleBack}
+                  />
+                )}
 
-              {currentStepIndex === 3 && (
-                <Step3Schedule
-                  wakeTime={answers.wakeTime}
-                  sleepTime={answers.sleepTime}
-                  commitments={answers.commitments}
-                  onUpdateWake={(val) =>
-                    setAnswers((prev) => ({ ...prev, wakeTime: val }))
-                  }
-                  onUpdateSleep={(val) =>
-                    setAnswers((prev) => ({ ...prev, sleepTime: val }))
-                  }
-                  onAddCommitment={(item) =>
-                    setAnswers((prev) => ({
-                      ...prev,
-                      commitments: [...prev.commitments, item],
-                    }))
-                  }
-                  onRemoveCommitment={(index) =>
-                    setAnswers((prev) => ({
-                      ...prev,
-                      commitments: prev.commitments.filter((_, i) => i !== index),
-                    }))
-                  }
-                  onNext={handleNext}
-                  onBack={handleBack}
-                />
-              )}
+                {currentStepIndex === 3 && (
+                  <Step3Schedule
+                    wakeTime={answers?.wakeTime}
+                    sleepTime={answers?.sleepTime}
+                    commitments={answers?.commitments}
+                    onUpdateWake={(val) =>
+                      setAnswers((prev) => ({ ...prev, wakeTime: val || '06:00 AM' }))
+                    }
+                    onUpdateSleep={(val) =>
+                      setAnswers((prev) => ({ ...prev, sleepTime: val || '11:15 PM' }))
+                    }
+                    onAddCommitment={(item) =>
+                      setAnswers((prev) => {
+                        const list = Array.isArray(prev?.commitments) ? prev.commitments : [];
+                        return {
+                          ...prev,
+                          commitments: [...list, item],
+                        };
+                      })
+                    }
+                    onRemoveCommitment={(index) =>
+                      setAnswers((prev) => {
+                        const list = Array.isArray(prev?.commitments) ? prev.commitments : [];
+                        return {
+                          ...prev,
+                          commitments: list.filter((_, i) => i !== index),
+                        };
+                      })
+                    }
+                    onNext={handleNext}
+                    onBack={handleBack}
+                  />
+                )}
 
-              {currentStepIndex === 4 && (
-                <Step4Challenge
-                  selectedChallenges={answers.challenges}
-                  onToggle={(id) =>
-                    setAnswers((prev) => {
-                      const exists = prev.challenges.includes(id);
-                      return {
-                        ...prev,
-                        challenges: exists
-                          ? prev.challenges.filter((c) => c !== id)
-                          : [...prev.challenges, id],
-                      };
-                    })
-                  }
-                  onNext={handleNext}
-                  onBack={handleBack}
-                />
-              )}
+                {currentStepIndex === 4 && (
+                  <Step4Challenge
+                    selectedChallenges={answers?.challenges}
+                    onToggle={(id) =>
+                      setAnswers((prev) => {
+                        const currentChallenges = Array.isArray(prev?.challenges) ? prev.challenges : [];
+                        const exists = currentChallenges.includes(id);
+                        return {
+                          ...prev,
+                          challenges: exists
+                            ? currentChallenges.filter((c) => c !== id)
+                            : [...currentChallenges, id],
+                        };
+                      })
+                    }
+                    onNext={handleNext}
+                    onBack={handleBack}
+                  />
+                )}
 
-              {currentStepIndex === 5 && (
-                <Step5AiHelp
-                  selectedAiHelp={answers.aiHelp}
-                  onToggle={(id) =>
-                    setAnswers((prev) => {
-                      const exists = prev.aiHelp.includes(id);
-                      return {
-                        ...prev,
-                        aiHelp: exists
-                          ? prev.aiHelp.filter((a) => a !== id)
-                          : [...prev.aiHelp, id],
-                      };
-                    })
-                  }
-                  onComplete={handleCompleteFlow}
-                  onBack={handleBack}
-                />
-              )}
-            </motion.div>
-          </AnimatePresence>
+                {currentStepIndex === 5 && (
+                  <Step5AiHelp
+                    selectedAiHelp={answers?.aiHelp}
+                    onToggle={(id) =>
+                      setAnswers((prev) => {
+                        const currentAiHelp = Array.isArray(prev?.aiHelp) ? prev.aiHelp : [];
+                        const exists = currentAiHelp.includes(id);
+                        return {
+                          ...prev,
+                          aiHelp: exists
+                            ? currentAiHelp.filter((a) => a !== id)
+                            : [...currentAiHelp, id],
+                        };
+                      })
+                    }
+                    onComplete={handleCompleteFlow}
+                    onBack={handleBack}
+                  />
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </OnboardingErrorBoundary>
         </div>
 
         {/* ── Subdued Minimalist Footer ── */}

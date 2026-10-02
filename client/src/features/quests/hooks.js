@@ -9,6 +9,8 @@ import {
   createQuest,
   updateQuest,
   archiveQuest,
+  deleteQuestPermanently,
+  restoreQuest,
   reorderQuests,
   addQuestItem,
   updateQuestItem,
@@ -23,12 +25,12 @@ import {
  * Hook to retrieve user quests with TanStack Query.
  * Gated by isAuthenticated to prevent unauthenticated 401 requests on mount.
  */
-export function useQuests({ status = 'active' } = {}) {
+export function useQuests({ status = 'active', includeArchived = false } = {}) {
   const { isAuthenticated } = useAuth();
 
   return useQuery({
-    queryKey: ['quests', { status }],
-    queryFn: () => fetchQuests({ status }),
+    queryKey: ['quests', { status, includeArchived }],
+    queryFn: () => fetchQuests({ status, includeArchived }),
     staleTime: 30 * 1000,
     enabled: isAuthenticated,
   });
@@ -113,7 +115,7 @@ export function useArchiveQuest() {
       queryClient.invalidateQueries({ queryKey: ['quests'] });
       showToast({
         title: 'Quest Archived',
-        message: 'The quest has been removed from your active board.',
+        message: 'The quest has been moved to archives.',
         type: 'info',
       });
     },
@@ -121,6 +123,60 @@ export function useArchiveQuest() {
       showToast({
         title: 'Archive Failed',
         message: err?.response?.data?.error?.message || 'Failed to archive quest.',
+        type: 'error',
+      });
+    },
+  });
+}
+
+/**
+ * Hook to permanently delete a quest.
+ */
+export function useDeleteQuest() {
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+
+  return useMutation({
+    mutationFn: (questId) => deleteQuestPermanently(questId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quests'] });
+      showToast({
+        title: 'Quest Deleted',
+        message: 'Quest permanently removed.',
+        type: 'success',
+      });
+    },
+    onError: (err) => {
+      showToast({
+        title: 'Delete Failed',
+        message: err?.response?.data?.error?.message || 'Failed to delete quest.',
+        type: 'error',
+      });
+    },
+  });
+}
+
+/**
+ * Hook to restore an archived quest.
+ */
+export function useRestoreQuest() {
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+
+  return useMutation({
+    mutationFn: (questId) => restoreQuest(questId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quests'] });
+      showToast({
+        title: 'Quest Restored',
+        message: 'Quest returned to active board.',
+        type: 'success',
+      });
+    },
+    onError: (err) => {
+      showToast({
+        title: 'Restore Failed',
+        message: err?.response?.data?.error?.message || 'Failed to restore quest.',
         type: 'error',
       });
     },

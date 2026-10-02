@@ -10,6 +10,8 @@ import {
   createShopItem,
   updateShopItem,
   archiveShopItem,
+  deleteShopItemPermanently,
+  restoreShopItem,
   buyShopItem,
   fetchInventory,
 } from './api';
@@ -23,12 +25,12 @@ export const INVENTORY_QUERY_KEY = ['inventory'];
  * @param {object} [options]
  * @param {'all' | 'custom' | 'equipment' | 'streak_shield'} [options.category='all']
  */
-export function useShopItems({ category = 'all' } = {}) {
+export function useShopItems({ category = 'all', includeArchived = false, status } = {}) {
   const { isAuthenticated } = useAuth();
 
   return useQuery({
-    queryKey: ['shop-items', { category }],
-    queryFn: () => fetchShopItems({ category }),
+    queryKey: ['shop-items', { category, includeArchived, status }],
+    queryFn: () => fetchShopItems({ category, includeArchived, status }),
     staleTime: 15 * 1000,
     enabled: isAuthenticated,
   });
@@ -194,9 +196,9 @@ export function useUpdateShopItem() {
 }
 
 /**
- * Hook to archive / delete a custom reward shop item.
+ * Hook to archive a custom reward shop item.
  */
-export function useDeleteShopItem() {
+export function useArchiveShopItem() {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
 
@@ -205,8 +207,35 @@ export function useDeleteShopItem() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: SHOP_ITEMS_QUERY_KEY });
       showToast({
-        title: 'Reward Removed',
-        message: 'The reward item was removed from the shop.',
+        title: 'Reward Archived',
+        message: 'The reward item was moved to archives.',
+        type: 'info',
+      });
+    },
+    onError: (err) => {
+      showToast({
+        title: 'Archive Failed',
+        message: err?.response?.data?.error?.message || 'Failed to archive reward item.',
+        type: 'error',
+      });
+    },
+  });
+}
+
+/**
+ * Hook to permanently delete a custom reward shop item.
+ */
+export function useDeleteShopItem() {
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+
+  return useMutation({
+    mutationFn: (itemId) => deleteShopItemPermanently(itemId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: SHOP_ITEMS_QUERY_KEY });
+      showToast({
+        title: 'Reward Deleted',
+        message: 'The reward item was permanently deleted.',
         type: 'success',
       });
     },
@@ -214,6 +243,38 @@ export function useDeleteShopItem() {
       showToast({
         title: 'Deletion Failed',
         message: err?.response?.data?.error?.message || 'Failed to delete reward item.',
+        type: 'error',
+      });
+    },
+  });
+}
+
+/**
+ * Alias for permanent delete.
+ */
+export const usePermanentDeleteShopItem = useDeleteShopItem;
+
+/**
+ * Hook to restore an archived reward shop item.
+ */
+export function useRestoreShopItem() {
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+
+  return useMutation({
+    mutationFn: (itemId) => restoreShopItem(itemId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: SHOP_ITEMS_QUERY_KEY });
+      showToast({
+        title: 'Reward Restored',
+        message: 'The reward item was restored to the shop.',
+        type: 'success',
+      });
+    },
+    onError: (err) => {
+      showToast({
+        title: 'Restore Failed',
+        message: err?.response?.data?.error?.message || 'Failed to restore reward item.',
         type: 'error',
       });
     },

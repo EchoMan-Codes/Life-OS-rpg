@@ -8,6 +8,8 @@ import {
   createDaily,
   updateDaily,
   archiveDaily,
+  deleteDailyPermanently,
+  restoreDaily,
   completeDaily,
   undoDaily,
 } from './api';
@@ -99,7 +101,7 @@ export function useArchiveDaily() {
       queryClient.invalidateQueries({ queryKey: ['dailies'] });
       showToast({
         title: 'Daily Archived',
-        message: 'Daily ritual removed from active tracking.',
+        message: 'Daily ritual moved to archives.',
         type: 'info',
       });
     },
@@ -107,6 +109,60 @@ export function useArchiveDaily() {
       showToast({
         title: 'Archive Failed',
         message: err?.response?.data?.error?.message || 'Failed to archive daily.',
+        type: 'error',
+      });
+    },
+  });
+}
+
+/**
+ * Hook to permanently delete a daily ritual.
+ */
+export function useDeleteDaily() {
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+
+  return useMutation({
+    mutationFn: (dailyId) => deleteDailyPermanently(dailyId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dailies'] });
+      showToast({
+        title: 'Daily Deleted',
+        message: 'Daily ritual permanently removed.',
+        type: 'success',
+      });
+    },
+    onError: (err) => {
+      showToast({
+        title: 'Delete Failed',
+        message: err?.response?.data?.error?.message || 'Failed to delete daily.',
+        type: 'error',
+      });
+    },
+  });
+}
+
+/**
+ * Hook to restore an archived daily ritual.
+ */
+export function useRestoreDaily() {
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+
+  return useMutation({
+    mutationFn: (dailyId) => restoreDaily(dailyId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dailies'] });
+      showToast({
+        title: 'Daily Restored',
+        message: 'Daily ritual returned to active tracking.',
+        type: 'success',
+      });
+    },
+    onError: (err) => {
+      showToast({
+        title: 'Restore Failed',
+        message: err?.response?.data?.error?.message || 'Failed to restore daily.',
         type: 'error',
       });
     },

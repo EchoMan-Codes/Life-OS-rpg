@@ -11,6 +11,7 @@ import {
   Search,
   LogIn,
   ArrowRight,
+  Archive,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
@@ -21,6 +22,9 @@ import {
   useShopItems,
   useInventory,
   useDeleteShopItem,
+  useArchiveShopItem,
+  useRestoreShopItem,
+  useUpdateShopItem,
   useBuyItem,
 } from '@/features/shop/hooks';
 import { ShopItemCard } from '@/components/shop/ShopItemCard';
@@ -35,6 +39,7 @@ const CATEGORIES = [
   { id: 'custom', label: 'Custom Treats', icon: Sparkles },
   { id: 'equipment', label: 'Equipment', icon: Sword },
   { id: 'streak_shield', label: 'Streak Shields', icon: Shield },
+  { id: 'archived', label: 'Archived', icon: Archive },
 ];
 
 export default function ShopPage() {
@@ -51,25 +56,45 @@ export default function ShopPage() {
 
   // Queries & Mutations
   const { data: shopItems = [], isLoading, isError } = useShopItems({
-    category: selectedCategory,
+    category: 'all',
+    includeArchived: true,
   });
   const { data: inventory = [] } = useInventory();
   const deleteMutation = useDeleteShopItem();
+  const archiveMutation = useArchiveShopItem();
+  const restoreMutation = useRestoreShopItem();
+  const updateMutation = useUpdateShopItem();
   const buyMutation = useBuyItem();
 
   const userGold = character?.gold ?? 0;
   const totalInventoryCount = inventory.reduce((sum, i) => sum + (i.quantity || 1), 0);
 
-  // Filtered by search query
+  // Separate active and archived items
+  const activeItems = useMemo(() => {
+    return shopItems.filter((item) => !item.archivedAt && !item.archived_at);
+  }, [shopItems]);
+
+  const archivedItems = useMemo(() => {
+    return shopItems.filter((item) => Boolean(item.archivedAt || item.archived_at));
+  }, [shopItems]);
+
+  // Filtered by selected category and search query
   const filteredItems = useMemo(() => {
-    if (!searchQuery.trim()) return shopItems;
+    const baseList = selectedCategory === 'archived'
+      ? archivedItems
+      : activeItems.filter((item) => {
+          if (selectedCategory === 'all') return true;
+          return (item.type || item.reward_type) === selectedCategory;
+        });
+
+    if (!searchQuery.trim()) return baseList;
     const q = searchQuery.toLowerCase();
-    return shopItems.filter((item) => {
+    return baseList.filter((item) => {
       const title = (item.name || item.title || '').toLowerCase();
       const desc = (item.description || '').toLowerCase();
       return title.includes(q) || desc.includes(q);
     });
-  }, [shopItems, searchQuery]);
+  }, [activeItems, archivedItems, selectedCategory, searchQuery]);
 
   const handleOpenEdit = (item) => {
     setEditingItem(item);
@@ -77,10 +102,22 @@ export default function ShopPage() {
   };
 
   const handleDelete = async (item) => {
-    const title = item.name || item.title || 'this reward';
-    if (window.confirm(`Are you sure you want to remove "${title}" from the shop?`)) {
-      await deleteMutation.mutateAsync(item.id);
-    }
+    await deleteMutation.mutateAsync(item.id);
+  };
+
+  const handleArchive = async (item) => {
+    await archiveMutation.mutateAsync(item.id);
+  };
+
+  const handleRestore = async (item) => {
+    await restoreMutation.mutateAsync(item.id);
+  };
+
+  const handleMove = async (item, destinationId) => {
+    await updateMutation.mutateAsync({
+      itemId: item.id,
+      data: { type: destinationId },
+    });
   };
 
   const handleQuickBuy = async (item) => {
@@ -260,13 +297,17 @@ export default function ShopPage() {
           <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-500/10 dark:bg-gold/10 border border-amber-400/30 dark:border-gold/30 flex items-center justify-center text-amber-600 dark:text-gold">
             <ShoppingBag size={24} />
           </div>
-          <h3 className="text-lg font-bold text-slate-900 dark:text-ink">No spoils discovered</h3>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-ink">
+            {selectedCategory === 'archived' ? 'No Archived Rewards' : 'No spoils discovered'}
+          </h3>
           <p className="text-xs text-slate-600 dark:text-ink-muted max-w-sm mx-auto leading-relaxed">
-            {searchQuery
+            {selectedCategory === 'archived'
+              ? 'You have not archived any rewards yet. Custom treats can be archived or restored from their options menu.'
+              : searchQuery
               ? `No items match "${searchQuery}". Clear your search query.`
               : 'Add your first personal treat reward to incentivize your hard work.'}
           </p>
-          {isAuthenticated && (
+          {isAuthenticated && selectedCategory !== 'archived' && (
             <motion.button
               type="button"
               onClick={() => {
@@ -300,6 +341,9 @@ export default function ShopPage() {
                   onInspect={() => setInspectingItem(item)}
                   onEdit={() => handleOpenEdit(item)}
                   onDelete={() => handleDelete(item)}
+                  onArchive={() => handleArchive(item)}
+                  onRestore={() => handleRestore(item)}
+                  onMove={(item, destId) => handleMove(item, destId)}
                   onQuickBuy={() => handleQuickBuy(item)}
                   isBuying={buyMutation.isPending && buyMutation.variables?.itemId === item.id}
                 />

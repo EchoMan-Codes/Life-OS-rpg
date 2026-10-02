@@ -8,6 +8,8 @@ import {
   createHabit,
   updateHabit,
   archiveHabit,
+  deleteHabitPermanently,
+  restoreHabit,
   scoreHabit,
 } from './api';
 import { calculateHabitReward } from './rewardTable';
@@ -92,7 +94,7 @@ export function useArchiveHabit() {
       queryClient.invalidateQueries({ queryKey: ['habits'] });
       showToast({
         title: 'Habit Archived',
-        message: 'Habit removed from active list.',
+        message: 'Habit moved to archives.',
         type: 'info',
       });
     },
@@ -100,6 +102,60 @@ export function useArchiveHabit() {
       showToast({
         title: 'Archive Failed',
         message: err?.response?.data?.error?.message || 'Failed to archive habit.',
+        type: 'error',
+      });
+    },
+  });
+}
+
+/**
+ * Hook to permanently delete a habit.
+ */
+export function useDeleteHabit() {
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+
+  return useMutation({
+    mutationFn: (habitId) => deleteHabitPermanently(habitId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['habits'] });
+      showToast({
+        title: 'Habit Deleted',
+        message: 'Habit permanently removed.',
+        type: 'success',
+      });
+    },
+    onError: (err) => {
+      showToast({
+        title: 'Delete Failed',
+        message: err?.response?.data?.error?.message || 'Failed to delete habit.',
+        type: 'error',
+      });
+    },
+  });
+}
+
+/**
+ * Hook to restore an archived habit.
+ */
+export function useRestoreHabit() {
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+
+  return useMutation({
+    mutationFn: (habitId) => restoreHabit(habitId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['habits'] });
+      showToast({
+        title: 'Habit Restored',
+        message: 'Habit returned to active protocols.',
+        type: 'success',
+      });
+    },
+    onError: (err) => {
+      showToast({
+        title: 'Restore Failed',
+        message: err?.response?.data?.error?.message || 'Failed to restore habit.',
         type: 'error',
       });
     },

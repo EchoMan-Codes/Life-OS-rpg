@@ -1,13 +1,21 @@
 import { useState, useCallback } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import PropTypes from 'prop-types';
-import { Flame, Shield, MoreVertical, Edit2, Trash2 } from 'lucide-react';
+import { Flame, Shield } from 'lucide-react';
 import clsx from 'clsx';
 
 import { spring } from '@/lib/motionVariants';
 import { playSound } from '@/lib/sound';
 import { useFloatingText } from '@/features/character/floatingText';
-import { useCompleteDaily, useUndoDaily, useArchiveDaily } from '@/features/dailies/hooks';
+import {
+  useCompleteDaily,
+  useUndoDaily,
+  useArchiveDaily,
+  useDeleteDaily,
+  useRestoreDaily,
+  useUpdateDaily,
+} from '@/features/dailies/hooks';
+import { ItemActionMenu } from '@/components/ui';
 
 const DIFFICULTY_LABELS = {
   trivial: 'Trivial',
@@ -43,11 +51,29 @@ const DAYS_OF_WEEK = [
 export function DailyCard({ daily, onEdit }) {
   const shouldReduceMotion = useReducedMotion();
   const { spawnFloatingText } = useFloatingText();
-  const [menuOpen, setMenuOpen] = useState(false);
 
   const completeMutation = useCompleteDaily(daily.id, daily);
   const undoMutation = useUndoDaily(daily.id, daily);
   const archiveMutation = useArchiveDaily();
+  const deleteMutation = useDeleteDaily();
+  const restoreMutation = useRestoreDaily();
+  const updateMutation = useUpdateDaily();
+
+  const isArchived = Boolean(daily.archivedAt);
+
+  const moveOptions = [
+    { id: 'trivial', label: 'Trivial Difficulty', current: daily.difficulty === 'trivial' },
+    { id: 'easy', label: 'Easy Difficulty', current: daily.difficulty === 'easy' },
+    { id: 'medium', label: 'Medium Difficulty', current: daily.difficulty === 'medium' },
+    { id: 'hard', label: 'Hard Difficulty', current: daily.difficulty === 'hard' },
+  ];
+
+  const handleMove = (destinationId) => {
+    updateMutation.mutate({
+      dailyId: daily.id,
+      data: { difficulty: destinationId },
+    });
+  };
 
   const isCompleteToday = Boolean(daily.isCompleteToday);
   const activeDays = daily.activeDays || [0, 1, 2, 3, 4, 5, 6];
@@ -252,61 +278,17 @@ export function DailyCard({ daily, onEdit }) {
         </div>
 
         {/* ── Actions Menu ── */}
-        <div className="relative shrink-0">
-          <button
-            type="button"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Daily options"
-            className={clsx(
-              'p-2 rounded-panel text-ink-muted hover:text-ink hover:bg-glass',
-              'min-w-[44px] min-h-[44px] flex items-center justify-center',
-              'transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-glass-border'
-            )}
-          >
-            <MoreVertical size={16} />
-          </button>
-
-          {menuOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-20"
-                onClick={() => setMenuOpen(false)}
-                aria-hidden="true"
-              />
-              <div
-                className={clsx(
-                  'absolute right-0 top-full mt-1 w-36 rounded-panel py-1 z-30',
-                  'bg-obsidian-900 border border-glass-border shadow-modal',
-                  'animate-in fade-in zoom-in-95 duration-100'
-                )}
-              >
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    onEdit?.(daily);
-                  }}
-                  className="w-full px-3 py-2 text-left text-xs font-medium text-ink hover:bg-glass flex items-center gap-2 min-h-[36px]"
-                >
-                  <Edit2 size={13} />
-                  <span>Edit Daily</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    archiveMutation.mutate(daily.id);
-                  }}
-                  disabled={archiveMutation.isPending}
-                  className="w-full px-3 py-2 text-left text-xs font-medium text-attr-strength hover:bg-attr-strength/10 flex items-center gap-2 min-h-[36px]"
-                >
-                  <Trash2 size={13} />
-                  <span>Archive</span>
-                </button>
-              </div>
-            </>
-          )}
-        </div>
+        <ItemActionMenu
+          title={daily.title}
+          entityName="Daily Ritual"
+          onEdit={onEdit ? () => onEdit(daily) : undefined}
+          moveOptions={moveOptions}
+          onMove={handleMove}
+          onArchive={() => archiveMutation.mutate(daily.id)}
+          isArchived={isArchived}
+          onRestore={() => restoreMutation.mutate(daily.id)}
+          onDelete={() => deleteMutation.mutate(daily.id)}
+        />
       </div>
     </div>
   );

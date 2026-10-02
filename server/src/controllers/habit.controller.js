@@ -91,7 +91,24 @@ export class HabitController {
    */
   async archiveHabit(req, res, next) {
     try {
+      const permanent = req.query.permanent === 'true';
+      if (permanent) {
+        const result = await habitService.deleteHabitPermanently(req.user.id, req.params.id);
+        return res.status(200).json({ data: result });
+      }
       const result = await habitService.archiveHabit(req.user.id, req.params.id);
+      return res.status(200).json({ data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * POST /api/v1/habits/:id/restore
+   */
+  async restoreHabit(req, res, next) {
+    try {
+      const result = await habitService.restoreHabit(req.user.id, req.params.id);
       return res.status(200).json({ data: result });
     } catch (err) {
       next(err);

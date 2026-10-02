@@ -66,6 +66,7 @@ router.patch('/reorder', validate(reorderSchema), (req, res, next) => questContr
 router.get('/:id', (req, res, next) => questController.getQuest(req, res, next));
 router.patch('/:id', validate(updateQuestSchema), (req, res, next) => questController.updateQuest(req, res, next));
 router.delete('/:id', (req, res, next) => questController.archiveQuest(req, res, next));
+router.post('/:id/restore', (req, res, next) => questController.restoreQuest(req, res, next));
 router.post('/:id/complete', (req, res, next) => questController.completeQuest(req, res, next));
 
 router.post('/:id/items', validate(createItemSchema), (req, res, next) => questController.addQuestItem(req, res, next));

@@ -7,9 +7,9 @@ import { api } from '@/lib/axios';
  * @param {'active' | 'completed' | 'all'} [params.status='active']
  * @returns {Promise<Array<object>>}
  */
-export async function fetchQuests({ status = 'active' } = {}) {
+export async function fetchQuests({ status = 'active', includeArchived = false } = {}) {
   const response = await api.get('/quests', {
-    params: { status },
+    params: { status, includeArchived },
   });
   return response.data.data;
 }
@@ -56,6 +56,30 @@ export async function updateQuest(questId, data) {
  */
 export async function archiveQuest(questId) {
   const response = await api.delete(`/quests/${questId}`);
+  return response.data.data;
+}
+
+/**
+ * Permanently delete a quest.
+ *
+ * @param {string} questId
+ * @returns {Promise<{ id: string, deleted: boolean }>}
+ */
+export async function deleteQuestPermanently(questId) {
+  const response = await api.delete(`/quests/${questId}`, {
+    params: { permanent: 'true' },
+  });
+  return response.data.data;
+}
+
+/**
+ * Restore an archived quest.
+ *
+ * @param {string} questId
+ * @returns {Promise<object>}
+ */
+export async function restoreQuest(questId) {
+  const response = await api.post(`/quests/${questId}/restore`);
   return response.data.data;
 }
 

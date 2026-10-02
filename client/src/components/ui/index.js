@@ -7,4 +7,5 @@ export { ModeButton } from './ModeButton';
 export { ColorCard } from './ColorCard';
 export { WavyHeroScenery } from './WavyHeroScenery';
 export { ThemeRippleOverlay } from './ThemeRippleOverlay';
+export { ItemActionMenu } from './ItemActionMenu';
 

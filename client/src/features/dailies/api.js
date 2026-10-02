@@ -53,6 +53,30 @@ export async function archiveDaily(dailyId) {
 }
 
 /**
+ * Permanently delete a daily ritual.
+ *
+ * @param {string} dailyId
+ * @returns {Promise<{ id: string, deleted: boolean }>}
+ */
+export async function deleteDailyPermanently(dailyId) {
+  const response = await api.delete(`/dailies/${dailyId}`, {
+    params: { permanent: 'true' },
+  });
+  return response.data.data;
+}
+
+/**
+ * Restore an archived daily ritual.
+ *
+ * @param {string} dailyId
+ * @returns {Promise<object>}
+ */
+export async function restoreDaily(dailyId) {
+  const response = await api.post(`/dailies/${dailyId}/restore`);
+  return response.data.data;
+}
+
+/**
  * Complete a daily ritual for today.
  *
  * @param {string} dailyId

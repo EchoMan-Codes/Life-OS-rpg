@@ -12,6 +12,7 @@ const FILTERS = [
   { id: 'positive', label: 'Positive (+)' },
   { id: 'both', label: 'Dual (+ / -)' },
   { id: 'negative', label: 'Negative (-)' },
+  { id: 'archived', label: 'Archived' },
 ];
 
 const STARTER_HABITS = [
@@ -45,7 +46,7 @@ const STARTER_HABITS = [
 ];
 
 export default function HabitsPage() {
-  const { data: rawHabits = [], isLoading, isError } = useHabits();
+  const { data: rawHabits = [], isLoading, isError } = useHabits({ includeArchived: true });
   const habits = rawHabits.length > 0 ? rawHabits : STARTER_HABITS;
 
   const [activeFilter, setActiveFilter] = useState('all');
@@ -53,8 +54,12 @@ export default function HabitsPage() {
   const [habitToEdit, setHabitToEdit] = useState(null);
 
   const filteredHabits = useMemo(() => {
-    if (activeFilter === 'all') return habits;
-    return habits.filter((h) => h.direction === activeFilter);
+    if (activeFilter === 'archived') {
+      return habits.filter((h) => Boolean(h.archivedAt));
+    }
+    const activeHabits = habits.filter((h) => !h.archivedAt);
+    if (activeFilter === 'all') return activeHabits;
+    return activeHabits.filter((h) => h.direction === activeFilter);
   }, [habits, activeFilter]);
 
   const bestOverallStreak = useMemo(() => {

@@ -63,21 +63,28 @@ export class ShopService {
    * @param {string} [filter.type]
    * @returns {Promise<Array<object>>}
    */
-  async listShopItems(userId, { type } = {}) {
+  async listShopItems(userId, { type, includeArchived = false, archivedOnly = false } = {}) {
     await this.seedStarterItemsIfEmpty(userId);
 
     const values = [userId];
+    let archiveClause = 'AND archived_at IS NULL';
+    if (archivedOnly) {
+      archiveClause = 'AND archived_at IS NOT NULL';
+    } else if (includeArchived) {
+      archiveClause = '';
+    }
+
     let sql = `
       SELECT id, user_id as "userId", name, description,
              cost_gold as "costGold", type, icon,
              created_at as "createdAt", archived_at as "archivedAt"
       FROM reward_items
-      WHERE user_id = $1 AND archived_at IS NULL
+      WHERE user_id = $1 ${archiveClause}
     `;
 
     if (type) {
       values.push(type);
-      sql += ` AND type = $2`;
+      sql += ` AND type = $${values.length}`;
     }
 
     sql += ` ORDER BY cost_gold ASC, created_at ASC`;
@@ -228,6 +235,55 @@ export class ShopService {
     }
 
     return { success: true };
+  }
+
+  /**
+   * Permanently delete a custom reward item from the database.
+   *
+   * @param {string} userId
+   * @param {string} itemId
+   * @returns {Promise<{ id: string, deleted: boolean }>}
+   */
+  async deleteShopItemPermanently(userId, itemId) {
+    const { rows } = await query(
+      'DELETE FROM reward_items WHERE id = $1 AND user_id = $2 RETURNING id',
+      [itemId, userId]
+    );
+
+    if (rows.length === 0) {
+      const err = new Error('Reward item not found');
+      err.status = 404;
+      err.code = 'ITEM_NOT_FOUND';
+      throw err;
+    }
+
+    return { id: rows[0].id, deleted: true };
+  }
+
+  /**
+   * Restore an archived reward item.
+   *
+   * @param {string} userId
+   * @param {string} itemId
+   * @returns {Promise<object>}
+   */
+  async restoreShopItem(userId, itemId) {
+    const { rows } = await query(
+      `UPDATE reward_items
+       SET archived_at = NULL
+       WHERE id = $1 AND user_id = $2
+       RETURNING *`,
+      [itemId, userId]
+    );
+
+    if (rows.length === 0) {
+      const err = new Error('Reward item not found');
+      err.status = 404;
+      err.code = 'ITEM_NOT_FOUND';
+      throw err;
+    }
+
+    return this.getShopItemById(userId, itemId);
   }
 
   /**

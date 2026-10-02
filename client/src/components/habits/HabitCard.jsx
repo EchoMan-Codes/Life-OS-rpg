@@ -7,8 +7,15 @@ import clsx from 'clsx';
 import { spring } from '@/lib/motionVariants';
 import { playSound } from '@/lib/sound';
 import { useFloatingText } from '@/features/character/floatingText';
-import { useScoreHabit, useArchiveHabit } from '@/features/habits/hooks';
+import {
+  useScoreHabit,
+  useArchiveHabit,
+  useDeleteHabit,
+  useRestoreHabit,
+  useUpdateHabit,
+} from '@/features/habits/hooks';
 import { calculateHabitReward } from '@/features/habits/rewardTable';
+import { ItemActionMenu } from '@/components/ui';
 
 const DIFFICULTY_CONFIG = {
   trivial: { label: 'Trivial', color: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-400' },
@@ -173,9 +180,26 @@ export function HabitCard({ habit, onEdit }) {
   const { spawnFloatingText } = useFloatingText();
   const scoreMutation = useScoreHabit(habit.id, habit);
   const archiveMutation = useArchiveHabit();
+  const deleteMutation = useDeleteHabit();
+  const restoreMutation = useRestoreHabit();
+  const updateMutation = useUpdateHabit();
+
+  const isArchived = Boolean(habit.archivedAt);
+
+  const moveOptions = [
+    { id: 'positive', label: 'Positive (+)', current: habit.direction === 'positive' },
+    { id: 'both', label: 'Dual (+ / -)', current: habit.direction === 'both' },
+    { id: 'negative', label: 'Negative (-)', current: habit.direction === 'negative' },
+  ];
+
+  const handleMove = (destinationId) => {
+    updateMutation.mutate({
+      habitId: habit.id,
+      data: { direction: destinationId },
+    });
+  };
 
   const [flashBorder, setFlashBorder] = useState(null); // 'positive' | 'negative' | null
-  const [menuOpen, setMenuOpen] = useState(false);
   const [justCompleted, setJustCompleted] = useState(false);
 
   const canScorePositive = habit.direction === 'positive' || habit.direction === 'both';
@@ -391,52 +415,18 @@ export function HabitCard({ habit, onEdit }) {
             </motion.button>
           )}
 
-          {/* Options Dropdown Menu Toggle */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setMenuOpen((prev) => !prev);
-              }}
-              aria-label="Habit options"
-              className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 dark:text-ink-muted dark:hover:text-ink hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
-            >
-              <MoreVertical className="w-4 h-4" />
-            </button>
-
-            {menuOpen && (
-              <div
-                className="absolute right-0 top-10 z-30 w-36 py-1 rounded-2xl bg-white dark:bg-obsidian-800 border border-slate-200 dark:border-white/10 shadow-xl backdrop-blur-xl"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {onEdit && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      onEdit(habit);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 dark:text-ink hover:bg-slate-50 dark:hover:bg-white/5 transition-colors text-left font-medium"
-                  >
-                    <Edit2 className="w-3.5 h-3.5 text-indigo-500" />
-                    <span>Edit Habit</span>
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    archiveMutation.mutate(habit.id);
-                  }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-rose-600 dark:text-hp hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors text-left font-medium"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>Archive</span>
-                </button>
-              </div>
-            )}
-          </div>
+          {/* Options Dropdown Menu */}
+          <ItemActionMenu
+            title={habit.title}
+            entityName="Habit"
+            onEdit={onEdit ? () => onEdit(habit) : undefined}
+            moveOptions={moveOptions}
+            onMove={handleMove}
+            onArchive={() => archiveMutation.mutate(habit.id)}
+            isArchived={isArchived}
+            onRestore={() => restoreMutation.mutate(habit.id)}
+            onDelete={() => deleteMutation.mutate(habit.id)}
+          />
         </div>
       </motion.div>
     </div>

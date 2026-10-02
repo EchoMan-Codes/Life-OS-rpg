@@ -12,12 +12,26 @@ export class QuestService {
    * @param {'active' | 'completed' | 'all'} [filters.status='active']
    * @returns {Promise<Array<object>>}
    */
-  async listQuests(userId, { status = 'active' } = {}) {
+  async listQuests(userId, { status = 'active', includeArchived = false } = {}) {
+    let archiveClause = 'AND q.archived_at IS NULL';
     let statusClause = "AND q.status = 'active'";
-    if (status === 'completed') {
-      statusClause = "AND q.status = 'completed'";
-    } else if (status === 'all') {
-      statusClause = "AND q.status IN ('active', 'completed')";
+
+    if (status === 'archived') {
+      archiveClause = 'AND q.archived_at IS NOT NULL';
+      statusClause = '';
+    } else if (includeArchived) {
+      archiveClause = '';
+      if (status === 'completed') {
+        statusClause = "AND q.status = 'completed'";
+      } else if (status === 'all') {
+        statusClause = '';
+      }
+    } else {
+      if (status === 'completed') {
+        statusClause = "AND q.status = 'completed'";
+      } else if (status === 'all') {
+        statusClause = "AND q.status IN ('active', 'completed')";
+      }
     }
 
     const sql = `
@@ -42,7 +56,7 @@ export class QuestService {
       FROM quests q
       LEFT JOIN quest_items qi ON qi.quest_id = q.id
       WHERE q.user_id = $1
-        AND q.archived_at IS NULL
+        ${archiveClause}
         ${statusClause}
       GROUP BY q.id
       ORDER BY q.position ASC, q.created_at DESC
@@ -100,6 +114,7 @@ export class QuestService {
         position: q.position,
         createdAt: q.created_at,
         completedAt: q.completed_at,
+        archivedAt: q.archived_at ? new Date(q.archived_at).toISOString() : null,
         progressPercent,
         totalItems,
         completedItems,
@@ -276,6 +291,55 @@ export class QuestService {
     }
 
     return { success: true };
+  }
+
+  /**
+   * Permanently delete a quest and cascade subtasks and milestones.
+   *
+   * @param {string} userId
+   * @param {string} questId
+   * @returns {Promise<{ id: string, deleted: boolean }>}
+   */
+  async deleteQuestPermanently(userId, questId) {
+    const res = await query(
+      'DELETE FROM quests WHERE id = $1 AND user_id = $2 RETURNING id',
+      [questId, userId]
+    );
+
+    if (res.rows.length === 0) {
+      const err = new Error('Quest not found');
+      err.status = 404;
+      err.code = 'QUEST_NOT_FOUND';
+      throw err;
+    }
+
+    return { id: res.rows[0].id, deleted: true };
+  }
+
+  /**
+   * Restore an archived quest.
+   *
+   * @param {string} userId
+   * @param {string} questId
+   * @returns {Promise<object>}
+   */
+  async restoreQuest(userId, questId) {
+    const res = await query(
+      `UPDATE quests
+       SET archived_at = NULL, status = 'active'
+       WHERE id = $1 AND user_id = $2
+       RETURNING *`,
+      [questId, userId]
+    );
+
+    if (res.rows.length === 0) {
+      const err = new Error('Quest not found');
+      err.status = 404;
+      err.code = 'QUEST_NOT_FOUND';
+      throw err;
+    }
+
+    return this.getQuestById(userId, questId);
   }
 
   /**

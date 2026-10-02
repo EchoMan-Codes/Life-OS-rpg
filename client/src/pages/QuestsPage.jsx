@@ -25,6 +25,7 @@ const STATUS_FILTERS = [
   { id: 'all', label: 'All Quests' },
   { id: 'active', label: 'Active' },
   { id: 'completed', label: 'Completed' },
+  { id: 'archived', label: 'Archived' },
 ];
 
 const PRIORITY_ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
@@ -36,17 +37,29 @@ export default function QuestsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [questToEdit, setQuestToEdit] = useState(null);
 
-  // Fetch all quests so board can distribute into columns
-  const { data: quests = [], isLoading, isError } = useQuests({ status: 'all' });
+  // Fetch all quests (including archived) so board & archives can distribute properly
+  const { data: quests = [], isLoading, isError } = useQuests({ status: 'all', includeArchived: true });
 
-  // Filtered quests
+  // Separate active and archived quests
+  const activeQuests = useMemo(() => {
+    return quests.filter((q) => !q.archivedAt);
+  }, [quests]);
+
+  const archivedQuests = useMemo(() => {
+    return quests.filter((q) => Boolean(q.archivedAt));
+  }, [quests]);
+
+  // Filtered quests based on current status filter
   const filteredQuests = useMemo(() => {
-    return quests.filter((q) => {
+    if (statusFilter === 'archived') {
+      return archivedQuests;
+    }
+    return activeQuests.filter((q) => {
       if (statusFilter === 'active') return q.status === 'active';
       if (statusFilter === 'completed') return q.status === 'completed';
       return true;
     });
-  }, [quests, statusFilter]);
+  }, [activeQuests, archivedQuests, statusFilter]);
 
   // Priority sorted list
   const prioritySortedQuests = useMemo(() => {
@@ -58,13 +71,13 @@ export default function QuestsPage() {
     });
   }, [filteredQuests]);
 
-  // Board columns
+  // Board columns (built from active quests only)
   const boardColumns = useMemo(() => {
     const todo = [];
     const inProgress = [];
     const done = [];
 
-    for (const q of quests) {
+    for (const q of activeQuests) {
       if (q.status === 'completed') {
         done.push(q);
       } else if ((q.completedItems || 0) > 0) {
@@ -75,16 +88,16 @@ export default function QuestsPage() {
     }
 
     return { todo, inProgress, done };
-  }, [quests]);
+  }, [activeQuests]);
 
   // Stats calculation
   const stats = useMemo(() => {
-    const total = quests.length;
-    const completed = quests.filter((q) => q.status === 'completed').length;
-    const active = quests.filter((q) => q.status === 'active').length;
-    const subtasksDone = quests.reduce((sum, q) => sum + (q.completedItems || 0), 0);
+    const total = activeQuests.length;
+    const completed = activeQuests.filter((q) => q.status === 'completed').length;
+    const active = activeQuests.filter((q) => q.status === 'active').length;
+    const subtasksDone = activeQuests.reduce((sum, q) => sum + (q.completedItems || 0), 0);
     return { total, completed, active, subtasksDone };
-  }, [quests]);
+  }, [activeQuests]);
 
   const handleOpenCreate = () => {
     setQuestToEdit(null);
@@ -277,27 +290,33 @@ export default function QuestsPage() {
         <div className="p-6 text-center text-red-500 text-sm rounded-2xl bg-red-500/10 border border-red-500/20">
           Failed to load quests. Please check your connection.
         </div>
-      ) : quests.length === 0 ? (
+      ) : filteredQuests.length === 0 ? (
         <div className="p-10 sm:p-14 text-center rounded-3xl bg-white/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 backdrop-blur-xl shadow-xs space-y-4">
           <div className="w-14 h-14 mx-auto rounded-2xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center text-violet-600 dark:text-violet-400">
             <Scroll size={26} />
           </div>
-          <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-ink">Your Quest Log is Empty</h3>
+          <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-ink">
+            {statusFilter === 'archived' ? 'No Archived Quests' : 'Your Quest Log is Empty'}
+          </h3>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-ink-muted max-w-sm mx-auto leading-relaxed">
-            No active campaigns. Establish your first quest, define subtasks, and conquer milestones for substantial XP and Gold!
+            {statusFilter === 'archived'
+              ? 'You have not archived any quests yet. Active quests can be archived from their options menu.'
+              : 'No active campaigns. Establish your first quest, define subtasks, and conquer milestones for substantial XP and Gold!'}
           </p>
-          <motion.button
-            type="button"
-            onClick={handleOpenCreate}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="px-5 py-2.5 rounded-xl bg-violet-600 text-white font-bold text-xs hover:bg-violet-700 transition-all shadow-md inline-flex items-center gap-1.5"
-          >
-            <Plus size={14} strokeWidth={2.5} />
-            <span>Embark on First Quest</span>
-          </motion.button>
+          {statusFilter !== 'archived' && (
+            <motion.button
+              type="button"
+              onClick={handleOpenCreate}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="px-5 py-2.5 rounded-xl bg-violet-600 text-white font-bold text-xs hover:bg-violet-700 transition-all shadow-md inline-flex items-center gap-1.5"
+            >
+              <Plus size={14} strokeWidth={2.5} />
+              <span>Embark on First Quest</span>
+            </motion.button>
+          )}
         </div>
-      ) : viewMode === 'board' ? (
+      ) : viewMode === 'board' && statusFilter !== 'archived' ? (
         /* ── Three-Column iOS Frosted Board View ── */
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
           {/* Column 1: To Do */}

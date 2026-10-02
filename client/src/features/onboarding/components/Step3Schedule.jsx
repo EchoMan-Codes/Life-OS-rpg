@@ -19,6 +19,7 @@ export function Step3Schedule({
   onNext,
   onBack,
 }) {
+  const safeCommitments = Array.isArray(commitments) ? commitments : [];
   const [newCommitment, setNewCommitment] = useState('');
   const [isAdding, setIsAdding] = useState(false);
 
@@ -92,7 +93,7 @@ export function Step3Schedule({
 
         {/* Commitments Tag Pills */}
         <div className="flex flex-wrap gap-2">
-          {commitments.map((item, idx) => (
+          {safeCommitments.map((item, idx) => (
             <div
               key={idx}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-300 text-xs font-medium"

@@ -11,6 +11,8 @@ import { spring } from '@/lib/motionVariants';
  * "🔥 What is holding you back right now?"
  */
 export function Step4Challenge({ selectedChallenges = [], onToggle, onNext, onBack }) {
+  const safeChallenges = Array.isArray(selectedChallenges) ? selectedChallenges : [];
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -26,7 +28,7 @@ export function Step4Challenge({ selectedChallenges = [], onToggle, onNext, onBa
       {/* Challenges List (Multi-Select) */}
       <div className="space-y-2 max-h-[340px] sm:max-h-[380px] overflow-y-auto pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {CHALLENGE_OPTIONS.map((item) => {
-          const isSelected = selectedChallenges.includes(item.id);
+          const isSelected = safeChallenges.includes(item.id);
 
           return (
             <motion.button
@@ -91,10 +93,10 @@ export function Step4Challenge({ selectedChallenges = [], onToggle, onNext, onBa
           type="button"
           whileTap={{ scale: 0.96 }}
           onClick={onNext}
-          disabled={selectedChallenges.length === 0}
+          disabled={safeChallenges.length === 0}
           className={clsx(
             'inline-flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs sm:text-sm shadow-md active:scale-95 transition-all cursor-pointer',
-            selectedChallenges.length === 0 && 'opacity-50 pointer-events-none'
+            safeChallenges.length === 0 && 'opacity-50 pointer-events-none'
           )}
         >
           <span>Next</span>

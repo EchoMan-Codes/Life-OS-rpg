@@ -149,8 +149,13 @@ export default function OnboardingPage({ defaultMode = 'onboarding' }) {
   }, [answers]);
 
   const handleFinishSetup = useCallback(() => {
-    navigate('/', { replace: true });
-  }, [navigate]);
+    setIsSettingUp(false);
+    if (!isAuthenticated) {
+      setShowAuthDirect(true);
+    } else {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   // Motion variants for smooth step sliding
   const slideVariants = shouldReduceMotion

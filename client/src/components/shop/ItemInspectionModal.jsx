@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/Button';
 import { ShopItemIcon } from './shopIcons';
 import { useBuyItem } from '@/features/shop/hooks';
 import { useDailies } from '@/features/dailies/hooks';
+import { useJeevanTransition } from '@/context/JeevanTransitionContext';
 
 export function ItemInspectionModal({
   isOpen,
@@ -24,6 +25,7 @@ export function ItemInspectionModal({
   userGold = 0,
 }) {
   const buyMutation = useBuyItem();
+  const { triggerTransition } = useJeevanTransition();
   const { data: dailies = [], isLoading: isLoadingDailies } = useDailies();
 
   const [prevModalKey, setPrevModalKey] = useState({ isOpen: false, itemId: null });
@@ -88,6 +90,12 @@ export function ItemInspectionModal({
         item,
       });
       onClose();
+      triggerTransition({
+        variant: 'medium',
+        message: isStreakShield ? 'Streak Shield Charged!' : 'Reward Claimed!',
+        submessage: item.name || item.title || 'Jeevan Spoils Vault',
+        duration: 1100,
+      });
     } catch (err) {
       setValidationError(err?.response?.data?.error?.message || 'Failed to complete purchase.');
     }

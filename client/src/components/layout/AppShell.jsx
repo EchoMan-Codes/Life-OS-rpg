@@ -33,19 +33,10 @@ export function AppShell({ children }) {
   const isDashboard = location.pathname === '/';
   const isProfile = location.pathname === '/profile';
 
-  const [hasLaunched, setHasLaunched] = useState(() => {
-    try {
-      return sessionStorage.getItem('jeevan_session_launched') === 'true';
-    } catch {
-      return false;
-    }
-  });
+  const [hasLaunched, setHasLaunched] = useState(false);
 
   const handleLaunchComplete = () => {
     setHasLaunched(true);
-    try {
-      sessionStorage.setItem('jeevan_session_launched', 'true');
-    } catch {}
   };
 
   // Listen for global open battle log events

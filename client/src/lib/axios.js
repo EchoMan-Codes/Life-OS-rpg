@@ -1,14 +1,37 @@
 import axios from 'axios';
 
-let inMemoryAccessToken = null;
+let inMemoryAccessToken = typeof window !== 'undefined' ? localStorage.getItem('jeevan_access_token') : null;
 let activeRefreshPromise = null;
 
 export function setAccessToken(token) {
   inMemoryAccessToken = token;
+  if (typeof window !== 'undefined') {
+    if (token) {
+      try {
+        localStorage.setItem('jeevan_access_token', token);
+      } catch {}
+    } else {
+      try {
+        localStorage.removeItem('jeevan_access_token');
+      } catch {}
+    }
+  }
 }
 
 export function getAccessToken() {
-  return inMemoryAccessToken;
+  if (inMemoryAccessToken) {
+    return inMemoryAccessToken;
+  }
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('jeevan_access_token');
+      if (stored) {
+        inMemoryAccessToken = stored;
+        return stored;
+      }
+    } catch {}
+  }
+  return null;
 }
 
 function getBaseUrl() {
@@ -93,8 +116,11 @@ api.interceptors.request.use(
       } catch {
         // Refresh failed; proceed with request (will fail or handle accordingly)
       }
-    } else if (inMemoryAccessToken) {
-      config.headers.Authorization = `Bearer ${inMemoryAccessToken}`;
+    } else {
+      const token = getAccessToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
 
     return config;

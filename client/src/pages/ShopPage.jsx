@@ -32,6 +32,7 @@ import { ShopItemModal } from '@/components/shop/ShopItemModal';
 import { ItemInspectionModal } from '@/components/shop/ItemInspectionModal';
 import { InventoryDrawer } from '@/components/shop/InventoryDrawer';
 import { SpoilsVaultRibbon } from '@/components/shop/SpoilsVaultRibbon';
+import { useJeevanTransition } from '@/context/JeevanTransitionContext';
 import { spring } from '@/lib/motionVariants';
 
 const CATEGORIES = [
@@ -44,6 +45,7 @@ const CATEGORIES = [
 
 export default function ShopPage() {
   const { isAuthenticated } = useAuth();
+  const { triggerTransition } = useJeevanTransition();
   const { data: character } = useCharacter();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -124,6 +126,12 @@ export default function ShopPage() {
     await buyMutation.mutateAsync({
       itemId: item.id,
       item,
+    });
+    triggerTransition({
+      variant: 'medium',
+      message: 'Claiming Reward...',
+      submessage: item.name || item.title || 'Jeevan Spoils Vault',
+      duration: 1100,
     });
   };
 

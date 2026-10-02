@@ -27,6 +27,7 @@ import {
   useUpdateQuest,
 } from '@/features/quests/hooks';
 import { ItemActionMenu } from '@/components/ui';
+import { useJeevanTransition } from '@/context/JeevanTransitionContext';
 import { QuestItemRow } from './QuestItemRow';
 
 const PRIORITY_CONFIG = {
@@ -62,6 +63,7 @@ const DIFFICULTY_CONFIG = {
 export function QuestCard({ quest, onEdit }) {
   const shouldReduceMotion = useReducedMotion();
   const { spawnFloatingText } = useFloatingText();
+  const { triggerTransition } = useJeevanTransition();
   const [itemsExpanded, setItemsExpanded] = useState(true);
   const [newItemTitle, setNewItemTitle] = useState('');
   const [isAddingItem, setIsAddingItem] = useState(false);
@@ -124,7 +126,13 @@ export function QuestCard({ quest, onEdit }) {
     }, 150);
 
     completeQuestMutation.mutate(quest.id);
-  }, [quest.id, quest.reward, completeQuestMutation, isCompleted, spawnFloatingText]);
+    triggerTransition({
+      variant: 'medium',
+      message: 'Quest Conquered!',
+      submessage: quest.title,
+      duration: 1100,
+    });
+  }, [quest.id, quest.title, quest.reward, completeQuestMutation, isCompleted, spawnFloatingText, triggerTransition]);
 
   return (
     <motion.div

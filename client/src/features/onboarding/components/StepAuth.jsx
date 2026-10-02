@@ -68,7 +68,7 @@ export function StepAuth({
           variant: 'full',
           message: 'Welcome to Jeevan',
           submessage: 'Activating Personal Operating System',
-          duration: 1500,
+          duration: 2600,
         });
         onComplete();
       } catch (err) {
@@ -95,7 +95,7 @@ export function StepAuth({
           variant: 'full',
           message: 'Entering Jeevan...',
           submessage: 'Synchronizing Account & Character Data',
-          duration: 1500,
+          duration: 2600,
         });
         onComplete();
       } catch (err) {

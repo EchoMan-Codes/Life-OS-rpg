@@ -92,7 +92,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
           variant: 'full',
           message: 'Welcome to Jeevan',
           submessage: 'Initializing Your Personal Operating System',
-          duration: 1600,
+          duration: 2600,
         });
       } catch (err) {
         let errorMsg =
@@ -115,7 +115,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
           variant: 'full',
           message: 'Welcome Back to Jeevan',
           submessage: 'Synchronizing Discipline & Character Progress',
-          duration: 1600,
+          duration: 2600,
         });
       } catch (err) {
         let errorMsg = err?.response?.data?.error?.message;

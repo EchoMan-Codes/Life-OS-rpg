@@ -65,7 +65,7 @@ export function AppShell({ children }) {
               variant="full"
               message="Launching Jeevan OS..."
               submessage="Live. Track. Grow."
-              duration={1300}
+              duration={2500}
               onComplete={handleLaunchComplete}
             />
           )}
@@ -86,7 +86,7 @@ export function AppShell({ children }) {
             variant="full"
             message="Launching Jeevan OS..."
             submessage="Live. Track. Grow."
-            duration={1300}
+            duration={2500}
             onComplete={handleLaunchComplete}
           />
         )}

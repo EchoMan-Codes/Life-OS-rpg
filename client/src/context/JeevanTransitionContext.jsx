@@ -18,7 +18,7 @@ export function JeevanTransitionProvider({ children }) {
       variant = 'medium',
       message = 'Updating Jeevan...',
       submessage = 'Live. Track. Grow.',
-      duration = 850,
+      duration = variant === 'full' ? 2600 : 1100,
       onComplete,
     } = {}) => {
       return new Promise((resolve) => {

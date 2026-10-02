@@ -202,7 +202,7 @@ export function SetupTransitionScreen({ onFinish }) {
             variant="full"
             message="Entering Jeevan..."
             submessage="Live. Track. Grow."
-            duration={1800}
+            duration={2800}
             onComplete={onFinish}
           />
         )}

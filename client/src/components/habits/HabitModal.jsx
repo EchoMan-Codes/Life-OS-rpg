@@ -60,7 +60,7 @@ function HabitForm({ habitToEdit, onClose }) {
         variant: 'medium',
         message: habitToEdit ? 'Updating Habit Momentum...' : 'Inscribing New Habit...',
         submessage: 'Jeevan Habits Deck',
-        duration: 750,
+        duration: 1100,
       });
     } catch (err) {
       setError(err?.response?.data?.error?.message || 'Failed to save habit.');

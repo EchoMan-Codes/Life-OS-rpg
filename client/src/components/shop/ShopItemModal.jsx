@@ -92,7 +92,7 @@ export function ShopItemModal({ isOpen, onClose, initialData = null }) {
         variant: 'medium',
         message: isEditing ? 'Updating Reward...' : 'Stocking New Reward...',
         submessage: 'Jeevan Reward Shop',
-        duration: 750,
+        duration: 1100,
       });
     } catch (err) {
       setError(err?.response?.data?.error?.message || 'Failed to save reward item');

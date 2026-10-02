@@ -93,7 +93,7 @@ function DailyForm({ dailyToEdit, onClose }) {
         variant: 'medium',
         message: dailyToEdit ? 'Updating Daily Ritual...' : 'Inscribing Daily Ritual...',
         submessage: 'Jeevan Daily Rituals Deck',
-        duration: 750,
+        duration: 1100,
       });
     } catch (err) {
       setError(err?.response?.data?.error?.message || 'Failed to save daily ritual.');

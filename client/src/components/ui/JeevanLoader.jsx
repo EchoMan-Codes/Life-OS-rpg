@@ -20,7 +20,7 @@ export function JeevanLoader({
   variant = 'full',
   message = 'Initializing Jeevan OS...',
   submessage = 'Live. Track. Grow.',
-  duration = 1800,
+  duration = 2600,
   onComplete,
   progress,
   className = '',

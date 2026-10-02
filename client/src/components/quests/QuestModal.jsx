@@ -83,7 +83,7 @@ function QuestForm({ questToEdit, onClose }) {
         variant: 'medium',
         message: isEditing ? 'Updating Quest Campaign...' : 'Initiating New Quest...',
         submessage: 'Jeevan Quest Log',
-        duration: 750,
+        duration: 1100,
       });
     } catch (err) {
       setError(err?.response?.data?.error?.message || 'Failed to save quest.');

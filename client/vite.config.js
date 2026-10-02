@@ -6,6 +6,9 @@ import { resolve } from 'path';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  server: {
+    host: true,
+  },
   envDir: resolve(import.meta.dirname, '..'),
   resolve: {
     alias: {

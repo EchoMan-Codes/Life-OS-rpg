@@ -50,17 +50,6 @@ export function AppShell({ children }) {
     return (
       <ToastProvider>
         <ThemeRippleOverlay />
-        <AnimatePresence>
-          {!hasLaunched && (
-            <JeevanLoader
-              variant="full"
-              message="Launching Jeevan OS..."
-              submessage="Live. Track. Grow."
-              duration={2500}
-              onComplete={handleLaunchComplete}
-            />
-          )}
-        </AnimatePresence>
         <div className="min-h-screen bg-obsidian text-ink">
           {children}
         </div>

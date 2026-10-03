@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 
 import { AppShell } from '@/components/layout';
 import { initNativeApp, initNativeStatusBar } from '@/lib/native';
+import { useAuth } from '@/features/auth/hooks';
 import AuthCallback from '@/pages/AuthCallback';
 import DashboardPage from '@/pages/DashboardPage';
 import HabitsPage from '@/pages/HabitsPage';
@@ -14,10 +15,12 @@ import ShopPage from '@/pages/ShopPage';
 import ProfilePage from '@/pages/ProfilePage';
 import DevShowcase from '@/pages/DevShowcase';
 
-import OnboardingPage from '@/features/onboarding/OnboardingPage';
+import OnboardingPage, { LOCAL_STORAGE_COMPLETED_KEY } from '@/features/onboarding/OnboardingPage';
 
 export default function App() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user, isLoading: authLoading } = useAuth();
 
   useEffect(() => {
     initNativeStatusBar();
@@ -26,6 +29,36 @@ export default function App() {
     });
     return cleanup;
   }, [navigate]);
+
+  // Reliable first-launch detection:
+  // If genuinely new user at root without completed onboarding, direct to /onboarding
+  useEffect(() => {
+    if (authLoading) return;
+
+    let isLocalCompleted = false;
+    try {
+      isLocalCompleted = localStorage.getItem(LOCAL_STORAGE_COMPLETED_KEY) === 'true';
+    } catch {
+      // storage unavailable
+    }
+
+    const isUserCompleted = Boolean(user?.onboardingCompleted);
+
+    if (isUserCompleted && !isLocalCompleted) {
+      try {
+        localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'true');
+      } catch {
+        // ignore
+      }
+    }
+
+    const hasCompleted = isLocalCompleted || isUserCompleted;
+
+    if (!hasCompleted && location.pathname === '/') {
+      navigate('/onboarding', { replace: true });
+    }
+  }, [user, authLoading, location.pathname, navigate]);
+
   return (
     <AppShell>
       <Routes>

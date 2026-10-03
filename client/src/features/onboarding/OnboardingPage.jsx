@@ -5,24 +5,35 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import clsx from 'clsx';
 
 import { useAuth } from '@/features/auth/hooks';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { ModeButton } from '@/components/ui';
 import { JeevanLogo } from '@/components/ui/JeevanLogo';
 import { TOTAL_STEPS } from './constants';
 import { OnboardingBanner } from './components/OnboardingBanner';
+import { OnboardingProgress } from './components/OnboardingProgress';
 import { Step1Goal } from './components/Step1Goal';
 import { Step2LifeAreas } from './components/Step2LifeAreas';
 import { Step3Schedule } from './components/Step3Schedule';
 import { Step4Challenge } from './components/Step4Challenge';
 import { Step5AiHelp } from './components/Step5AiHelp';
-import { SetupTransitionScreen } from './components/SetupTransitionScreen';
 import { StepAuth } from './components/StepAuth';
-import { spring } from '@/lib/motionVariants';
-
+import { IntroCinematic } from './components/IntroCinematic';
+import { PostLoginLoader } from './components/PostLoginLoader';
+import { RollingSectionCards } from './components/RollingSectionCards';
 import { OnboardingErrorBoundary } from './components/OnboardingErrorBoundary';
 
-const LOCAL_STORAGE_ANSWERS_KEY = 'lifeos_onboarding_answers';
+export const LOCAL_STORAGE_ANSWERS_KEY = 'lifeos_onboarding_answers';
 export const LOCAL_STORAGE_COMPLETED_KEY = 'lifeos_onboarding_completed';
+export const LOCAL_STORAGE_INTRO_WATCHED_KEY = 'lifeos_intro_watched';
+export const LOCAL_STORAGE_SELECTED_SECTION_KEY = 'lifeos_selected_section';
+
+export const ONBOARDING_STAGES = {
+  INTRO_CINEMATIC: 'intro_cinematic',   // 10-15s initial cinematic animation
+  QUESTIONS: 'questions',               // 5-question personalization flow
+  AUTH: 'auth',                         // Account creation & login
+  POST_LOGIN_LOADER: 'post_login',      // 10s workspace preparation animation
+  ROLLING_SECTIONS: 'rolling_sections', // Continuous looping rolling cards
+};
 
 const DEFAULT_ANSWERS = {
   goalId: 'crack-gate',
@@ -36,7 +47,7 @@ const DEFAULT_ANSWERS = {
 };
 
 /**
- * Ensures saved or incoming onboarding answers are strictly formed and never produce undefined arrays.
+ * Ensures saved or incoming onboarding answers are strictly formed.
  */
 function sanitizeAnswers(raw) {
   const data = raw && typeof raw === 'object' ? raw : {};
@@ -61,22 +72,38 @@ function sanitizeAnswers(raw) {
 }
 
 /**
- * Master Onboarding Flow (5-Step Adaptive Personalization).
- * Exact flow: Goal -> Life Areas -> Schedule -> Problem -> AI Preferences
- * Displays scenic atmospheric banners, 1-to-5 number pills, and progressive setup animation.
+ * Complete First-Launch Onboarding, Authentication & Section Selection Orchestrator.
+ *
+ * Sequence for brand-new users:
+ * First Launch -> 10-15s Cinematic Animation -> 5-Question Onboarding ->
+ * Account Creation / Login -> 10s Jeevan Preparation Loader ->
+ * Looping Rolling Section Cards -> Section Selected -> Selected Section Dashboard
  */
 export default function OnboardingPage({ defaultMode = 'onboarding' }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, updateOnboarding } = useAuth();
   const shouldReduceMotion = useReducedMotion();
 
   const isDirectLogin = location.pathname === '/login' || defaultMode === 'login';
 
+  // Determine starting stage
+  const [stage, setStage] = useState(() => {
+    if (isDirectLogin) return ONBOARDING_STAGES.AUTH;
+
+    try {
+      const isCompleted = localStorage.getItem(LOCAL_STORAGE_COMPLETED_KEY) === 'true';
+      if (isCompleted) return 'completed';
+
+      const hasWatchedIntro = localStorage.getItem(LOCAL_STORAGE_INTRO_WATCHED_KEY) === 'true';
+      return hasWatchedIntro ? ONBOARDING_STAGES.QUESTIONS : ONBOARDING_STAGES.INTRO_CINEMATIC;
+    } catch {
+      return ONBOARDING_STAGES.INTRO_CINEMATIC;
+    }
+  });
+
   const [currentStepIndex, setCurrentStepIndex] = useState(1);
   const [direction, setDirection] = useState(1);
-  const [isSettingUp, setIsSettingUp] = useState(false);
-  const [showAuthDirect, setShowAuthDirect] = useState(isDirectLogin);
 
   // Load saved answers or fallback to defaults
   const [answers, setAnswers] = useState(() => {
@@ -97,13 +124,29 @@ export default function OnboardingPage({ defaultMode = 'onboarding' }) {
     }
   }, [answers]);
 
-  // If already authenticated and not in setup, redirect to dashboard
+  // If already completed and user lands here, redirect to dashboard immediately
   useEffect(() => {
-    if (isAuthenticated && !isSettingUp && !authLoading && isDirectLogin) {
-      navigate('/', { replace: true });
+    try {
+      const isCompleted = localStorage.getItem(LOCAL_STORAGE_COMPLETED_KEY) === 'true' || user?.onboardingCompleted;
+      if (isCompleted && !authLoading && !isDirectLogin) {
+        navigate('/', { replace: true });
+      }
+    } catch {
+      // ignore
     }
-  }, [isAuthenticated, isSettingUp, authLoading, isDirectLogin, navigate]);
+  }, [user, authLoading, isDirectLogin, navigate]);
 
+  // 1. Cinematic Intro Completed -> Advance to 5 Questions
+  const handleIntroComplete = useCallback(() => {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_INTRO_WATCHED_KEY, 'true');
+    } catch {
+      // ignore
+    }
+    setStage(ONBOARDING_STAGES.QUESTIONS);
+  }, []);
+
+  // Question navigation
   const goToStep = useCallback((index) => {
     setDirection(index > currentStepIndex ? 1 : -1);
     setCurrentStepIndex(Math.max(1, Math.min(index, TOTAL_STEPS)));
@@ -122,15 +165,12 @@ export default function OnboardingPage({ defaultMode = 'onboarding' }) {
   }, [currentStepIndex, goToStep]);
 
   const handleSkip = useCallback(() => {
-    // Skip to step 5 or finish
     goToStep(5);
   }, [goToStep]);
 
-  // When Step 5 completes: trigger setup transition
-  const handleCompleteFlow = useCallback(() => {
-    // Generate adaptive profile in localStorage
+  // Step 5 completed -> Save adaptive profile & transition to Account Creation / Login
+  const handleCompleteQuestions = useCallback(() => {
     try {
-      localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'true');
       localStorage.setItem(
         'lifeos_adaptive_profile',
         JSON.stringify({
@@ -145,19 +185,59 @@ export default function OnboardingPage({ defaultMode = 'onboarding' }) {
     } catch {
       // storage full
     }
-    setIsSettingUp(true);
-  }, [answers]);
 
-  const handleFinishSetup = useCallback(() => {
-    setIsSettingUp(false);
-    if (!isAuthenticated) {
-      setShowAuthDirect(true);
+    if (isAuthenticated) {
+      // Already authenticated -> Proceed straight to 10s post-login animation
+      setStage(ONBOARDING_STAGES.POST_LOGIN_LOADER);
     } else {
-      navigate('/', { replace: true });
+      // Require user to create account or login
+      setStage(ONBOARDING_STAGES.AUTH);
     }
-  }, [isAuthenticated, navigate]);
+  }, [answers, isAuthenticated]);
 
-  // Motion variants for smooth step sliding
+  // Auth completed (Register or Login) -> Advance to 10s post-login animation
+  const handleAuthComplete = useCallback(() => {
+    // If the user already completed section selection prior, navigate to dashboard
+    try {
+      const isCompleted = localStorage.getItem(LOCAL_STORAGE_COMPLETED_KEY) === 'true' || user?.onboardingCompleted;
+      if (isCompleted) {
+        navigate('/', { replace: true });
+        return;
+      }
+    } catch {
+      // ignore
+    }
+    setStage(ONBOARDING_STAGES.POST_LOGIN_LOADER);
+  }, [user, navigate]);
+
+  // 10s Post-Login Animation completed -> Reveal Looping Rolling Section Cards
+  const handlePostLoginComplete = useCallback(() => {
+    setStage(ONBOARDING_STAGES.ROLLING_SECTIONS);
+  }, []);
+
+  // Section Selected -> Persist & Navigate to chosen section
+  const handleSelectSection = useCallback((section) => {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_COMPLETED_KEY, 'true');
+      localStorage.setItem(LOCAL_STORAGE_SELECTED_SECTION_KEY, section.id);
+
+      // Persist to backend if authenticated asynchronously without blocking navigation
+      if (updateOnboarding) {
+        updateOnboarding({
+          onboardingCompleted: true,
+          onboardingAnswers: answers,
+          selectedSection: section.id,
+        }).catch((err) => console.warn('Failed to sync onboarding to backend:', err));
+      }
+    } catch (err) {
+      console.warn('Failed to save onboarding state:', err);
+    }
+
+    // Immediately navigate into selected section (Habits & Study -> '/')
+    navigate(section.route || '/', { replace: true });
+  }, [answers, updateOnboarding, navigate]);
+
+  // Motion variants for step slide transitions
   const slideVariants = shouldReduceMotion
     ? {
         initial: { opacity: 0 },
@@ -184,8 +264,31 @@ export default function OnboardingPage({ defaultMode = 'onboarding' }) {
         }),
       };
 
-  // If directly in Login mode
-  if (showAuthDirect) {
+  // ─────────────────────────────────────────────────────────
+  // STAGE 1: 10-15s INITIAL CINEMATIC ANIMATION
+  // ─────────────────────────────────────────────────────────
+  if (stage === ONBOARDING_STAGES.INTRO_CINEMATIC) {
+    return <IntroCinematic onComplete={handleIntroComplete} />;
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // STAGE 4: 10s POST-LOGIN PREPARATION ANIMATION
+  // ─────────────────────────────────────────────────────────
+  if (stage === ONBOARDING_STAGES.POST_LOGIN_LOADER) {
+    return <PostLoginLoader onComplete={handlePostLoginComplete} />;
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // STAGE 5: LOOPING ROLLING SECTION CARDS REVEAL
+  // ─────────────────────────────────────────────────────────
+  if (stage === ONBOARDING_STAGES.ROLLING_SECTIONS) {
+    return <RollingSectionCards onSelectSection={handleSelectSection} />;
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // STAGE 3: ACCOUNT CREATION & LOGIN (StepAuth)
+  // ─────────────────────────────────────────────────────────
+  if (stage === ONBOARDING_STAGES.AUTH) {
     return (
       <div className="min-h-screen bg-[#07080C] text-ink flex flex-col justify-between selection:bg-purple-600 selection:text-white relative overflow-hidden">
         {/* Ambient atmospheric lighting */}
@@ -195,7 +298,7 @@ export default function OnboardingPage({ defaultMode = 'onboarding' }) {
           <div className="absolute -bottom-40 left-1/3 w-[600px] h-[600px] bg-pink-500/5 rounded-full blur-[160px]" />
         </div>
 
-        {/* Top Navigation Bar: Back + Mode Toggle */}
+        {/* Top Navigation Bar */}
         <div className="relative z-20 w-full max-w-md mx-auto px-4 pt-4 flex items-center justify-between">
           <button
             type="button"
@@ -203,7 +306,7 @@ export default function OnboardingPage({ defaultMode = 'onboarding' }) {
               if (location.pathname === '/login') {
                 navigate('/');
               } else {
-                setShowAuthDirect(false);
+                setStage(ONBOARDING_STAGES.QUESTIONS);
               }
             }}
             className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-slate-300 flex items-center justify-center transition-all cursor-pointer"
@@ -217,11 +320,11 @@ export default function OnboardingPage({ defaultMode = 'onboarding' }) {
 
         {/* Main Content Container */}
         <div className="relative z-10 w-full max-w-md mx-auto px-4 py-3 flex-1 flex flex-col justify-center">
-          {/* Hero Atmospheric Traveler Illustration */}
-          <div className="w-full h-44 sm:h-52 rounded-t-3xl overflow-hidden relative shadow-lg border-t border-x border-purple-500/30 bg-gradient-to-b from-[#1E0A3C] via-[#3B0764] to-[#0A071E]">
+          {/* Hero Atmospheric Banner Illustration */}
+          <div className="w-full h-40 sm:h-48 rounded-t-3xl overflow-hidden relative shadow-lg border-t border-x border-purple-500/30 bg-gradient-to-b from-[#1E0A3C] via-[#3B0764] to-[#0A071E]">
             <svg viewBox="0 0 360 170" preserveAspectRatio="none" className="w-full h-full">
               <defs>
-                <linearGradient id="loginSky" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="authSky" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#1E0A3C" />
                   <stop offset="45%" stopColor="#4A154B" />
                   <stop offset="75%" stopColor="#9333EA" />
@@ -229,49 +332,42 @@ export default function OnboardingPage({ defaultMode = 'onboarding' }) {
                   <stop offset="100%" stopColor="#FEF08A" />
                 </linearGradient>
               </defs>
-              <rect width="360" height="170" fill="url(#loginSky)" />
-              {/* Sun / Moon disc */}
+              <rect width="360" height="170" fill="url(#authSky)" />
               <circle cx="260" cy="55" r="22" fill="#FEF08A" opacity="0.85" filter="drop-shadow(0 0 16px #F59E0B)" />
-              {/* Celestial stars */}
               <circle cx="35" cy="25" r="1.1" fill="#FFFFFF" opacity="0.8" />
               <circle cx="85" cy="40" r="1" fill="#FFFFFF" opacity="0.7" />
               <circle cx="150" cy="20" r="1.4" fill="#FDE047" opacity="0.85" />
               <circle cx="320" cy="35" r="1.1" fill="#FFFFFF" opacity="0.75" />
-              {/* Mountain Ridges */}
               <path d="M0 170 L0 115 L60 80 L130 115 L200 65 L280 120 L360 85 L360 170 Z" fill="#2E1065" opacity="0.7" />
               <path d="M0 170 L0 135 L80 100 L160 130 L240 85 L320 125 L360 110 L360 170 Z" fill="#1A0738" opacity="0.85" />
-              {/* Cliff ledge with traveler */}
               <path d="M0 170 L0 90 L85 105 L115 170 Z" fill="#0D041C" />
-              {/* Traveler silhouette */}
               <circle cx="58" cy="80" r="4.5" fill="#0D041C" stroke="#FEF08A" strokeWidth="0.8" />
               <path d="M53 85 L63 85 L65 104 L51 104 Z" fill="#0D041C" stroke="#C084FC" strokeWidth="0.5" />
               <rect x="49" y="86" width="3.5" height="8" rx="1.5" fill="#0D041C" stroke="#FEF08A" strokeWidth="0.6" />
-              <line x1="55" y1="104" x2="53" y2="114" stroke="#0D041C" strokeWidth="2.5" />
-              <line x1="61" y1="104" x2="63" y2="114" stroke="#0D041C" strokeWidth="2.5" />
-              {/* Bottom organic curve */}
               <path d="M0 145 C110 125, 220 165, 360 140 L360 170 L0 170 Z" fill="#0D0B1E" />
             </svg>
           </div>
 
           {/* Lower Authentication Panel */}
           <div className="p-5 sm:p-7 rounded-b-3xl bg-[#0D0B1E] border-b border-x border-white/10 backdrop-blur-2xl shadow-2xl relative space-y-4">
-            {/* Jeevan Brand Header */}
-            <div className="text-center space-y-2">
+            <div className="text-center space-y-1.5">
               <div className="flex justify-center">
                 <JeevanLogo variant="lockup" size="md" showTagline />
               </div>
               <p className="text-xs text-slate-400 max-w-xs mx-auto">
-                Your Personal Operating System. Live. Track. Grow.
+                {isDirectLogin
+                  ? 'Sign in to access your character, quests, and daily progress.'
+                  : 'Save your profile to preserve your attributes and personal workspace.'}
               </p>
             </div>
 
-            {/* Auth Form Card */}
+            {/* StepAuth Component */}
             <StepAuth
               answers={answers}
-              onEditPreferences={() => setShowAuthDirect(false)}
-              onComplete={() => navigate('/', { replace: true })}
-              initialMode="login"
-              hideDossier={true}
+              onEditPreferences={() => setStage(ONBOARDING_STAGES.QUESTIONS)}
+              onComplete={handleAuthComplete}
+              initialMode={isDirectLogin ? 'login' : 'register'}
+              hideDossier={isDirectLogin}
             />
           </div>
         </div>
@@ -286,63 +382,35 @@ export default function OnboardingPage({ defaultMode = 'onboarding' }) {
     );
   }
 
+  // ─────────────────────────────────────────────────────────
+  // STAGE 2: 5-QUESTION ONBOARDING EXPERIENCE
+  // ─────────────────────────────────────────────────────────
   return (
     <div className="relative min-h-[100dvh] w-full bg-[#07080C] text-ink overflow-x-hidden flex flex-col justify-between selection:bg-purple-600 selection:text-white">
-      {/* ── Background Atmospheric Accents ── */}
+      {/* Background Atmospheric Accents */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[140px]" />
         <div className="absolute top-1/2 -right-40 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[140px]" />
         <div className="absolute -bottom-40 left-1/3 w-[600px] h-[600px] bg-pink-500/5 rounded-full blur-[160px]" />
       </div>
 
-      {/* ── Setup Animated Transition Overlay ── */}
-      <AnimatePresence>
-        {isSettingUp && (
-          <SetupTransitionScreen onFinish={handleFinishSetup} />
-        )}
-      </AnimatePresence>
+      {/* Main Container */}
+      <div className="relative z-10 w-full max-w-lg mx-auto flex-1 flex flex-col p-4 sm:p-6 pb-10">
+        {/* Onboarding Editorial Progress: 01 / 05 */}
+        <OnboardingProgress
+          currentStepIndex={currentStepIndex}
+          onBack={handleBack}
+          onSkip={handleSkip}
+          canGoBack={currentStepIndex > 1}
+          canSkip={currentStepIndex < TOTAL_STEPS}
+        />
 
-      {/* ── Main Container ── */}
-      <div className="relative z-10 w-full max-w-lg mx-auto flex-1 flex flex-col p-4 sm:p-6 pb-12">
-        {/* ── Top Step Number Indicator (1 to 5 matching Image 3) ── */}
-        <div className="flex items-center justify-center gap-3 pt-2 pb-4">
-          {[1, 2, 3, 4, 5].map((stepNum) => {
-            const isActive = stepNum === currentStepIndex;
-            const isCompleted = stepNum < currentStepIndex;
-
-            return (
-              <div key={stepNum} className="flex items-center gap-2">
-                <div
-                  className={clsx(
-                    'w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-mono font-bold transition-all duration-200',
-                    isActive
-                      ? 'bg-purple-600 text-white shadow-[0_0_14px_rgba(168,85,247,0.5)] scale-110 ring-2 ring-purple-400'
-                      : isCompleted
-                      ? 'bg-purple-900/60 text-purple-300 border border-purple-500/40'
-                      : 'bg-white/5 text-slate-500 border border-white/10'
-                  )}
-                >
-                  {stepNum}
-                </div>
-                {stepNum < 5 && (
-                  <div
-                    className={clsx(
-                      'w-3 sm:w-5 h-[2px] rounded-full transition-colors',
-                      stepNum < currentStepIndex ? 'bg-purple-500/60' : 'bg-white/10'
-                    )}
-                  />
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* ── Atmospheric Scene Banner Artwork (Matching Image 3) ── */}
-        <div className="mb-4">
+        {/* Atmospheric Scene Banner Artwork */}
+        <div className="my-3">
           <OnboardingBanner stepIndex={currentStepIndex} />
         </div>
 
-        {/* ── Active Step Card Container ── */}
+        {/* Active Step Question Card Container */}
         <div className="p-4 sm:p-6 rounded-3xl bg-white/[0.02] border border-white/10 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.06)] relative overflow-hidden flex-1 flex flex-col justify-between">
           <OnboardingErrorBoundary onReset={() => setAnswers(DEFAULT_ANSWERS)}>
             <AnimatePresence mode="wait" custom={direction}>
@@ -455,7 +523,7 @@ export default function OnboardingPage({ defaultMode = 'onboarding' }) {
                         };
                       })
                     }
-                    onComplete={handleCompleteFlow}
+                    onComplete={handleCompleteQuestions}
                     onBack={handleBack}
                   />
                 )}
@@ -464,13 +532,13 @@ export default function OnboardingPage({ defaultMode = 'onboarding' }) {
           </OnboardingErrorBoundary>
         </div>
 
-        {/* ── Subdued Minimalist Footer ── */}
-        <div className="pt-4 flex items-center justify-between text-[11px] font-mono text-slate-500">
+        {/* Subdued Footer */}
+        <div className="pt-3 flex items-center justify-between text-[11px] font-mono text-slate-500">
           <span>Jeevan Adaptive Engine</span>
           <button
             type="button"
-            onClick={() => setShowAuthDirect(true)}
-            className="hover:text-purple-400 transition-colors"
+            onClick={() => setStage(ONBOARDING_STAGES.AUTH)}
+            className="hover:text-purple-400 transition-colors cursor-pointer"
           >
             Existing account? Sign in
           </button>

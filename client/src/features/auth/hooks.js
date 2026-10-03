@@ -8,6 +8,7 @@ import {
   refreshToken,
   logoutUser,
   fetchCurrentUser,
+  updateUserOnboarding,
 } from './api';
 
 export const ME_QUERY_KEY = ['me'];
@@ -107,6 +108,20 @@ export function useLogout() {
 }
 
 /**
+ * Mutation hook for updating user onboarding status & preferences.
+ */
+export function useUpdateOnboarding() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateUserOnboarding,
+    onSuccess: (data) => {
+      queryClient.setQueryData(ME_QUERY_KEY, data.user);
+    },
+  });
+}
+
+/**
  * Convenience auth hook providing state and action triggers.
  */
 export function useAuth() {
@@ -115,6 +130,7 @@ export function useAuth() {
   const loginMutation = useLogin();
   const registerMutation = useRegister();
   const logoutMutation = useLogout();
+  const updateOnboardingMutation = useUpdateOnboarding();
   const [sessionExpired, setSessionExpired] = useState(false);
 
   useEffect(() => {
@@ -145,5 +161,7 @@ export function useAuth() {
     registerError: registerMutation.error,
     logout: logoutMutation.mutateAsync,
     isLoggingOut: logoutMutation.isPending,
+    updateOnboarding: updateOnboardingMutation.mutateAsync,
+    isUpdatingOnboarding: updateOnboardingMutation.isPending,
   };
 }

@@ -1,61 +1,50 @@
+import PropTypes from 'prop-types';
+import { NavLink, useLocation } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
-import { NavLink } from 'react-router-dom';
 import clsx from 'clsx';
 import {
-  LayoutDashboard,
-  Flame,
-  CalendarCheck,
-  Scroll,
-  ShoppingBag,
-  Clock,
-  Moon,
-  User,
   ChevronLeft,
   ChevronRight,
   LogIn,
   LogOut,
+  Layers,
+  LayoutDashboard,
+  Bot,
+  ShoppingBag,
 } from 'lucide-react';
 
-import { spring, pressable } from '@/lib/motionVariants';
+import { spring } from '@/lib/motionVariants';
 import { useAuth } from '@/features/auth/hooks';
 import { JeevanLogo } from '@/components/ui/JeevanLogo';
-
-/**
- * Navigation items for primary Jeevan features.
- */
-const navItems = [
-  { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/habits', icon: Flame, label: 'Habits' },
-  { to: '/dailies', icon: CalendarCheck, label: 'Dailies' },
-  { to: '/quests', icon: Scroll, label: 'Quests' },
-  { to: '/focus', icon: Clock, label: 'Focus Chamber' },
-  { to: '/reflection', icon: Moon, label: 'Reflection' },
-  { to: '/shop', icon: ShoppingBag, label: 'Shop' },
-  { to: '/profile', icon: User, label: 'Profile' },
-];
+import { getActiveSectionConfig } from '@/features/navigation/sectionNavConfig';
 
 /**
  * Desktop sidebar — fixed left, w-64 expanded / w-20 collapsed.
- * Hidden below md breakpoint.
+ * Dynamically displays specialized navigation for the active Jeevan section,
+ * plus a dedicated "Switch Section" trigger to open the 3D rolling cards.
  */
-export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
+export function Sidebar({ collapsed, onToggle, onOpenAuth, onOpenSectionSwitcher }) {
   const shouldReduceMotion = useReducedMotion();
+  const location = useLocation();
   const { user, isAuthenticated, logout, isLoggingOut } = useAuth();
+
+  const activeConfig = getActiveSectionConfig(location.pathname);
+  const items = activeConfig.sidebarItems || [];
 
   return (
     <motion.aside
       className={clsx(
         'fixed top-0 left-0 h-screen z-40',
         'hidden md:flex flex-col',
-        'bg-white dark:bg-obsidian-900 border-r border-slate-200/80 dark:border-glass-border',
-        'shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-none',
+        'bg-[#0B091B] border-r border-white/10',
+        'shadow-[4px_0_24px_rgba(0,0,0,0.5)]',
         'transition-all duration-200'
       )}
       animate={{ width: collapsed ? 80 : 256 }}
       transition={shouldReduceMotion ? { duration: 0 } : spring.snappy}
     >
-      {/* Logo / App title */}
-      <div className="flex items-center h-16 px-4 border-b border-slate-200/80 dark:border-glass-border">
+      {/* Top Logo & App Title */}
+      <div className="flex items-center h-16 px-4 border-b border-white/10">
         {!collapsed && (
           <motion.div
             className="flex items-center gap-2 overflow-hidden"
@@ -73,59 +62,135 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
         )}
       </div>
 
-      {/* Nav items */}
-      <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-        {navItems.map(({ to, icon: Icon, label }) => (
+      {/* Active Section Banner & Quick Switcher Trigger */}
+      <div className="p-3 border-b border-white/5 space-y-2">
+        {!collapsed && (
+          <div className="px-1 flex items-center justify-between">
+            <span className="text-[10px] font-mono tracking-wider text-purple-300 font-bold uppercase">
+              {activeConfig.badge}
+            </span>
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_#22D3EE]" />
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={onOpenSectionSwitcher}
+          className={clsx(
+            'w-full py-2 px-3 rounded-2xl flex items-center gap-2.5 transition-all cursor-pointer group',
+            'bg-gradient-to-r from-purple-900/40 to-indigo-900/30 border border-purple-500/30 hover:border-purple-400/60 shadow-md',
+            collapsed ? 'justify-center px-0' : 'justify-between'
+          )}
+          title="Switch Section (Rolling Cards)"
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-6 h-6 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-300 group-hover:scale-110 transition-transform">
+              <Layers size={13} />
+            </div>
+            {!collapsed && (
+              <span className="text-xs font-bold text-white truncate">
+                {activeConfig.title}
+              </span>
+            )}
+          </div>
+          {!collapsed && (
+            <span className="text-[10px] font-mono text-purple-300 group-hover:text-cyan-300 transition-colors">
+              SWITCH ↺
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Specialized Section Nav Items */}
+      <nav className="flex-1 py-3 px-3 space-y-1 overflow-y-auto">
+        {!collapsed && (
+          <p className="text-[10px] font-mono text-slate-500 uppercase tracking-wider px-2 py-1">
+            Section Modules
+          </p>
+        )}
+        {items.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
               clsx(
                 'flex items-center gap-3 px-3 py-2.5 rounded-2xl',
-                'text-sm font-medium transition-all duration-150',
-                'min-h-[44px]',
+                'text-xs font-medium transition-all duration-150',
+                'min-h-[40px]',
                 'focus-visible:outline-2 focus-visible:outline-offset-2',
                 isActive
-                  ? 'bg-indigo-50/90 text-indigo-700 border border-indigo-200/70 shadow-xs font-semibold dark:bg-glass dark:text-ink dark:border-glass-border'
-                  : 'text-slate-600 dark:text-ink-muted hover:bg-slate-100/70 dark:hover:bg-glass hover:text-slate-900 dark:hover:text-ink'
+                  ? 'bg-purple-500/20 text-white border border-purple-500/40 shadow-sm font-semibold'
+                  : 'text-slate-400 hover:bg-white/5 hover:text-white'
               )
             }
           >
-            <Icon size={20} className="shrink-0" />
+            <Icon size={18} className="shrink-0 text-purple-300" />
             {!collapsed && <span className="truncate">{label}</span>}
           </NavLink>
         ))}
+
+        {/* Global Hub Jump Links */}
+        {!collapsed && (
+          <p className="text-[10px] font-mono text-slate-500 uppercase tracking-wider px-2 pt-4 pb-1">
+            Global Hubs
+          </p>
+        )}
+        <NavLink
+          to="/"
+          className={({ isActive }) =>
+            clsx(
+              'flex items-center gap-3 px-3 py-2 rounded-2xl text-xs transition-colors',
+              isActive ? 'text-white font-bold bg-white/10' : 'text-slate-400 hover:text-white hover:bg-white/5'
+            )
+          }
+        >
+          <LayoutDashboard size={16} className="shrink-0" />
+          {!collapsed && <span>Grand Dashboard</span>}
+        </NavLink>
+
+        <NavLink
+          to="/ai"
+          className={({ isActive }) =>
+            clsx(
+              'flex items-center gap-3 px-3 py-2 rounded-2xl text-xs transition-colors',
+              isActive ? 'text-purple-300 font-bold bg-purple-900/30' : 'text-slate-400 hover:text-purple-200 hover:bg-white/5'
+            )
+          }
+        >
+          <Bot size={16} className="shrink-0 text-purple-400" />
+          {!collapsed && <span>Jeevan AI</span>}
+        </NavLink>
+
+        <NavLink
+          to="/shop"
+          className={({ isActive }) =>
+            clsx(
+              'flex items-center gap-3 px-3 py-2 rounded-2xl text-xs transition-colors',
+              isActive ? 'text-amber-300 font-bold bg-amber-900/30' : 'text-slate-400 hover:text-amber-200 hover:bg-white/5'
+            )
+          }
+        >
+          <ShoppingBag size={16} className="shrink-0 text-amber-400" />
+          {!collapsed && <span>Rewards Shop</span>}
+        </NavLink>
       </nav>
 
       {/* User Session / Auth Section */}
-      <div className="px-3 py-3 border-t border-slate-200/80 dark:border-glass-border">
+      <div className="px-3 py-3 border-t border-white/10">
         {isAuthenticated && user ? (
           <div
             className={clsx(
-              'flex items-center rounded-panel bg-slate-50/90 dark:bg-white/[0.03] border border-slate-200/90 dark:border-glass-border p-2',
+              'flex items-center rounded-2xl bg-white/[0.03] border border-white/10 p-2',
               collapsed ? 'justify-center' : 'justify-between gap-2'
             )}
           >
-            <div className="flex items-center gap-2.5 min-w-0">
-              {user.avatarUrl ? (
-                <img
-                  src={user.avatarUrl}
-                  alt={user.displayName}
-                  className="w-8 h-8 rounded-full border border-indigo-400 dark:border-attr-perception/40 object-cover shrink-0"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 dark:bg-attr-perception/20 dark:border-attr-perception/40 flex items-center justify-center dark:text-attr-perception font-semibold text-xs shrink-0">
-                  {user.displayName?.[0]?.toUpperCase() || 'H'}
-                </div>
-              )}
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-7 h-7 rounded-full bg-purple-600/30 border border-purple-400/50 flex items-center justify-center text-xs font-bold text-white shrink-0">
+                {user.displayName?.[0]?.toUpperCase() || 'U'}
+              </div>
               {!collapsed && (
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold text-slate-800 dark:text-ink truncate leading-tight">
-                    {user.displayName}
-                  </p>
-                  <p className="text-[11px] text-slate-500 dark:text-ink-muted truncate leading-tight">
-                    {user.email}
-                  </p>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white truncate">{user.displayName}</p>
                 </div>
               )}
             </div>
@@ -133,17 +198,12 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
             {!collapsed && (
               <button
                 type="button"
-                onClick={() => logout()}
+                onClick={logout}
                 disabled={isLoggingOut}
-                aria-label="Log out"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
                 title="Log out"
-                className={clsx(
-                  'p-1.5 rounded-chip text-slate-400 hover:text-rose-600 dark:text-ink-muted dark:hover:text-hp hover:bg-slate-100 dark:hover:bg-white/10',
-                  'transition-colors duration-150',
-                  'focus-visible:outline-2 focus-visible:outline-offset-2'
-                )}
               >
-                <LogOut size={16} />
+                <LogOut size={15} />
               </button>
             )}
           </div>
@@ -151,37 +211,30 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
           <button
             type="button"
             onClick={onOpenAuth}
-            className={clsx(
-              'w-full flex items-center justify-center gap-2',
-              'py-2 px-3 rounded-panel',
-              'bg-indigo-50/90 hover:bg-indigo-100/90 text-indigo-700 border border-indigo-200/80',
-              'dark:bg-attr-perception/10 dark:hover:bg-attr-perception/20 dark:border-attr-perception/30 dark:text-attr-perception',
-              'text-xs font-medium min-h-[40px] transition-colors duration-150',
-              'focus-visible:outline-2 focus-visible:outline-offset-2'
-            )}
-            {...(shouldReduceMotion ? {} : pressable)}
+            className="w-full py-2 px-3 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
-            <LogIn size={16} className="shrink-0" />
+            <LogIn size={15} />
             {!collapsed && <span>Sign In</span>}
           </button>
         )}
       </div>
 
-      {/* Collapse toggle */}
+      {/* Collapse Toggle Button */}
       <button
+        type="button"
         onClick={onToggle}
+        className="h-10 border-t border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
         aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        className={clsx(
-          'flex items-center justify-center',
-          'h-12 mx-3 mb-4 rounded-panel',
-          'text-slate-500 hover:text-slate-800 hover:bg-slate-100/80 dark:text-ink-muted dark:hover:text-ink dark:hover:bg-glass',
-          'transition-colors duration-150',
-          'min-h-[44px]',
-          'focus-visible:outline-2 focus-visible:outline-offset-2'
-        )}
       >
-        {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+        {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
       </button>
     </motion.aside>
   );
 }
+
+Sidebar.propTypes = {
+  collapsed: PropTypes.bool.isRequired,
+  onToggle: PropTypes.func.isRequired,
+  onOpenAuth: PropTypes.func,
+  onOpenSectionSwitcher: PropTypes.func.isRequired,
+};

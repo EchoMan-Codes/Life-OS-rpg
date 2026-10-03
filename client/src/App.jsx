@@ -14,6 +14,9 @@ import ReflectionPage from '@/pages/ReflectionPage';
 import ShopPage from '@/pages/ShopPage';
 import ProfilePage from '@/pages/ProfilePage';
 import DevShowcase from '@/pages/DevShowcase';
+import AiPage from '@/pages/AiPage';
+import StudyPage from '@/pages/StudyPage';
+import FinancePage from '@/pages/FinancePage';
 
 import OnboardingPage, { LOCAL_STORAGE_COMPLETED_KEY } from '@/features/onboarding/OnboardingPage';
 
@@ -72,6 +75,9 @@ export default function App() {
         <Route path="/focus" element={<FocusChamberPage />} />
         <Route path="/reflection" element={<ReflectionPage />} />
         <Route path="/shop" element={<ShopPage />} />
+        <Route path="/ai" element={<AiPage />} />
+        <Route path="/study" element={<StudyPage />} />
+        <Route path="/finance" element={<FinancePage />} />
         <Route path="/dev" element={<DevShowcase />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
       </Routes>

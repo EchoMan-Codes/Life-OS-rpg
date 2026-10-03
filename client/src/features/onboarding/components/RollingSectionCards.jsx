@@ -14,6 +14,10 @@ import {
   ChevronRight,
   Shield,
   Zap,
+  LayoutDashboard,
+  BookOpen,
+  Crown,
+  Bot,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { SECTIONS } from '../sections';
@@ -26,6 +30,10 @@ const ICONS = {
   Target,
   Heart,
   CheckSquare,
+  LayoutDashboard,
+  BookOpen,
+  Crown,
+  Bot,
 };
 
 const AUTO_ROLL_INTERVAL_MS = 3400; // Time per card in continuous rolling loop

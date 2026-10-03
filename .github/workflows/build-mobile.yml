@@ -89,6 +89,7 @@ jobs:
         with:
           tag_name: mobile-latest
           name: "Jeevan Mobile App (Android APK)"
+          overwrite: true
           body: |
             ## 📱 Jeevan Native Mobile APK (Capacitor Android)
             Automated production build of the **Jeevan RPG Life-OS** mobile application.

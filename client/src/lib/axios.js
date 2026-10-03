@@ -35,19 +35,40 @@ export function getAccessToken() {
   return null;
 }
 
-function getBaseUrl() {
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL;
-  }
+export const PRODUCTION_API_URL = 'https://lifeos-api-08o8.onrender.com/api/v1';
+
+export function getBaseUrl() {
+  // 1. Explicit developer override from localStorage (if set)
   if (typeof window !== 'undefined') {
     try {
       const stored = localStorage.getItem('jeevan_api_base_url');
-      if (stored) return stored;
+      if (stored && stored.trim()) return stored.trim();
     } catch {}
   }
+
+  // 2. Explicit environment variables (VITE_API_URL or VITE_API_BASE_URL)
+  const envUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL;
+
+  // In production mode (web production or Capacitor native release)
+  if (import.meta.env.PROD || !import.meta.env.DEV) {
+    if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
+      return envUrl;
+    }
+    return PRODUCTION_API_URL;
+  }
+
+  // 3. In Capacitor native mobile (Android / iOS)
   if (Capacitor.isNativePlatform()) {
-    // Default development LAN endpoint when testing on phone connected to host Wi-Fi
-    return 'http://10.119.50.108:5000/api/v1';
+    // If a non-localhost URL was provided, use it; otherwise ALWAYS default to production backend
+    if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
+      return envUrl;
+    }
+    return PRODUCTION_API_URL;
+  }
+
+  // 4. Local web development fallback
+  if (envUrl) {
+    return envUrl;
   }
   if (
     typeof window !== 'undefined' &&
@@ -60,10 +81,13 @@ function getBaseUrl() {
   return 'http://localhost:5000/api/v1';
 }
 
+export const API_BASE_URL = getBaseUrl();
+
 export const api = axios.create({
-  baseURL: getBaseUrl(),
+  baseURL: API_BASE_URL,
   withCredentials: true,
 });
+
 
 /**
  * Single-flight silent refresh manager.

@@ -22,7 +22,7 @@ const app = express();
 // Security headers
 app.use(helmet());
 
-// Allowed frontend origins (including localhost and 127.0.0.1 Vite dev variants)
+// Allowed frontend origins (including localhost and 127.0.0.1 Vite dev variants, Capacitor, and production Vercel)
 const allowedOrigins = new Set([
   env.CLIENT_ORIGIN,
   'http://localhost:5173',
@@ -32,14 +32,19 @@ const allowedOrigins = new Set([
   'https://localhost',
   'http://localhost',
   'capacitor://localhost',
+  'https://life-os-rpg-ukcq.vercel.app',
 ]);
 
 // CORS configuration supporting credentials from frontend (including local network IPs for mobile testing)
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like curl, postman, or server-to-server)
+      // Allow requests with no origin (like curl, native mobile HTTP clients, postman)
       if (!origin || allowedOrigins.has(origin)) {
+        return callback(null, true);
+      }
+      // Allow Vercel preview or production deployments of the app
+      if (/^https:\/\/life-os-rpg-[a-z0-9-]+\.vercel\.app$/.test(origin)) {
         return callback(null, true);
       }
       // Allow local network Wi-Fi IP access in development
@@ -55,7 +60,7 @@ app.use(
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   })
 );
 
@@ -67,15 +72,17 @@ app.use(cookieParser());
 const passport = configurePassport(authService);
 app.use(passport.initialize());
 
-// Health check endpoint
-app.get('/api/v1/health', (req, res) => {
+// Health check endpoints (supports /health, /api/health, and /api/v1/health)
+app.get(['/health', '/api/health', '/api/v1/health'], (req, res) => {
   res.status(200).json({
+    status: 'ok',
     data: {
       status: 'healthy',
       timestamp: new Date().toISOString(),
     },
   });
 });
+
 
 // Mount domain routes
 app.use('/api/v1/auth', authRoutes);

@@ -19,6 +19,9 @@ import { PasswordMeter } from '@/features/auth/components/PasswordMeter';
 import { generateSystemSynthesis } from '../constants';
 import { JeevanLoader } from '@/components/ui/JeevanLoader';
 import { useJeevanTransition } from '@/context/JeevanTransitionContext';
+import { API_BASE_URL } from '@/lib/axios';
+import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
 
 /**
  * StepAuth
@@ -80,7 +83,7 @@ export function StepAuth({
         if (!errorMsg) {
           if (err?.code === 'ERR_NETWORK' || err?.message === 'Network Error') {
             errorMsg =
-              'Cannot reach the server. Please verify the backend is running.';
+              'Unable to reach Jeevan server. Please check your network connection.';
           } else {
             errorMsg = err?.message || 'Registration failed. Please check your details.';
           }
@@ -103,7 +106,7 @@ export function StepAuth({
         if (!errorMsg) {
           if (err?.code === 'ERR_NETWORK' || err?.message === 'Network Error') {
             errorMsg =
-              'Cannot reach the server. Please verify the backend is running.';
+              'Unable to reach Jeevan server. Please check your network connection.';
           } else {
             errorMsg = err?.message || 'Invalid credentials. Please try again.';
           }
@@ -113,10 +116,19 @@ export function StepAuth({
     }
   };
 
-  const handleGoogleLogin = () => {
-    const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
-    window.location.href = `${apiBase}/auth/google`;
+  const handleGoogleLogin = async () => {
+    const googleAuthUrl = `${API_BASE_URL}/auth/google${Capacitor.isNativePlatform() ? '?platform=mobile' : ''}`;
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await Browser.open({ url: googleAuthUrl, windowName: '_blank' });
+      } catch {
+        window.location.href = googleAuthUrl;
+      }
+    } else {
+      window.location.href = googleAuthUrl;
+    }
   };
+
 
   return (
     <div className="flex flex-col justify-between h-full space-y-5">

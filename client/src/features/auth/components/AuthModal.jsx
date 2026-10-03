@@ -8,6 +8,9 @@ import { Button, Card, Badge, JeevanLogo } from '@/components/ui';
 import { useAuth } from '../hooks';
 import { PasswordMeter } from './PasswordMeter';
 import { useJeevanTransition } from '@/context/JeevanTransitionContext';
+import { API_BASE_URL } from '@/lib/axios';
+import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
 
 /**
  * Split-screen glassmorphic authentication modal.
@@ -100,7 +103,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
           (err?.response?.data?.error?.suggestions?.[0] ? `Weak password: ${err.response.data.error.suggestions[0]}` : null);
         if (!errorMsg) {
           if (err?.code === 'ERR_NETWORK' || err?.message === 'Network Error') {
-            errorMsg = 'Cannot connect to server. Please verify the backend is running on http://localhost:5000.';
+            errorMsg = 'Unable to reach Jeevan server. Please check your network connection.';
           } else {
             errorMsg = err?.message || 'Registration failed. Please try again.';
           }
@@ -121,7 +124,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
         let errorMsg = err?.response?.data?.error?.message;
         if (!errorMsg) {
           if (err?.code === 'ERR_NETWORK' || err?.message === 'Network Error') {
-            errorMsg = 'Cannot connect to server. Please verify the backend is running on http://localhost:5000.';
+            errorMsg = 'Unable to reach Jeevan server. Please check your network connection.';
           } else {
             errorMsg = err?.message || 'Invalid credentials. Please try again.';
           }
@@ -131,10 +134,19 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
     }
   };
 
-  const handleGoogleLogin = () => {
-    const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
-    window.location.href = `${apiBase}/auth/google`;
+  const handleGoogleLogin = async () => {
+    const googleAuthUrl = `${API_BASE_URL}/auth/google${Capacitor.isNativePlatform() ? '?platform=mobile' : ''}`;
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await Browser.open({ url: googleAuthUrl, windowName: '_blank' });
+      } catch {
+        window.location.href = googleAuthUrl;
+      }
+    } else {
+      window.location.href = googleAuthUrl;
+    }
   };
+
 
   const formVariants = shouldReduceMotion
     ? {

@@ -5,8 +5,8 @@ import { startDailyResetScheduler } from './services/daily-reset.service.js';
 
 let resetTask = null;
 
-const server = app.listen(env.PORT, () => {
-  console.log(`[SERVER] Life OS API running on http://localhost:${env.PORT}`);
+const server = app.listen(env.PORT, '0.0.0.0', () => {
+  console.log(`[SERVER] Life OS API running on http://0.0.0.0:${env.PORT}`);
   console.log(`[SERVER] Environment: ${env.NODE_ENV}`);
   console.log(`[SERVER] CORS Origin: ${env.CLIENT_ORIGIN}`);
   resetTask = startDailyResetScheduler(pool);

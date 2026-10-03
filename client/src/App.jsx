@@ -17,6 +17,7 @@ import DevShowcase from '@/pages/DevShowcase';
 import AiPage from '@/pages/AiPage';
 import StudyPage from '@/pages/StudyPage';
 import FinancePage from '@/pages/FinancePage';
+import WellnessPage from '@/pages/WellnessPage';
 
 import OnboardingPage, { LOCAL_STORAGE_COMPLETED_KEY } from '@/features/onboarding/OnboardingPage';
 
@@ -72,6 +73,8 @@ export default function App() {
         <Route path="/habits" element={<HabitsPage />} />
         <Route path="/dailies" element={<DailiesPage />} />
         <Route path="/quests" element={<QuestsPage />} />
+        <Route path="/goals" element={<QuestsPage />} />
+        <Route path="/wellness" element={<WellnessPage />} />
         <Route path="/focus" element={<FocusChamberPage />} />
         <Route path="/reflection" element={<ReflectionPage />} />
         <Route path="/shop" element={<ShopPage />} />

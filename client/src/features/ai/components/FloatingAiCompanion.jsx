@@ -104,19 +104,8 @@ export function FloatingAiCompanion({ onOpenAi }) {
         className="pointer-events-auto relative cursor-grab active:cursor-grabbing group touch-none"
         aria-label="Open Jeevan AI Assistant"
       >
-        {/* Ambient Radial Aura Glow */}
-        <motion.div
-          animate={
-            shouldReduceMotion
-              ? {}
-              : {
-                  scale: [1, 1.25, 1],
-                  opacity: [0.35, 0.65, 0.35],
-                }
-          }
-          transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute -inset-3 rounded-full bg-gradient-to-tr from-purple-600 via-indigo-500 to-cyan-400 blur-xl pointer-events-none"
-        />
+        {/* Ambient Radial Aura Glow - Lightweight GPU-friendly */}
+        <div className="absolute -inset-2 rounded-full bg-gradient-to-tr from-purple-600/30 via-indigo-500/20 to-cyan-400/30 blur-md pointer-events-none transition-opacity group-hover:opacity-100 opacity-60" />
 
         {/* Outer Robotic Obsidian Orb Shell */}
         <div className="relative w-15 h-15 rounded-full bg-gradient-to-b from-[#1E113A] via-[#100926] to-[#06040F] p-0.5 shadow-[0_8px_30px_rgba(168,85,247,0.45),inset_0_1px_1px_rgba(255,255,255,0.4)] border border-purple-400/40 flex items-center justify-center">

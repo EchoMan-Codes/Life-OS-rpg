@@ -160,15 +160,15 @@ export default function QuestsPage() {
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/15 border border-violet-500/30 text-violet-700 dark:text-violet-300 text-xs font-mono font-semibold">
               <Sparkles size={13} className="text-violet-600 dark:text-violet-400" />
-              <span>CAMPAIGN DECK • 25% / 50% / 75% / 100% THRESHOLDS</span>
+              <span>DESTINY ROADMAP • GOALS, MILESTONES & TASKS</span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-ink tracking-tight font-display">
-              Quest Log & Milestones
+              Goals & Planning Log
             </h1>
 
             <p className="text-xs sm:text-sm text-slate-600 dark:text-ink-muted leading-relaxed max-w-xl">
-              Break down complex projects into actionable checklists. Progressing through quest milestones yields proportional XP, character stat increments, and gold.
+              Turn grand life ambitions into achievable milestones and prioritized checklists. Every completed objective earns real character XP, attribute gains, and treasury gold.
             </p>
           </div>
 

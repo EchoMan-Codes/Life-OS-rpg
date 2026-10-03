@@ -62,13 +62,15 @@ export const SECTION_NAV_CONFIGS = {
     title: 'Wellness',
     badge: 'VITALITY ENGINE',
     accentColor: '#10B981',
-    route: '/habits',
+    route: '/wellness',
     mobileItems: [
+      { to: '/wellness', icon: Flame, label: 'Sanctuary' },
       { to: '/habits', icon: Flame, label: 'Habits' },
       { to: '/dailies', icon: CalendarCheck, label: 'Dailies' },
       { to: '/reflection', icon: Moon, label: 'Reflect' },
     ],
     sidebarItems: [
+      { to: '/wellness', icon: Flame, label: 'Sanctuary Overview' },
       { to: '/habits', icon: Flame, label: 'Atomic Habits' },
       { to: '/dailies', icon: CalendarCheck, label: 'Daily Rituals' },
       { to: '/reflection', icon: Moon, label: 'Evening Reflection' },
@@ -154,7 +156,7 @@ export const SECTION_NAV_CONFIGS = {
  */
 export function getActiveSectionConfig(pathname) {
   if (pathname === '/study') return SECTION_NAV_CONFIGS.studysmart;
-  if (pathname === '/habits' || pathname === '/dailies' || pathname === '/reflection') return SECTION_NAV_CONFIGS.wellness;
+  if (pathname === '/wellness' || pathname === '/habits' || pathname === '/dailies' || pathname === '/reflection') return SECTION_NAV_CONFIGS.wellness;
   if (pathname === '/finance') return SECTION_NAV_CONFIGS.finance;
   if (pathname === '/quests' || pathname === '/goals') return SECTION_NAV_CONFIGS.goals;
   if (pathname === '/shop' || pathname === '/rewards') return SECTION_NAV_CONFIGS.rewards;

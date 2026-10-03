@@ -55,7 +55,7 @@ export const SECTIONS = [
     description: 'Build atomic habits, preserve health momentum, track fitness vitals, and master daily self-discipline.',
     status: 'AVAILABLE',
     available: true,
-    route: '/habits',
+    route: '/wellness',
     actionLabel: 'ENTER WELLNESS →',
     badge: 'VITALITY ENGINE',
     accentColor: '#10B981',

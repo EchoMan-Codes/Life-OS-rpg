@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -87,6 +88,21 @@ app.get(['/health', '/api/health', '/api/v1/health'], (req, res) => {
   });
 });
 
+// Direct APK download routes
+app.get(['/download/apk', '/app-debug.apk', '/api/v1/apk'], (req, res) => {
+  const rootApk = path.resolve(process.cwd(), '../app-debug.apk');
+  const gradleApk = path.resolve(process.cwd(), '../client/android/app/build/outputs/apk/debug/app-debug.apk');
+
+  res.download(rootApk, 'jeevan-debug.apk', (err) => {
+    if (err) {
+      res.download(gradleApk, 'jeevan-debug.apk', (err2) => {
+        if (err2) {
+          res.status(404).json({ error: { message: 'APK not found on server' } });
+        }
+      });
+    }
+  });
+});
 
 // Mount domain routes
 app.use('/api/v1/auth', authRoutes);

@@ -15,6 +15,7 @@ import {
   Target,
   Sparkles,
   Coins,
+  Bell,
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -190,6 +191,14 @@ export function QuestCard({ quest, onEdit }) {
             <span className="inline-flex items-center gap-1 text-[10px] font-mono font-medium text-slate-500 dark:text-ink-muted px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/5">
               <Calendar size={11} className="text-slate-400" />
               <span>Due {quest.dueDate}</span>
+            </span>
+          )}
+
+          {/* Quest Reminder Badge */}
+          {quest.reminderEnabled && (
+            <span className="inline-flex items-center gap-1 text-[10px] font-mono font-medium text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20">
+              <Bell size={11} className="text-indigo-500" />
+              <span>Reminder {quest.reminderTime || 'Active'}</span>
             </span>
           )}
         </div>

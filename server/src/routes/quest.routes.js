@@ -17,6 +17,11 @@ const createQuestSchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Due date must be in YYYY-MM-DD format')
     .nullable()
     .optional(),
+  reminderEnabled: z.boolean().optional(),
+  reminderTime: z.string().trim().max(10).nullable().optional(),
+  reminderDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Reminder date must be in YYYY-MM-DD format').nullable().optional(),
+  reminderFrequency: z.enum(['daily', 'days_before', 'on_due_date']).optional(),
+  reminderDaysBefore: z.number().int().min(1).max(30).optional(),
   items: z
     .array(
       z.union([
@@ -40,6 +45,11 @@ const updateQuestSchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Due date must be in YYYY-MM-DD format')
     .nullable()
     .optional(),
+  reminderEnabled: z.boolean().optional(),
+  reminderTime: z.string().trim().max(10).nullable().optional(),
+  reminderDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Reminder date must be in YYYY-MM-DD format').nullable().optional(),
+  reminderFrequency: z.enum(['daily', 'days_before', 'on_due_date']).optional(),
+  reminderDaysBefore: z.number().int().min(1).max(30).optional(),
 });
 
 const reorderSchema = z.object({

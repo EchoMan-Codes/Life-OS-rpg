@@ -19,6 +19,7 @@ import restModeRoutes from './routes/rest-mode.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
 import aiRoutes from './routes/ai.routes.js';
 import reportRoutes from './routes/report.routes.js';
+import feedbackRoutes from './routes/feedback.routes.js';
 
 const app = express();
 
@@ -108,6 +109,8 @@ app.use('/api/v1/ai', aiRoutes);
 app.use('/ai', aiRoutes);
 app.use('/api/v1/reports', reportRoutes);
 app.use('/reports', reportRoutes);
+app.use('/api/v1/feedback', feedbackRoutes);
+app.use('/feedback', feedbackRoutes);
 
 // 404 handler for undefined routes
 app.use((req, res) => {

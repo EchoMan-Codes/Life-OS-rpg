@@ -173,15 +173,90 @@ export function NotificationCenterModal({ isOpen, onClose }) {
               {showPreferences ? (
                 /* Preferences Panel */
                 <div className="space-y-3 p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-ink mb-2">
-                    Reminder & Notification Settings
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-ink mb-1">
+                    Notification & Reminder Preferences
                   </h4>
+                  <p className="text-[11px] text-slate-500 dark:text-ink-muted mb-3">
+                    Configure your personalized smart alerts, daily rituals, and reminder schedules.
+                  </p>
 
+                  {/* Scheduled Daily Rituals (Morning & Evening) */}
+                  <div className="p-3 rounded-xl bg-white dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 space-y-3">
+                    <p className="text-xs font-bold text-slate-900 dark:text-ink">Daily Smart Rituals</p>
+
+                    {/* Morning Briefing */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex-1">
+                        <p className="text-xs font-semibold text-slate-800 dark:text-ink">Morning Plan Briefing</p>
+                        <p className="text-[10px] text-slate-500 dark:text-ink-muted">Summary of today's Dailies & Quests</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="time"
+                          value={preferences.morningTime || '07:30'}
+                          onChange={(e) => updatePrefsMutation.mutate({ ...preferences, morningTime: e.target.value })}
+                          className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-white/10 text-xs text-slate-800 dark:text-ink font-mono"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleTogglePref('morningBriefing')}
+                          className={clsx(
+                            'w-9 h-5 rounded-full transition-colors relative p-0.5 cursor-pointer',
+                            preferences.morningBriefing !== false ? 'bg-amber-500' : 'bg-slate-300 dark:bg-white/15'
+                          )}
+                        >
+                          <div
+                            className={clsx(
+                              'w-4 h-4 rounded-full bg-white shadow-xs transition-transform',
+                              preferences.morningBriefing !== false ? 'translate-x-4' : 'translate-x-0'
+                            )}
+                          />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Evening Reflection */}
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-white/5">
+                      <div className="flex-1">
+                        <p className="text-xs font-semibold text-slate-800 dark:text-ink">Evening Reflection Reminder</p>
+                        <p className="text-[10px] text-slate-500 dark:text-ink-muted">Review what went well and plan improvements</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="time"
+                          value={preferences.eveningTime || '21:00'}
+                          onChange={(e) => updatePrefsMutation.mutate({ ...preferences, eveningTime: e.target.value })}
+                          className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-white/10 text-xs text-slate-800 dark:text-ink font-mono"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleTogglePref('eveningReflection')}
+                          className={clsx(
+                            'w-9 h-5 rounded-full transition-colors relative p-0.5 cursor-pointer',
+                            preferences.eveningReflection !== false ? 'bg-amber-500' : 'bg-slate-300 dark:bg-white/15'
+                          )}
+                        >
+                          <div
+                            className={clsx(
+                              'w-4 h-4 rounded-full bg-white shadow-xs transition-transform',
+                              preferences.eveningReflection !== false ? 'translate-x-4' : 'translate-x-0'
+                            )}
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Task & Gamification Toggles */}
                   {[
-                    { key: 'dailyReminders', label: 'Daily Ritual Reminders', desc: 'Alerts before scheduled Dailies' },
-                    { key: 'habitReminders', label: 'Habit Streaks & Discipline', desc: 'Daily discipline wave reminders' },
-                    { key: 'questReminders', label: 'Quest Milestones & Deadlines', desc: 'Notifications on due quests' },
-                    { key: 'soundEnabled', label: 'Notification Sounds', desc: 'Play audio cues on incoming notifications' },
+                    { key: 'dailyBeforeTask', label: 'Dailies: 10m Prior Alert', desc: 'Pre-task warning before scheduled time' },
+                    { key: 'dailyAtTask', label: 'Dailies: At-Task Alert', desc: 'Notification right when a daily task starts' },
+                    { key: 'habitReminders', label: 'Habit Discipline Alerts', desc: 'Gentle nudges to preserve active streaks' },
+                    { key: 'questDeadline', label: 'Quest Deadlines', desc: 'Alerts when quest deadlines are approaching' },
+                    { key: 'questProgress', label: 'Quest Milestone Progress', desc: 'Celebrations and milestone checkpoints' },
+                    { key: 'achievements', label: 'Level Ups & Achievements', desc: 'Celebrations when reaching new tiers' },
+                    { key: 'aiRecommendations', label: 'AI Smart Recommendations', desc: 'Personalized schedule and productivity tips' },
+                    { key: 'soundEnabled', label: 'Audio Notification Cues', desc: 'Play haptic sound effect on incoming alert' },
                   ].map((pref) => {
                     const isChecked = preferences[pref.key] !== false;
                     return (
@@ -196,7 +271,7 @@ export function NotificationCenterModal({ isOpen, onClose }) {
                         </div>
                         <div
                           className={clsx(
-                            'w-10 h-6 rounded-full transition-colors relative p-0.5',
+                            'w-10 h-6 rounded-full transition-colors relative p-0.5 shrink-0',
                             isChecked ? 'bg-amber-500' : 'bg-slate-300 dark:bg-white/15'
                           )}
                         >

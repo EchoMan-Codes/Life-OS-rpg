@@ -103,15 +103,28 @@ export function JeevanAiModal({ isOpen, onClose }) {
 
   const quickPrompts = [
     'Plan tomorrow',
-    'What should I focus on today?',
+    'What should I focus on?',
+    'Plan my day',
     'Create a habit to drink water every morning',
-    'Plan my week',
+    'Analyze my week',
+    'Review my progress',
+    'Break down a goal into subtasks',
   ];
+
+  const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+        <div
+          style={{
+            paddingTop: 'max(0.75rem, env(safe-area-inset-top, 0px))',
+            paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))',
+            paddingLeft: 'max(0.75rem, env(safe-area-inset-left, 0px))',
+            paddingRight: 'max(0.75rem, env(safe-area-inset-right, 0px))',
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
+        >
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -124,7 +137,7 @@ export function JeevanAiModal({ isOpen, onClose }) {
             initial={{ opacity: 0, scale: 0.95, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 12 }}
-            className="relative w-full max-w-lg h-[85vh] flex flex-col rounded-3xl bg-white dark:bg-obsidian-900 border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden z-10"
+            className="relative w-full max-w-lg h-[86vh] flex flex-col rounded-3xl bg-white dark:bg-obsidian-900 border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden z-10"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-white/[0.02]">
@@ -138,6 +151,11 @@ export function JeevanAiModal({ isOpen, onClose }) {
                     <span className="text-[10px] font-mono px-2 py-0.2 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30">
                       Action Agent
                     </span>
+                    {!isOnline && (
+                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                        Offline Safe
+                      </span>
+                    )}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-ink-muted">
                     Intelligent daily strategist & routine optimizer
@@ -148,7 +166,7 @@ export function JeevanAiModal({ isOpen, onClose }) {
               <button
                 type="button"
                 onClick={onClose}
-                className="p-2 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all"
+                className="p-2 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
               >
                 <X size={16} />
               </button>
@@ -187,7 +205,7 @@ export function JeevanAiModal({ isOpen, onClose }) {
                           </span>
                         </div>
 
-                        {/* Items Preview */}
+                        {/* Items Preview for create_dailies */}
                         {Array.isArray(msg.structuredAction.items) && (
                           <div className="space-y-1 max-h-36 overflow-y-auto">
                             {msg.structuredAction.items.map((item, idx) => (
@@ -212,12 +230,60 @@ export function JeevanAiModal({ isOpen, onClose }) {
                           </div>
                         )}
 
+                        {/* Preview for update_daily */}
+                        {msg.structuredAction.type === 'update_daily' && (
+                          <div className="p-2 rounded-lg bg-slate-50 dark:bg-white/[0.02] text-[11px] text-slate-700 dark:text-ink space-y-1">
+                            <p className="font-semibold text-indigo-600 dark:text-indigo-400">
+                              Task to modify: {msg.structuredAction.dailyTitle || 'Selected Daily'}
+                            </p>
+                            <p className="text-[10px] text-slate-500 dark:text-ink-muted">
+                              New Time: {msg.structuredAction.updates?.scheduledTime || 'Unchanged'} · Duration: {msg.structuredAction.updates?.durationMinutes ? `${msg.structuredAction.updates.durationMinutes}m` : 'Unchanged'}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Preview for delete_daily */}
+                        {msg.structuredAction.type === 'delete_daily' && (
+                          <div className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/20 text-[11px] text-rose-700 dark:text-rose-300">
+                            <p className="font-bold">Task to remove: {msg.structuredAction.dailyTitle}</p>
+                            <p className="text-[10px] text-rose-600/80 dark:text-rose-400/80">This will remove the item from your daily agenda.</p>
+                          </div>
+                        )}
+
+                        {/* Preview for create_habit */}
+                        {msg.structuredAction.type === 'create_habit' && (
+                          <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-800 dark:text-emerald-300 space-y-1">
+                            <p className="font-bold">New Habit: {msg.structuredAction.title}</p>
+                            <p className="text-[10px] opacity-80">Cadence: {msg.structuredAction.cadence || 'Daily'} · Area: {msg.structuredAction.area || 'Discipline'}</p>
+                          </div>
+                        )}
+
+                        {/* Preview for create_quest */}
+                        {msg.structuredAction.type === 'create_quest' && (
+                          <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20 text-[11px] text-purple-800 dark:text-purple-300 space-y-1">
+                            <p className="font-bold">New Campaign: {msg.structuredAction.title}</p>
+                            <p className="text-[10px] opacity-80">Priority: {msg.structuredAction.priority || 'medium'} · {msg.structuredAction.items?.length || 0} subtasks</p>
+                          </div>
+                        )}
+
+                        {/* Preview for add_quest_subtasks */}
+                        {msg.structuredAction.type === 'add_quest_subtasks' && (
+                          <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20 text-[11px] text-purple-800 dark:text-purple-300 space-y-1">
+                            <p className="font-bold">Adding {msg.structuredAction.subtasks?.length || 0} subtasks to Quest</p>
+                            <ul className="list-disc list-inside text-[10px] space-y-0.5">
+                              {(msg.structuredAction.subtasks || []).map((s, idx) => (
+                                <li key={idx} className="truncate">{s}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
                         {/* Apply Action Button */}
                         <div className="pt-1">
                           {appliedActionIds.has(msg.id) ? (
                             <div className="flex items-center justify-center gap-1.5 py-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-bold">
                               <CheckCircle2 size={14} />
-                              <span>Applied to Your Dailies!</span>
+                              <span>Applied to Your System!</span>
                             </div>
                           ) : (
                             <button
@@ -230,7 +296,7 @@ export function JeevanAiModal({ isOpen, onClose }) {
                                 <Loader2 size={13} className="animate-spin" />
                               ) : (
                                 <>
-                                  <span>Confirm & Add to Schedule</span>
+                                  <span>Confirm & Execute Action</span>
                                   <ArrowRight size={13} />
                                 </>
                               )}
@@ -259,7 +325,7 @@ export function JeevanAiModal({ isOpen, onClose }) {
                   key={prompt}
                   type="button"
                   onClick={() => handleSend(prompt)}
-                  className="px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap bg-white dark:bg-white/[0.04] text-slate-600 dark:text-ink-muted hover:text-slate-900 dark:hover:text-ink border border-slate-200/80 dark:border-white/10 shadow-xs transition-colors"
+                  className="px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap bg-white dark:bg-white/[0.04] text-slate-600 dark:text-ink-muted hover:text-slate-900 dark:hover:text-ink border border-slate-200/80 dark:border-white/10 shadow-xs transition-colors cursor-pointer"
                 >
                   {prompt}
                 </button>
@@ -271,6 +337,9 @@ export function JeevanAiModal({ isOpen, onClose }) {
               onSubmit={(e) => {
                 e.preventDefault();
                 handleSend();
+              }}
+              style={{
+                paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))',
               }}
               className="p-3 border-t border-slate-200 dark:border-white/10 bg-white dark:bg-obsidian-900 flex items-center gap-2"
             >

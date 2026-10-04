@@ -102,12 +102,21 @@ export const notificationService = {
       'SELECT notification_preferences as "notificationPreferences" FROM users WHERE id = $1',
       [userId]
     );
-    return res.rows[0]?.notificationPreferences || {
-      dailyReminders: true,
+    return {
+      dailyBeforeTask: true,
+      dailyAtTask: true,
       habitReminders: true,
-      questReminders: true,
+      questDeadline: true,
+      questProgress: true,
+      morningBriefing: true,
+      morningTime: '07:00 AM',
+      eveningReflection: true,
+      eveningTime: '09:00 PM',
+      achievements: true,
+      aiRecommendations: true,
       reminderMinutesBefore: 10,
       soundEnabled: true,
+      ...(res.rows[0]?.notificationPreferences || {}),
     };
   },
 

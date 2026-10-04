@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PropTypes from 'prop-types';
-import { X, Scroll, Plus, Trash2 } from 'lucide-react';
+import { X, Scroll, Plus, Trash2, Bell } from 'lucide-react';
 import clsx from 'clsx';
 
 import { modalPanel } from '@/lib/motionVariants';
 import { useCreateQuest, useUpdateQuest } from '@/features/quests/hooks';
 import { JeevanLoader } from '@/components/ui/JeevanLoader';
 import { useJeevanTransition } from '@/context/JeevanTransitionContext';
+import { notificationService } from '@/lib/notifications';
 
 const PRIORITIES = [
   { value: 'low', label: 'Low' },
@@ -33,6 +34,10 @@ function QuestForm({ questToEdit, onClose }) {
   const [priority, setPriority] = useState(() => questToEdit?.priority || 'medium');
   const [difficulty, setDifficulty] = useState(() => questToEdit?.difficulty || 'medium');
   const [dueDate, setDueDate] = useState(() => questToEdit?.dueDate || '');
+  const [reminderEnabled, setReminderEnabled] = useState(() => Boolean(questToEdit?.reminderEnabled));
+  const [reminderTime, setReminderTime] = useState(() => questToEdit?.reminderTime || '19:00');
+  const [reminderFrequency, setReminderFrequency] = useState(() => questToEdit?.reminderFrequency || 'days_before');
+  const [reminderDaysBefore, setReminderDaysBefore] = useState(() => questToEdit?.reminderDaysBefore || 1);
   const [items, setItems] = useState(() => (questToEdit?.items ? questToEdit.items.map((i) => i.title) : []));
   const [newItemInput, setNewItemInput] = useState('');
   const [error, setError] = useState(null);
@@ -66,6 +71,10 @@ function QuestForm({ questToEdit, onClose }) {
       priority,
       difficulty,
       dueDate: dueDate || null,
+      reminderEnabled,
+      reminderTime: reminderEnabled ? reminderTime : null,
+      reminderFrequency: reminderEnabled ? reminderFrequency : undefined,
+      reminderDaysBefore: reminderEnabled ? Number(reminderDaysBefore) : undefined,
     };
 
     if (!isEditing) {
@@ -78,6 +87,19 @@ function QuestForm({ questToEdit, onClose }) {
       } else {
         await createMutation.mutateAsync(payload);
       }
+
+      if (reminderEnabled) {
+        notificationService.scheduleQuestReminder({
+          id: questToEdit?.id,
+          title: payload.title,
+          dueDate: payload.dueDate,
+          reminderEnabled,
+          reminderTime,
+          reminderFrequency,
+          reminderDaysBefore: Number(reminderDaysBefore),
+        });
+      }
+
       onClose();
       triggerTransition({
         variant: 'medium',
@@ -196,6 +218,97 @@ function QuestForm({ questToEdit, onClose }) {
           onChange={(e) => setDueDate(e.target.value)}
           className="px-4 py-2.5 rounded-2xl bg-white/[0.04] border border-white/10 text-ink focus:outline-none focus:border-white/30 transition-colors text-sm backdrop-blur-md"
         />
+      </div>
+
+      {/* Quest Reminder Section */}
+      <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+              <Bell size={14} />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-ink">Quest Reminders</p>
+              <p className="text-[10px] text-ink-muted">Receive smart notifications for this quest</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setReminderEnabled(!reminderEnabled)}
+            className={clsx(
+              'w-10 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer',
+              reminderEnabled ? 'bg-amber-500' : 'bg-white/15'
+            )}
+          >
+            <div
+              className={clsx(
+                'w-5 h-5 rounded-full bg-white shadow-xs transition-transform',
+                reminderEnabled ? 'translate-x-4' : 'translate-x-0'
+              )}
+            />
+          </button>
+        </div>
+
+        {reminderEnabled && (
+          <div className="space-y-2.5 pt-2 border-t border-white/5">
+            {/* Frequency Selection */}
+            <div className="flex flex-col gap-1">
+              <label className="text-[11px] font-semibold text-ink-muted">Reminder Cadence</label>
+              <div className="grid grid-cols-3 gap-1.5">
+                {[
+                  { value: 'days_before', label: 'Days Before' },
+                  { value: 'daily', label: 'Daily' },
+                  { value: 'on_due_date', label: 'On Due Date' },
+                ].map((freq) => (
+                  <button
+                    key={freq.value}
+                    type="button"
+                    onClick={() => setReminderFrequency(freq.value)}
+                    className={clsx(
+                      'py-1.5 px-2 rounded-xl text-[11px] font-semibold border transition-all text-center',
+                      reminderFrequency === freq.value
+                        ? 'border-indigo-500 bg-indigo-500/20 text-indigo-300'
+                        : 'border-white/10 bg-white/[0.02] text-ink-muted hover:border-white/20'
+                    )}
+                  >
+                    {freq.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              {/* Reminder Time */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[11px] font-semibold text-ink-muted">Time of Day</label>
+                <input
+                  type="time"
+                  value={reminderTime}
+                  onChange={(e) => setReminderTime(e.target.value)}
+                  className="px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-ink text-xs focus:outline-none focus:border-white/30"
+                />
+              </div>
+
+              {/* Days Before if selected */}
+              {reminderFrequency === 'days_before' && (
+                <div className="flex flex-col gap-1">
+                  <label className="text-[11px] font-semibold text-ink-muted">Days Prior</label>
+                  <select
+                    value={reminderDaysBefore}
+                    onChange={(e) => setReminderDaysBefore(Number(e.target.value))}
+                    className="px-3 py-1.5 rounded-xl bg-slate-900 border border-white/10 text-ink text-xs focus:outline-none focus:border-white/30"
+                  >
+                    <option value={1}>1 day before</option>
+                    <option value={2}>2 days before</option>
+                    <option value={3}>3 days before</option>
+                    <option value={5}>5 days before</option>
+                    <option value={7}>1 week before</option>
+                  </select>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Initial Subtasks Checklist (Creation mode only) */}

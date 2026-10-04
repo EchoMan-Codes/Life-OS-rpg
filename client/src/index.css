@@ -11,15 +11,34 @@
 }
 
 .pt-safe {
-  padding-top: max(env(safe-area-inset-top, 0px), 0.5rem);
+  padding-top: max(env(safe-area-inset-top, 0px), 0.75rem);
 }
 
 .pb-safe {
-  padding-bottom: max(env(safe-area-inset-bottom, 0px), 0.5rem);
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 1rem);
+}
+
+.pl-safe {
+  padding-left: env(safe-area-inset-left, 0px);
+}
+
+.pr-safe {
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+.safe-area-container {
+  padding-top: max(env(safe-area-inset-top, 0px), 0.75rem);
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 1rem);
+  padding-left: max(env(safe-area-inset-left, 0px), 0.75rem);
+  padding-right: max(env(safe-area-inset-right, 0px), 0.75rem);
 }
 
 .safe-bottom-margin {
   margin-bottom: max(env(safe-area-inset-bottom, 0px), 1rem);
+}
+
+.safe-bottom-clearance {
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 /*

@@ -17,6 +17,8 @@ import DevShowcase from '@/pages/DevShowcase';
 
 import OnboardingPage from '@/features/onboarding/OnboardingPage';
 
+import { notificationService } from '@/lib/notifications';
+
 export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -24,6 +26,7 @@ export default function App() {
 
   useEffect(() => {
     initNativeStatusBar();
+    notificationService.setNavigateHandler((path) => navigate(path));
     const cleanup = initNativeApp({
       onNavigate: (path) => navigate(path),
     });

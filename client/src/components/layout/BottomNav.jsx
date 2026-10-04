@@ -194,7 +194,11 @@ export function BottomNav({ onOpenAuth }) {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={spring.ios}
-              style={{ paddingBottom: 'max(2rem, calc(1.5rem + env(safe-area-inset-bottom, 0px)))' }}
+              style={{
+                paddingBottom: 'max(2rem, calc(1.5rem + env(safe-area-inset-bottom, 0px)))',
+                paddingLeft: 'max(1.25rem, calc(1rem + env(safe-area-inset-left, 0px)))',
+                paddingRight: 'max(1.25rem, calc(1rem + env(safe-area-inset-right, 0px)))',
+              }}
               className="relative z-10 rounded-t-[36px] bg-white/95 dark:bg-obsidian-900/95 backdrop-blur-3xl border-t border-slate-200/90 dark:border-white/15 p-5 shadow-[0_-12px_40px_rgba(0,0,0,0.12)] dark:shadow-[0_-12px_40px_rgba(0,0,0,0.65)] space-y-4 max-h-[85vh] overflow-y-auto"
             >
               {/* iOS Grabber Handle & Header */}

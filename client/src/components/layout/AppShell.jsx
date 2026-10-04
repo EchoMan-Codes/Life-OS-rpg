@@ -61,7 +61,15 @@ export function AppShell({ children }) {
             />
           )}
         </AnimatePresence>
-        <div className="min-h-screen bg-obsidian text-ink">
+        <div
+          style={{
+            paddingTop: 'env(safe-area-inset-top, 0px)',
+            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+            paddingLeft: 'env(safe-area-inset-left, 0px)',
+            paddingRight: 'env(safe-area-inset-right, 0px)',
+          }}
+          className="min-h-screen bg-obsidian text-ink"
+        >
           {children}
         </div>
       </ToastProvider>
@@ -102,19 +110,23 @@ export function AppShell({ children }) {
         {/* Floating Combat Text Portal */}
         <FloatingTextContainer />
 
-        {/* Main content area */}
+        {/* Main content area with strict mobile safe-area handling */}
         <main
+          style={!isDesktop ? {
+            paddingTop: isDashboard || isProfile
+              ? 'max(0.75rem, env(safe-area-inset-top, 0px))'
+              : 'calc(3.5rem + max(0.5rem, env(safe-area-inset-top, 0px)))',
+            paddingBottom: 'calc(5.5rem + env(safe-area-inset-bottom, 0px))',
+            paddingLeft: 'env(safe-area-inset-left, 0px)',
+            paddingRight: 'env(safe-area-inset-right, 0px)',
+          } : undefined}
           className={clsx(
             'min-h-screen transition-[margin,padding] duration-200',
             isDesktop
               ? sidebarCollapsed
                 ? isDashboard ? 'pt-20 ml-20' : isProfile ? 'pt-6 ml-20' : 'pt-[72px] ml-20'
                 : isDashboard ? 'pt-20 ml-64' : isProfile ? 'pt-6 ml-64' : 'pt-[72px] ml-64'
-              : isDashboard
-                ? 'pt-2 pb-28 sm:pb-32'
-                : isProfile
-                ? 'pt-2 pb-28 sm:pb-32'
-                : 'pt-16 pb-28 sm:pb-32' // Streamlined clearance for focused pages
+              : ''
           )}
         >
           <div className="p-3 sm:p-5 md:p-6 lg:p-8 max-w-7xl mx-auto">

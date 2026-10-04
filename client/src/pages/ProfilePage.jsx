@@ -38,6 +38,9 @@ import {
   Bell,
   Loader2,
   X,
+  Bot,
+  Headphones,
+  MessageSquare,
 } from 'lucide-react';
 import {
   BarChart,
@@ -64,6 +67,7 @@ import { AttributesRadarChart } from '@/components/hud/AttributesRadarChart';
 import { useTheme } from '@/lib/theme';
 import { ReportsModal } from '@/features/reports/ReportsModal';
 import { NotificationCenterModal } from '@/features/notifications/components/NotificationCenterModal';
+import { FeedbackModal } from '@/features/feedback/components/FeedbackModal';
 
 const ATTR_DETAILS = [
   {
@@ -145,11 +149,33 @@ export default function ProfilePage() {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [showReportsModal, setShowReportsModal] = useState(false);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+
+  // AI Agent Configuration
+  const [aiPreferences, setAiPreferences] = useState(() => {
+    return user?.aiPreferences || {
+      enabled: true,
+      provider: 'auto',
+      allowTelemetry: true,
+      autoCreateDailies: false,
+      requireConfirmation: true,
+    };
+  });
+
+  const handleUpdateAiPref = async (key, val) => {
+    const updated = { ...aiPreferences, [key]: val };
+    setAiPreferences(updated);
+    try {
+      await updateProfile({ aiPreferences: updated });
+    } catch (e) {
+      console.warn('Failed to persist AI preferences:', e);
+    }
+  };
 
   // Editable motto quote
   const [motto, setMotto] = useState(() => {
@@ -1192,6 +1218,176 @@ export default function ProfilePage() {
               </button>
             </Card>
 
+            {/* AI Agent & Automation Settings */}
+            <Card className="p-4 sm:p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider font-display text-slate-900 dark:text-ink flex items-center gap-1.5">
+                    <Bot size={15} className="text-cyan-500" />
+                    <span>Jeevan AI Agent & Automation</span>
+                  </span>
+                  <p className="text-xs text-slate-500 dark:text-ink-muted mt-0.5">
+                    Configure LLM intelligence, telemetry access, and task creation rules.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleUpdateAiPref('enabled', !aiPreferences.enabled)}
+                  className={clsx(
+                    'w-10 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer shrink-0',
+                    aiPreferences.enabled !== false ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-white/15'
+                  )}
+                >
+                  <div
+                    className={clsx(
+                      'w-5 h-5 rounded-full bg-white shadow-xs transition-transform',
+                      aiPreferences.enabled !== false ? 'translate-x-4' : 'translate-x-0'
+                    )}
+                  />
+                </button>
+              </div>
+
+              {aiPreferences.enabled !== false && (
+                <div className="space-y-3 pt-1 border-t border-slate-200/80 dark:border-white/10">
+                  {/* Provider Selection */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                      AI Reasoning Provider
+                    </label>
+                    <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+                      {[
+                        { id: 'auto', label: 'Auto (Best)' },
+                        { id: 'gemini', label: 'Google Gemini' },
+                        { id: 'openai', label: 'OpenAI GPT' },
+                        { id: 'offline', label: 'Offline Engine' },
+                      ].map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => handleUpdateAiPref('provider', p.id)}
+                          className={clsx(
+                            'py-2 px-2 rounded-xl text-[11px] font-semibold border transition-all text-center cursor-pointer',
+                            (aiPreferences.provider || 'auto') === p.id
+                              ? 'border-cyan-500 bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 font-bold'
+                              : 'border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-600 dark:text-ink-muted'
+                          )}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Telemetry Access */}
+                  <div
+                    onClick={() => handleUpdateAiPref('allowTelemetry', !aiPreferences.allowTelemetry)}
+                    className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 cursor-pointer"
+                  >
+                    <div>
+                      <p className="text-xs font-semibold text-slate-800 dark:text-ink">
+                        Telemetry & Productivity History
+                      </p>
+                      <p className="text-[10px] text-slate-500 dark:text-ink-muted">
+                        Allow AI to analyze habits, dailies, streaks, and focus sessions
+                      </p>
+                    </div>
+                    <div
+                      className={clsx(
+                        'w-9 h-5 rounded-full transition-colors relative p-0.5 shrink-0',
+                        aiPreferences.allowTelemetry !== false ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-white/15'
+                      )}
+                    >
+                      <div
+                        className={clsx(
+                          'w-4 h-4 rounded-full bg-white shadow-xs transition-transform',
+                          aiPreferences.allowTelemetry !== false ? 'translate-x-4' : 'translate-x-0'
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Auto Create Tasks vs Propose */}
+                  <div
+                    onClick={() => handleUpdateAiPref('autoCreateDailies', !aiPreferences.autoCreateDailies)}
+                    className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 cursor-pointer"
+                  >
+                    <div>
+                      <p className="text-xs font-semibold text-slate-800 dark:text-ink">
+                        Allow AI to create Dailies automatically
+                      </p>
+                      <p className="text-[10px] text-slate-500 dark:text-ink-muted">
+                        {aiPreferences.autoCreateDailies
+                          ? 'Tasks are added directly to your schedule'
+                          : 'Proposes daily schedule cards for manual confirmation'}
+                      </p>
+                    </div>
+                    <div
+                      className={clsx(
+                        'w-9 h-5 rounded-full transition-colors relative p-0.5 shrink-0',
+                        aiPreferences.autoCreateDailies ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-white/15'
+                      )}
+                    >
+                      <div
+                        className={clsx(
+                          'w-4 h-4 rounded-full bg-white shadow-xs transition-transform',
+                          aiPreferences.autoCreateDailies ? 'translate-x-4' : 'translate-x-0'
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Require Confirmation for Destructive Changes */}
+                  <div
+                    onClick={() => handleUpdateAiPref('requireConfirmation', !aiPreferences.requireConfirmation)}
+                    className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 cursor-pointer"
+                  >
+                    <div>
+                      <p className="text-xs font-semibold text-slate-800 dark:text-ink">
+                        Require Confirmation for Task Modifications
+                      </p>
+                      <p className="text-[10px] text-slate-500 dark:text-ink-muted">
+                        Always display an action review card before modifying or deleting existing tasks
+                      </p>
+                    </div>
+                    <div
+                      className={clsx(
+                        'w-9 h-5 rounded-full transition-colors relative p-0.5 shrink-0',
+                        aiPreferences.requireConfirmation !== false ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-white/15'
+                      )}
+                    >
+                      <div
+                        className={clsx(
+                          'w-4 h-4 rounded-full bg-white shadow-xs transition-transform',
+                          aiPreferences.requireConfirmation !== false ? 'translate-x-4' : 'translate-x-0'
+                        )}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </Card>
+
+            {/* Help, Feedback & Contact Support */}
+            <Card className="p-4 sm:p-5 space-y-3">
+              <span className="text-xs font-bold uppercase tracking-wider font-display text-slate-900 dark:text-ink block">
+                Support, Feedback & Inquiries
+              </span>
+              <p className="text-xs text-slate-500 dark:text-ink-muted">
+                Report issues, suggest features, or reach out directly to the Jeevan engineering team.
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowFeedbackModal(true)}
+                className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 hover:from-indigo-500/20 hover:to-purple-500/20 border border-indigo-500/30 text-indigo-700 dark:text-indigo-300 font-bold text-xs transition-all shadow-xs cursor-pointer active:scale-98"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Headphones size={17} className="text-indigo-500" />
+                  <span>Open Help & Feedback Center</span>
+                </div>
+                <ArrowRight size={15} />
+              </button>
+            </Card>
+
             {/* System Preferences & Audio */}
             <Card className="p-4 sm:p-5 space-y-3">
               <span className="text-xs font-bold uppercase tracking-wider font-display text-slate-900 dark:text-ink block">
@@ -1325,6 +1521,12 @@ export default function ProfilePage() {
       <NotificationCenterModal
         isOpen={showNotificationsModal}
         onClose={() => setShowNotificationsModal(false)}
+      />
+
+      {/* Feedback & Support Center Modal */}
+      <FeedbackModal
+        isOpen={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
       />
 
       {/* Reset Account Confirmation Modal */}

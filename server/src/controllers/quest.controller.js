@@ -35,13 +35,30 @@ export class QuestController {
    */
   async createQuest(req, res, next) {
     try {
-      const { title, description, priority, difficulty, dueDate, items } = req.body;
+      const {
+        title,
+        description,
+        priority,
+        difficulty,
+        dueDate,
+        reminderEnabled,
+        reminderTime,
+        reminderDate,
+        reminderFrequency,
+        reminderDaysBefore,
+        items,
+      } = req.body;
       const quest = await questService.createQuest(req.user.id, {
         title,
         description,
         priority,
         difficulty,
         dueDate,
+        reminderEnabled,
+        reminderTime,
+        reminderDate,
+        reminderFrequency,
+        reminderDaysBefore,
         items,
       });
       return res.status(201).json({ data: quest });
@@ -55,13 +72,29 @@ export class QuestController {
    */
   async updateQuest(req, res, next) {
     try {
-      const { title, description, priority, difficulty, dueDate } = req.body;
+      const {
+        title,
+        description,
+        priority,
+        difficulty,
+        dueDate,
+        reminderEnabled,
+        reminderTime,
+        reminderDate,
+        reminderFrequency,
+        reminderDaysBefore,
+      } = req.body;
       const quest = await questService.updateQuest(req.user.id, req.params.id, {
         title,
         description,
         priority,
         difficulty,
         dueDate,
+        reminderEnabled,
+        reminderTime,
+        reminderDate,
+        reminderFrequency,
+        reminderDaysBefore,
       });
       return res.status(200).json({ data: quest });
     } catch (err) {

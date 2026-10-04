@@ -37,6 +37,8 @@ export class QuestService {
     const sql = `
       SELECT q.id, q.user_id, q.title, q.description, q.priority, q.difficulty,
              q.due_date::text as due_date, q.status, q.position,
+             q.reminder_enabled, q.reminder_time, q.reminder_date::text as reminder_date,
+             q.reminder_frequency, q.reminder_days_before,
              q.created_at, q.completed_at, q.archived_at,
              COALESCE(
                json_agg(
@@ -112,6 +114,11 @@ export class QuestService {
         dueDate: q.due_date,
         status: q.status,
         position: q.position,
+        reminderEnabled: Boolean(q.reminder_enabled),
+        reminderTime: q.reminder_time || null,
+        reminderDate: q.reminder_date || null,
+        reminderFrequency: q.reminder_frequency || 'days_before',
+        reminderDaysBefore: q.reminder_days_before !== null && q.reminder_days_before !== undefined ? Number(q.reminder_days_before) : 1,
         createdAt: q.created_at,
         completedAt: q.completed_at,
         archivedAt: q.archived_at ? new Date(q.archived_at).toISOString() : null,
@@ -158,7 +165,19 @@ export class QuestService {
    * @param {Array<string | { title: string }>} [params.items=[]]
    * @returns {Promise<object>}
    */
-  async createQuest(userId, { title, description, priority = 'medium', difficulty = 'medium', dueDate, items = [] }) {
+  async createQuest(userId, {
+    title,
+    description,
+    priority = 'medium',
+    difficulty = 'medium',
+    dueDate,
+    reminderEnabled = false,
+    reminderTime = null,
+    reminderDate = null,
+    reminderFrequency = 'days_before',
+    reminderDaysBefore = 1,
+    items = []
+  }) {
     return withTransaction(async (client) => {
       // 1. Determine next position
       const posRes = await client.query(
@@ -169,11 +188,25 @@ export class QuestService {
 
       // 2. Insert quest
       const insertQuestRes = await client.query(
-        `INSERT INTO quests (user_id, title, description, priority, difficulty, due_date, position)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `INSERT INTO quests (user_id, title, description, priority, difficulty, due_date, reminder_enabled, reminder_time, reminder_date, reminder_frequency, reminder_days_before, position)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
          RETURNING id, user_id, title, description, priority, difficulty,
-                   due_date::text as due_date, status, position, created_at, completed_at`,
-        [userId, title.trim(), description?.trim() || null, priority, difficulty, dueDate || null, nextPos]
+                   due_date::text as due_date, reminder_enabled, reminder_time, reminder_date::text as reminder_date,
+                   reminder_frequency, reminder_days_before, status, position, created_at, completed_at`,
+        [
+          userId,
+          title.trim(),
+          description?.trim() || null,
+          priority,
+          difficulty,
+          dueDate || null,
+          Boolean(reminderEnabled),
+          reminderTime || null,
+          reminderDate || null,
+          reminderFrequency || 'days_before',
+          reminderDaysBefore !== undefined && reminderDaysBefore !== null ? Number(reminderDaysBefore) : 1,
+          nextPos
+        ]
       );
       const quest = insertQuestRes.rows[0];
 
@@ -219,7 +252,18 @@ export class QuestService {
    * @param {object} updates
    * @returns {Promise<object>}
    */
-  async updateQuest(userId, questId, { title, description, priority, difficulty, dueDate }) {
+  async updateQuest(userId, questId, {
+    title,
+    description,
+    priority,
+    difficulty,
+    dueDate,
+    reminderEnabled,
+    reminderTime,
+    reminderDate,
+    reminderFrequency,
+    reminderDaysBefore
+  }) {
     const fields = [];
     const values = [questId, userId];
     let idx = 3;
@@ -243,6 +287,26 @@ export class QuestService {
     if (dueDate !== undefined) {
       fields.push(`due_date = $${idx++}`);
       values.push(dueDate || null);
+    }
+    if (reminderEnabled !== undefined) {
+      fields.push(`reminder_enabled = $${idx++}`);
+      values.push(Boolean(reminderEnabled));
+    }
+    if (reminderTime !== undefined) {
+      fields.push(`reminder_time = $${idx++}`);
+      values.push(reminderTime || null);
+    }
+    if (reminderDate !== undefined) {
+      fields.push(`reminder_date = $${idx++}`);
+      values.push(reminderDate || null);
+    }
+    if (reminderFrequency !== undefined) {
+      fields.push(`reminder_frequency = $${idx++}`);
+      values.push(reminderFrequency || 'days_before');
+    }
+    if (reminderDaysBefore !== undefined) {
+      fields.push(`reminder_days_before = $${idx++}`);
+      values.push(Number(reminderDaysBefore));
     }
 
     if (fields.length === 0) {

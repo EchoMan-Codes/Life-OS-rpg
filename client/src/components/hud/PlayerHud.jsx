@@ -124,7 +124,13 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false, onOpenB
               : 'left-0'
           )}
         >
-          <div className="h-full px-3.5 sm:px-6 flex items-center justify-between gap-3">
+          <div
+            style={{
+              paddingLeft: 'max(0.875rem, env(safe-area-inset-left, 0px))',
+              paddingRight: 'max(0.875rem, env(safe-area-inset-right, 0px))',
+            }}
+            className="h-full flex items-center justify-between gap-3"
+          >
             {/* Left: Contextual Page Title + Compact Hero Badge */}
             <div className="flex items-center gap-2 min-w-0">
               {!isDesktop && (

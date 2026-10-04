@@ -2,6 +2,8 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { SplashScreen } from '@capacitor/splash-screen';
 
+export const isNativePlatform = () => Capacitor.isNativePlatform();
+
 /**
  * Initialize native application lifecycle, deep links, and back button handling.
  *
@@ -11,7 +13,7 @@ import { SplashScreen } from '@capacitor/splash-screen';
  * @param {() => void} [options.onBack] - Custom back handler
  */
 export function initNativeApp({ onNavigate, canGoBack, onBack } = {}) {
-  if (!Capacitor.isNativePlatform()) return () => {};
+  if (!isNativePlatform()) return () => {};
 
   // Hide initial native splash once React takes control
   setTimeout(() => {

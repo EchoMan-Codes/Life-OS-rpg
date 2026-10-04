@@ -1,19 +1,38 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PropTypes from 'prop-types';
-import { X, Sparkles, Calendar } from 'lucide-react';
+import { X, Sparkles, Calendar, Clock, Bell, AlertTriangle } from 'lucide-react';
 import clsx from 'clsx';
 
 import { modalPanel } from '@/lib/motionVariants';
 import { useCreateDaily, useUpdateDaily } from '@/features/dailies/hooks';
 import { JeevanLoader } from '@/components/ui/JeevanLoader';
 import { useJeevanTransition } from '@/context/JeevanTransitionContext';
+import { notificationService } from '@/lib/notifications';
 
 const DIFFICULTIES = [
   { value: 'trivial', label: 'Trivial' },
   { value: 'easy', label: 'Easy' },
   { value: 'medium', label: 'Medium' },
   { value: 'hard', label: 'Hard' },
+];
+
+const PRIORITIES = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+  { value: 'critical', label: 'Critical' },
+];
+
+const DURATIONS = [15, 30, 45, 60, 90, 120];
+
+const REMINDER_OPTIONS = [
+  { value: 0, label: 'At scheduled time' },
+  { value: 5, label: '5 minutes before' },
+  { value: 10, label: '10 minutes before' },
+  { value: 15, label: '15 minutes before' },
+  { value: 30, label: '30 minutes before' },
+  { value: 60, label: '1 hour before' },
 ];
 
 const DIFFICULTY_REWARDS = {
@@ -41,13 +60,18 @@ function DailyForm({ dailyToEdit, onClose }) {
   const [title, setTitle] = useState(() => dailyToEdit?.title || '');
   const [description, setDescription] = useState(() => dailyToEdit?.description || '');
   const [difficulty, setDifficulty] = useState(() => dailyToEdit?.difficulty || 'easy');
+  const [priority, setPriority] = useState(() => dailyToEdit?.priority || 'medium');
   const [activeDays, setActiveDays] = useState(() => dailyToEdit?.activeDays || [0, 1, 2, 3, 4, 5, 6]);
+  const [scheduledTime, setScheduledTime] = useState(() => dailyToEdit?.scheduledTime || '');
+  const [durationMinutes, setDurationMinutes] = useState(() => dailyToEdit?.durationMinutes || 30);
+  const [reminderEnabled, setReminderEnabled] = useState(() => Boolean(dailyToEdit?.reminderEnabled));
+  const [reminderMinutesBefore, setReminderMinutesBefore] = useState(() => dailyToEdit?.reminderMinutesBefore ?? 10);
   const [error, setError] = useState(null);
 
   const toggleDay = (dayIndex) => {
     setActiveDays((prev) => {
       if (prev.includes(dayIndex)) {
-        if (prev.length === 1) return prev; // At least one active day required
+        if (prev.length === 1) return prev;
         return prev.filter((d) => d !== dayIndex).sort();
       }
       return [...prev, dayIndex].sort();
@@ -70,24 +94,33 @@ function DailyForm({ dailyToEdit, onClose }) {
     }
 
     try {
+      const payload = {
+        title: title.trim(),
+        description: description.trim() || null,
+        difficulty,
+        activeDays,
+        scheduledTime: scheduledTime ? scheduledTime.trim() : null,
+        durationMinutes: Number(durationMinutes),
+        priority,
+        reminderEnabled,
+        reminderMinutesBefore: Number(reminderMinutesBefore),
+      };
+
+      let savedDaily;
       if (dailyToEdit) {
-        await updateMutation.mutateAsync({
+        savedDaily = await updateMutation.mutateAsync({
           dailyId: dailyToEdit.id,
-          data: {
-            title: title.trim(),
-            description: description.trim() || null,
-            difficulty,
-            activeDays,
-          },
+          data: payload,
         });
       } else {
-        await createMutation.mutateAsync({
-          title: title.trim(),
-          description: description.trim() || null,
-          difficulty,
-          activeDays,
-        });
+        savedDaily = await createMutation.mutateAsync(payload);
       }
+
+      // Schedule local notification if reminder enabled
+      if (reminderEnabled && scheduledTime) {
+        await notificationService.scheduleDailyReminder(savedDaily || { ...payload, id: dailyToEdit?.id });
+      }
+
       onClose();
       triggerTransition({
         variant: 'medium',
@@ -104,107 +137,192 @@ function DailyForm({ dailyToEdit, onClose }) {
   const reward = DIFFICULTY_REWARDS[difficulty] || DIFFICULTY_REWARDS.easy;
 
   return (
-    <form onSubmit={handleSubmit} className="mt-5 space-y-5">
+    <form onSubmit={handleSubmit} className="mt-4 space-y-4 max-h-[75vh] overflow-y-auto pr-1">
       {error && (
-        <div className="p-3 text-xs rounded-panel bg-attr-strength/15 border border-attr-strength/40 text-attr-strength">
+        <div className="p-3 text-xs rounded-2xl bg-rose-500/15 border border-rose-500/40 text-rose-500">
           {error}
         </div>
       )}
 
       {/* Title */}
       <div>
-        <label htmlFor="daily-title" className="block text-xs font-medium text-ink-muted mb-1.5">
+        <label className="block text-xs font-semibold text-slate-700 dark:text-ink-muted mb-1.5">
           Ritual Title *
         </label>
         <input
-          id="daily-title"
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. 30 Minutes Cardio, Review Budget, Floss..."
+          placeholder="e.g. Study DBMS, Morning Meditation, Workout"
           maxLength={200}
-          required
-          className="w-full px-4 py-3 rounded-2xl bg-white/[0.04] border border-white/10 text-ink placeholder:text-ink-muted/40 focus:outline-none focus:border-white/30 focus:bg-white/[0.07] focus:ring-2 focus:ring-white/10 backdrop-blur-md shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] transition-all text-sm min-h-[46px]"
+          className="w-full px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-xs text-slate-900 dark:text-ink placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500"
         />
       </div>
 
       {/* Description */}
       <div>
-        <label htmlFor="daily-desc" className="block text-xs font-medium text-ink-muted mb-1.5">
-          Description (Optional)
+        <label className="block text-xs font-semibold text-slate-700 dark:text-ink-muted mb-1.5">
+          Description
         </label>
         <textarea
-          id="daily-desc"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Specific requirements or goals for this daily..."
+          placeholder="Add details, notes, or purpose for this ritual..."
           rows={2}
           maxLength={1000}
-          className="w-full px-4 py-3 rounded-2xl bg-white/[0.04] border border-white/10 text-ink placeholder:text-ink-muted/40 focus:outline-none focus:border-white/30 focus:bg-white/[0.07] focus:ring-2 focus:ring-white/10 backdrop-blur-md shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] transition-all text-sm resize-none"
+          className="w-full px-3.5 py-2.5 rounded-2xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-xs text-slate-900 dark:text-ink placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500 resize-none leading-relaxed"
         />
       </div>
 
-      {/* Active Days Picker */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <label className="text-xs font-medium text-ink-muted flex items-center gap-1.5">
-            <Calendar size={13} />
-            <span>Active Days *</span>
+      {/* Time & Duration Scheduling */}
+      <div className="grid grid-cols-2 gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10">
+        <div>
+          <label className="block text-[11px] font-semibold text-slate-700 dark:text-ink-muted mb-1 flex items-center gap-1">
+            <Clock size={12} className="text-indigo-500" />
+            <span>Scheduled Time</span>
           </label>
-          <div className="flex items-center gap-1 text-[11px] text-attr-perception">
+          <input
+            type="time"
+            value={scheduledTime}
+            onChange={(e) => setScheduledTime(e.target.value)}
+            className="w-full px-3 py-2 rounded-xl bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/10 text-xs text-slate-900 dark:text-ink focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-semibold text-slate-700 dark:text-ink-muted mb-1">
+            Duration
+          </label>
+          <select
+            value={durationMinutes}
+            onChange={(e) => setDurationMinutes(Number(e.target.value))}
+            className="w-full px-3 py-2 rounded-xl bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/10 text-xs text-slate-900 dark:text-ink focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          >
+            {DURATIONS.map((mins) => (
+              <option key={mins} value={mins} className="bg-slate-900 text-white">
+                {mins} minutes
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Priority Selector */}
+      <div>
+        <label className="block text-xs font-semibold text-slate-700 dark:text-ink-muted mb-1.5">
+          Priority
+        </label>
+        <div className="grid grid-cols-4 gap-2">
+          {PRIORITIES.map((p) => (
             <button
+              key={p.value}
               type="button"
-              onClick={selectEveryday}
-              className="hover:underline px-1 py-0.5 rounded"
+              onClick={() => setPriority(p.value)}
+              className={clsx(
+                'py-2 px-2 rounded-xl text-xs font-bold transition-all border text-center',
+                priority === p.value
+                  ? p.value === 'critical'
+                    ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400 border-rose-500/60 shadow-xs'
+                    : p.value === 'high'
+                    ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/60 shadow-xs'
+                    : 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border-indigo-500/60 shadow-xs'
+                  : 'bg-white/[0.04] text-slate-500 dark:text-ink-muted border-slate-200 dark:border-white/10'
+              )}
             >
-              Everyday
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Smart Reminders */}
+      <div className="p-3 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-2.5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Bell size={14} className="text-amber-500" />
+            <span className="text-xs font-bold text-slate-800 dark:text-ink">
+              Smart Reminder Alert
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setReminderEnabled(!reminderEnabled)}
+            className={clsx(
+              'w-10 h-6 rounded-full transition-colors relative p-0.5',
+              reminderEnabled ? 'bg-amber-500' : 'bg-slate-300 dark:bg-white/15'
+            )}
+          >
+            <div
+              className={clsx(
+                'w-5 h-5 rounded-full bg-white shadow-xs transition-transform',
+                reminderEnabled ? 'translate-x-4' : 'translate-x-0'
+              )}
+            />
+          </button>
+        </div>
+
+        {reminderEnabled && (
+          <div className="pt-1">
+            <label className="block text-[11px] text-slate-500 dark:text-ink-muted mb-1">
+              Notify me before session
+            </label>
+            <select
+              value={reminderMinutesBefore}
+              onChange={(e) => setReminderMinutesBefore(Number(e.target.value))}
+              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/10 text-xs text-slate-900 dark:text-ink focus:outline-none focus:ring-1 focus:ring-amber-500"
+            >
+              {REMINDER_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value} className="bg-slate-900 text-white">
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
+
+      {/* Active Days */}
+      <div>
+        <div className="flex items-center justify-between mb-1.5">
+          <label className="text-xs font-semibold text-slate-700 dark:text-ink-muted">Active Days</label>
+          <div className="flex items-center gap-1.5 text-[10px]">
+            <button type="button" onClick={selectEveryday} className="text-amber-600 dark:text-amber-400 hover:underline">
+              Daily
             </button>
             <span>•</span>
-            <button
-              type="button"
-              onClick={selectWeekdays}
-              className="hover:underline px-1 py-0.5 rounded"
-            >
+            <button type="button" onClick={selectWeekdays} className="text-amber-600 dark:text-amber-400 hover:underline">
               Weekdays
             </button>
             <span>•</span>
-            <button
-              type="button"
-              onClick={selectWeekends}
-              className="hover:underline px-1 py-0.5 rounded"
-            >
+            <button type="button" onClick={selectWeekends} className="text-amber-600 dark:text-amber-400 hover:underline">
               Weekends
             </button>
           </div>
         </div>
-
-        <div className="grid grid-cols-7 gap-1.5">
-          {DAYS_OF_WEEK.map(({ label, day, full }) => {
-            const isSelected = activeDays.includes(day);
-            return (
-              <button
-                key={day}
-                type="button"
-                onClick={() => toggleDay(day)}
-                aria-pressed={isSelected}
-                aria-label={`Toggle ${full}`}
-                className={clsx(
-                  'py-2.5 rounded-2xl text-xs font-semibold transition-all min-h-[44px] flex items-center justify-center active:scale-95 border',
-                  isSelected
-                    ? 'bg-attr-perception/20 text-attr-perception border-attr-perception/50 shadow-sm'
-                    : 'bg-white/[0.04] text-ink-muted/60 border-white/10 hover:bg-white/[0.08] hover:text-ink'
-                )}
-              >
-                {label}
-              </button>
-            );
-          })}
+        <div className="grid grid-cols-7 gap-1">
+          {DAYS_OF_WEEK.map(({ label, day }) => (
+            <button
+              key={day}
+              type="button"
+              onClick={() => toggleDay(day)}
+              className={clsx(
+                'py-2 rounded-xl text-xs font-bold transition-all border',
+                activeDays.includes(day)
+                  ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-xs'
+                  : 'bg-white/[0.04] text-slate-400 dark:text-ink-muted border-slate-200 dark:border-white/10'
+              )}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Difficulty Selector */}
       <div>
-        <label className="block text-xs font-medium text-ink-muted mb-2">Difficulty</label>
+        <label className="block text-xs font-semibold text-slate-700 dark:text-ink-muted mb-1.5">
+          Difficulty
+        </label>
         <div className="grid grid-cols-4 gap-2">
           {DIFFICULTIES.map((d) => (
             <button
@@ -212,10 +330,10 @@ function DailyForm({ dailyToEdit, onClose }) {
               type="button"
               onClick={() => setDifficulty(d.value)}
               className={clsx(
-                'py-2 px-3 rounded-2xl text-xs font-semibold capitalize transition-all min-h-[44px] border active:scale-95',
+                'py-2 px-2 rounded-xl text-xs font-semibold capitalize transition-all border',
                 difficulty === d.value
-                  ? 'bg-attr-intelligence/20 text-attr-intelligence border-attr-intelligence/60 shadow-sm'
-                  : 'bg-white/[0.04] text-ink-muted border-white/10 hover:bg-white/[0.08]'
+                  ? 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border-indigo-500/60 shadow-xs'
+                  : 'bg-white/[0.04] text-slate-500 dark:text-ink-muted border-slate-200 dark:border-white/10'
               )}
             >
               {d.label}
@@ -225,42 +343,33 @@ function DailyForm({ dailyToEdit, onClose }) {
       </div>
 
       {/* Reward Preview */}
-      <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-between text-xs backdrop-blur-md">
-        <span className="text-ink-muted flex items-center gap-1.5">
-          <Sparkles size={14} className="text-gold" />
-          <span>Reward upon completion:</span>
+      <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between text-xs">
+        <span className="text-amber-800 dark:text-amber-300 flex items-center gap-1.5 font-medium">
+          <Sparkles size={14} className="text-amber-500" />
+          <span>Reward per completion:</span>
         </span>
-        <div className="flex items-center gap-3 font-semibold font-mono">
-          <span className="text-attr-perception">+{reward.xp} XP</span>
-          <span className="text-gold">+{reward.gold} Gold</span>
+        <div className="flex items-center gap-3 font-semibold font-mono text-amber-700 dark:text-gold">
+          <span>+{reward.xp} XP</span>
+          <span>+{reward.gold} Coins</span>
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
+      {/* Submit / Cancel Buttons */}
+      <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-white/10">
         <button
           type="button"
           onClick={onClose}
           disabled={isPending}
-          className="px-4 py-2.5 text-xs font-medium text-ink-muted hover:text-ink hover:bg-white/[0.05] rounded-2xl border border-white/10 transition-colors min-h-[42px]"
+          className="px-4 py-2 text-xs font-medium text-slate-600 dark:text-ink-muted hover:text-slate-900 rounded-xl border border-slate-200 dark:border-white/10"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isPending}
-          className="px-5 py-2.5 text-xs font-bold text-obsidian-950 bg-gradient-to-r from-emerald-500 to-teal-400 rounded-2xl transition-all min-h-[42px] shadow-md hover:opacity-90 active:scale-95 disabled:opacity-50 inline-flex items-center justify-center gap-2"
+          className="px-5 py-2 text-xs font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-50"
         >
-          {isPending ? (
-            <>
-              <JeevanLoader variant="micro" />
-              <span>Saving...</span>
-            </>
-          ) : dailyToEdit ? (
-            'Save Changes'
-          ) : (
-            'Create Ritual'
-          )}
+          {isPending ? 'Saving...' : dailyToEdit ? 'Save Changes' : 'Create Ritual'}
         </button>
       </div>
     </form>
@@ -288,17 +397,15 @@ export function DailyModal({ isOpen, onClose, dailyToEdit }) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-obsidian-950/75 backdrop-blur-md"
+            className="fixed inset-0 bg-slate-950/70 backdrop-blur-md"
           />
 
-          {/* Modal Card */}
           <motion.div
             role="dialog"
             aria-modal="true"
@@ -307,14 +414,14 @@ export function DailyModal({ isOpen, onClose, dailyToEdit }) {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="relative w-full max-w-md p-6 sm:p-7 rounded-3xl bg-obsidian-900/90 border border-white/15 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.65),inset_0_1px_1px_rgba(255,255,255,0.2)] z-10"
+            className="relative w-full max-w-md p-5 sm:p-6 rounded-3xl bg-white dark:bg-obsidian-900 border border-slate-200 dark:border-white/10 shadow-2xl z-10"
           >
-            <div className="flex items-center justify-between pb-4 border-b border-white/10">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/10">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-attr-perception/15 border border-attr-perception/30 flex items-center justify-center text-attr-perception shadow-inner">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500">
                   <Calendar size={16} />
                 </div>
-                <h2 id="daily-modal-title" className="text-base font-semibold text-ink">
+                <h2 id="daily-modal-title" className="text-base font-bold text-slate-900 dark:text-ink font-display">
                   {dailyToEdit ? 'Edit Daily Ritual' : 'New Daily Ritual'}
                 </h2>
               </div>
@@ -322,7 +429,7 @@ export function DailyModal({ isOpen, onClose, dailyToEdit }) {
                 type="button"
                 onClick={onClose}
                 aria-label="Close dialog"
-                className="p-1.5 text-ink-muted hover:text-ink rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
+                className="p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl bg-slate-100 dark:bg-white/[0.04] transition-colors"
               >
                 <X size={17} />
               </button>

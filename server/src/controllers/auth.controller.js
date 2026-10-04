@@ -132,6 +132,53 @@ export class AuthController {
     // Redirect to client without tokens in URL per Phase 1.2 spec
     return res.redirect(`${env.CLIENT_ORIGIN}/auth/callback`);
   }
+
+  async forgotPassword(req, res, next) {
+    try {
+      const result = await authService.forgotPassword(req.body);
+      return res.status(200).json({ data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async resetPassword(req, res, next) {
+    try {
+      const result = await authService.resetPassword(req.body);
+      return res.status(200).json({ data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async updateProfile(req, res, next) {
+    try {
+      const user = await authService.updateProfile(req.user.id, req.body);
+      return res.status(200).json({ data: { user } });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async resetAccount(req, res, next) {
+    try {
+      const result = await authService.resetAccount(req.user.id);
+      return res.status(200).json({ data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async deleteAccount(req, res, next) {
+    try {
+      const result = await authService.deleteAccount(req.user.id, req.body.confirmation);
+      res.clearCookie(REFRESH_COOKIE_NAME, REFRESH_COOKIE_OPTIONS);
+      return res.status(200).json({ data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export const authController = new AuthController();
+

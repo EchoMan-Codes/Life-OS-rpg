@@ -1,30 +1,30 @@
 {
-  "appId": "com.jeevan.lifeos",
-  "appName": "Jeevan",
-  "webDir": "dist",
-  "server": {
-    "androidScheme": "https",
-    "iosScheme": "capacitor",
-    "cleartext": true
-  },
-  "plugins": {
-    "SplashScreen": {
-      "launchShowDuration": 1500,
-      "launchAutoHide": true,
-      "backgroundColor": "#07080C",
-      "androidSplashResourceName": "splash",
-      "androidScaleType": "CENTER_CROP",
-      "showSpinner": false
-    },
-    "StatusBar": {
-      "style": "DARK",
-      "backgroundColor": "#07080C",
-      "overlaysWebView": false
-    },
-    "Keyboard": {
-      "resize": "body",
-      "style": "DARK",
-      "resizeOnFullScreen": true
-    }
-  }
+	"appId": "com.jeevan.lifeos",
+	"appName": "Jeevan",
+	"webDir": "dist",
+	"server": {
+		"androidScheme": "https",
+		"iosScheme": "capacitor",
+		"cleartext": true
+	},
+	"plugins": {
+		"SplashScreen": {
+			"launchShowDuration": 1500,
+			"launchAutoHide": true,
+			"backgroundColor": "#07080C",
+			"androidSplashResourceName": "splash",
+			"androidScaleType": "CENTER_CROP",
+			"showSpinner": false
+		},
+		"StatusBar": {
+			"style": "DARK",
+			"backgroundColor": "#07080C",
+			"overlaysWebView": false
+		},
+		"Keyboard": {
+			"resize": "body",
+			"style": "DARK",
+			"resizeOnFullScreen": true
+		}
+	}
 }

@@ -32,3 +32,11 @@ ANTIGRAVITY_SUPER_PROMPTS.md
 # Logs
 *.log
 npm-debug.log*
+
+# Portable tools & scratch
+jdk-21/
+*.zip
+scratch_*.txt
+prompt_*.txt
+task_prompt.txt
+user_prompt_full.txt

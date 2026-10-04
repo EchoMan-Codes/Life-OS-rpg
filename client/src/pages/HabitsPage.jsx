@@ -47,7 +47,7 @@ const STARTER_HABITS = [
 
 export default function HabitsPage() {
   const { data: rawHabits = [], isLoading, isError } = useHabits({ includeArchived: true });
-  const habits = rawHabits.length > 0 ? rawHabits : STARTER_HABITS;
+  const habits = rawHabits;
 
   const [activeFilter, setActiveFilter] = useState('all');
   const [modalOpen, setModalOpen] = useState(false);

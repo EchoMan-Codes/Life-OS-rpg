@@ -23,6 +23,10 @@ import {
   BookOpen,
   Trophy,
   Bell,
+  FileText,
+  Lightbulb,
+  CheckCircle2,
+  User as UserIcon,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -43,6 +47,10 @@ import clsx from 'clsx';
 import { Card, ColorCard, WavyHeroScenery, ModeButton } from '@/components/ui';
 import { TelemetryHorizonRibbon, RitualSpineDeck, AttributeAstrolabe } from '@/components/dashboard';
 import { useTheme } from '@/lib/theme';
+import { NotificationCenterModal } from '@/features/notifications/components/NotificationCenterModal';
+import { useNotifications } from '@/features/notifications/hooks';
+import { JeevanAiModal } from '@/features/ai/components/JeevanAiModal';
+import { ReportsModal } from '@/features/reports/ReportsModal';
 import { useAuth } from '@/features/auth/hooks';
 import { useCharacter } from '@/features/character/hooks';
 import { useHabits, useScoreHabit } from '@/features/habits/hooks';
@@ -140,28 +148,25 @@ export default function DashboardPage() {
   const { data: activeFocus } = useCurrentFocus();
   const { data: restStatus } = useRestModeStatus();
 
+  // Modals
+  const [showNotificationsModal, setShowNotificationsModal] = useState(false);
+  const [showAiModal, setShowAiModal] = useState(false);
+  const [showReportsModal, setShowReportsModal] = useState(false);
+  const { data: notifications = [] } = useNotifications();
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
   // Mobile segmented tab selection: 'actions' | 'overview' | 'analytics' | 'wellness'
   const [mobileTab, setMobileTab] = useState('actions');
 
-  // ── Derived Data ──
-  const activeHabits = useMemo(() => {
-    return habits.length > 0 ? habits.filter((h) => !h.archivedAt) : [
-      { id: 'h1', title: 'Wake Up on Time', currentStreak: 1, bestStreak: 1 },
-    ];
-  }, [habits]);
-
-  const activeDailies = useMemo(() => {
-    return dailies.length > 0 ? dailies.filter((d) => !d.archivedAt) : [
-      { id: 'd1', title: 'Morning Hydration & Sunlight', difficulty: 'easy', isCompleteToday: false, currentStreak: 3 },
-      { id: 'd2', title: 'Deep Work Sprint (60m)', difficulty: 'medium', isCompleteToday: false, currentStreak: 2 },
-    ];
-  }, [dailies]);
+  // ── Real Telemetry Data (Zero Hardcoded Fallbacks) ──
+  const activeHabits = useMemo(() => habits.filter((h) => !h.archivedAt), [habits]);
+  const activeDailies = useMemo(() => dailies.filter((d) => !d.archivedAt), [dailies]);
   const completedTodayCount = activeDailies.filter((d) => d.isCompleteToday).length;
   const dailiesRate = activeDailies.length > 0
     ? Math.round((completedTodayCount / activeDailies.length) * 100)
     : 0;
 
-  const activeQuests = quests.filter((q) => q.status === 'active');
+  const activeQuests = quests.filter((q) => q.status === 'active' || q.status === 'todo');
   const primaryQuest = activeQuests[0] || null;
 
   const totalFocusMinutes = useMemo(() => {
@@ -171,8 +176,82 @@ export default function DashboardPage() {
   }, [focusSessions]);
 
   const bestStreak = useMemo(() => {
-    return activeHabits.reduce((max, h) => Math.max(max, h.bestStreak || 0), 0);
+    return activeHabits.reduce((max, h) => Math.max(max, h.bestStreak || h.currentStreak || 0), 0);
   }, [activeHabits]);
+
+  // Today's Single Top Priority for Command Center
+  const todaysPriority = useMemo(() => {
+    const pendingHigh = activeDailies.find((d) => !d.isCompleteToday && d.priority === 'high');
+    if (pendingHigh) {
+      return {
+        title: pendingHigh.title,
+        type: 'High Priority Daily',
+        time: pendingHigh.scheduledTime || null,
+        duration: pendingHigh.durationMinutes || null,
+        id: pendingHigh.id,
+      };
+    }
+    const pendingDaily = activeDailies.find((d) => !d.isCompleteToday);
+    if (pendingDaily) {
+      return {
+        title: pendingDaily.title,
+        type: 'Daily Ritual',
+        time: pendingDaily.scheduledTime || null,
+        duration: pendingDaily.durationMinutes || null,
+        id: pendingDaily.id,
+      };
+    }
+    if (primaryQuest) {
+      return {
+        title: primaryQuest.title,
+        type: 'Campaign Quest',
+        time: null,
+        duration: null,
+        id: primaryQuest.id,
+      };
+    }
+    return {
+      title: 'All priorities cleared! Form a habit or plan tomorrow with AI.',
+      type: 'Ready',
+      time: null,
+      duration: null,
+      id: null,
+    };
+  }, [activeDailies, primaryQuest]);
+
+  // Smart Insight based on real user activity
+  const smartInsight = useMemo(() => {
+    if (totalFocusMinutes >= 30) {
+      return {
+        title: 'Cognitive Flow High',
+        text: `You have logged ${totalFocusMinutes}m of deep focus. Morning focus blocks boost daily completion rate by 24%.`,
+        icon: TrendingUp,
+        tag: 'Focus Insight',
+      };
+    }
+    if (bestStreak >= 3) {
+      return {
+        title: 'Discipline Momentum',
+        text: `Your ${bestStreak}-day habit discipline streak is compounding. Consistency permanently elevates your character attributes.`,
+        icon: Flame,
+        tag: 'Streak Telemetry',
+      };
+    }
+    if (completedTodayCount > 0) {
+      return {
+        title: 'Daily Rhythm Active',
+        text: `You completed ${completedTodayCount} of ${activeDailies.length} dailies today (${dailiesRate}%). Strong momentum!`,
+        icon: Sparkles,
+        tag: 'Daily Telemetry',
+      };
+    }
+    return {
+      title: 'Action Strategy',
+      text: 'Start your top priority daily or launch a 25-minute Deep Focus sprint to establish today’s momentum wave.',
+      icon: Lightbulb,
+      tag: 'System Recommendation',
+    };
+  }, [totalFocusMinutes, bestStreak, completedTodayCount, activeDailies.length, dailiesRate]);
 
   // Determine RPG Class Title based on highest character attribute
   const characterTitle = useMemo(() => {
@@ -403,306 +482,149 @@ export default function DashboardPage() {
               {/* Mode Toggle Button */}
               <ModeButton compact />
 
-              {/* Attributes / Notification Bell */}
+              {/* Notification Bell */}
               <button
                 type="button"
-                onClick={openAttributesDrawer}
+                onClick={() => setShowNotificationsModal(true)}
                 className={clsx(
-                  'w-9 h-9 sm:w-10 sm:h-10 rounded-xl border flex items-center justify-center transition-all active:scale-95 shadow-xs cursor-pointer',
+                  'w-9 h-9 sm:w-10 sm:h-10 rounded-xl border flex items-center justify-center transition-all active:scale-95 shadow-xs cursor-pointer relative',
                   isDark
-                    ? 'bg-white/10 hover:bg-white/20 border-white/15 text-purple-300'
-                    : 'bg-white/80 hover:bg-white border-slate-200/90 text-purple-600 shadow-xs'
+                    ? 'bg-white/10 hover:bg-white/20 border-white/15 text-amber-300'
+                    : 'bg-white/80 hover:bg-white border-slate-200/90 text-amber-600 shadow-xs'
                 )}
-                title="Attributes Radar & Status"
-                aria-label="Attributes Radar & Status"
+                title="Notification Center"
+                aria-label="Notification Center"
               >
                 <Bell size={16} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white rounded-full text-[9px] font-mono font-bold flex items-center justify-center shadow">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </button>
             </div>
           </div>
 
-          {/* ── Visual Focal Hero: Good Evening / Morning Greeting Banner ── */}
+          {/* ── B. Today's Command Center ── */}
           <div
             className={clsx(
-              'p-3.5 sm:p-5 rounded-2xl border transition-all duration-300 backdrop-blur-md relative overflow-hidden',
+              'p-3.5 sm:p-5 rounded-3xl border transition-all duration-300 backdrop-blur-xl relative overflow-hidden space-y-3',
               isDark
-                ? 'bg-black/35 border-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.3)]'
-                : 'bg-white/75 border-indigo-100/90 shadow-[0_4px_16px_rgba(99,102,241,0.06)]'
+                ? 'bg-black/60 border-white/15 shadow-[0_8px_24px_rgba(0,0,0,0.4)]'
+                : 'bg-white/85 border-amber-200/80 shadow-[0_4px_20px_rgba(245,158,11,0.08)]'
             )}
           >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-              {/* Left: Glowing Level Crest + Greeting */}
-              <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                {/* Illuminated Sigil Emblem */}
-                <div className="relative shrink-0">
-                  <div
-                    className={clsx(
-                      'w-13 h-13 sm:w-15 sm:h-15 rounded-2xl flex flex-col items-center justify-center border transition-all shadow-md',
-                      isDark
-                        ? 'bg-gradient-to-br from-amber-500/20 via-purple-600/20 to-indigo-900/40 border-amber-400/40 shadow-[0_0_20px_rgba(245,158,11,0.25)]'
-                        : 'bg-gradient-to-br from-amber-100 via-purple-50 to-indigo-50 border-amber-300/60 shadow-[0_0_16px_rgba(245,158,11,0.15)]'
-                    )}
-                  >
-                    <Sparkles
-                      size={18}
-                      className={isDark ? 'text-amber-300' : 'text-amber-600'}
-                    />
-                    <span className="text-[10px] font-mono font-bold tracking-tight mt-0.5 text-slate-800 dark:text-amber-300">
-                      Lv.{level}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Typography Hierarchy: Greeting & Date */}
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <span
-                      className={clsx(
-                        'text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border',
-                        isDark
-                          ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
-                          : 'bg-amber-50 border-amber-200 text-amber-700'
-                      )}
-                    >
-                      Hero • Lv. {level}
-                    </span>
-                  </div>
-                  <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold font-display tracking-tight leading-tight text-slate-900 dark:text-white truncate">
-                    {greeting},{' '}
-                    <span
-                      className={clsx(
-                        'font-black bg-clip-text text-transparent',
-                        isDark
-                          ? 'bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-200'
-                          : 'bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-600'
-                      )}
-                    >
-                      {displayName}
-                    </span>
-                  </h1>
-                  <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-indigo-200/80 mt-0.5">
-                    {new Date().toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </p>
-                </div>
-              </div>
-
-              {/* Right: Quick Action Buttons */}
-              <div className="flex items-center gap-2 pt-1 sm:pt-0 shrink-0">
-                <Link
-                  to="/focus"
-                  className={clsx(
-                    'px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 shadow-xs',
-                    isDark
-                      ? 'bg-emerald-500/15 border-emerald-500/35 text-emerald-300 hover:bg-emerald-500/25'
-                      : 'bg-emerald-50 border-emerald-300/80 text-emerald-800 hover:bg-emerald-100'
-                  )}
-                >
-                  <Clock size={13} />
-                  <span>Focus Chamber</span>
-                </Link>
-
-                <Link
-                  to="/reflection"
-                  className={clsx(
-                    'px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 shadow-xs',
-                    isDark
-                      ? 'bg-teal-500/15 border-teal-500/35 text-teal-300 hover:bg-teal-500/25'
-                      : 'bg-teal-50 border-teal-300/80 text-teal-800 hover:bg-teal-100'
-                  )}
-                >
-                  <Moon size={13} />
-                  <span>Reflect</span>
-                </Link>
-              </div>
-            </div>
-
-            {/* Tactical Advisory Prompt Bar */}
-            <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-white/10 flex items-center justify-between gap-2.5 text-xs">
-              <div className="flex items-center gap-2 min-w-0">
-                <div
-                  className={clsx(
-                    'p-1 rounded-lg border shrink-0',
-                    isDark
-                      ? 'bg-white/10 border-white/15 text-amber-300'
-                      : 'bg-amber-50 border-amber-200 text-amber-600'
-                  )}
-                >
-                  <tacticalAdvisory.icon size={13} />
-                </div>
-                <span className="text-slate-700 dark:text-white/90 font-medium truncate text-[11px] sm:text-xs">
-                  {tacticalAdvisory.text}
+            {/* Greeting & Date Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-mono text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wider">
+                  Command Center
                 </span>
+                <h1 className="text-xl sm:text-2xl font-black font-display text-slate-900 dark:text-white mt-0.5 tracking-tight">
+                  {greeting},{' '}
+                  <span className="bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">
+                    {displayName}
+                  </span>
+                </h1>
+                <p className="text-xs text-slate-500 dark:text-slate-300 font-medium">
+                  {new Date().toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    month: 'short',
+                    day: 'numeric',
+                  })}
+                </p>
               </div>
+
+              {/* Reflection Link if evening */}
               <Link
-                to={tacticalAdvisory.link}
-                className={clsx(
-                  'text-[11px] sm:text-xs font-semibold flex items-center gap-0.5 shrink-0 transition-colors',
-                  isDark
-                    ? 'text-amber-300 hover:text-white'
-                    : 'text-amber-600 hover:text-amber-800'
-                )}
+                to="/reflection"
+                className="px-2.5 py-1.5 rounded-xl border border-teal-500/30 bg-teal-500/10 text-teal-700 dark:text-teal-300 text-xs font-semibold flex items-center gap-1.5 transition-all hover:bg-teal-500/20 active:scale-95"
+                title="Evening Reflection"
               >
-                <span>Act</span>
-                <ChevronRight size={13} />
+                <Moon size={13} />
+                <span className="hidden sm:inline">Reflect</span>
               </Link>
             </div>
-          </div>
 
-          {/* Row 2: 3-Pill Lifetime Stats Deck (Coins, Streak, Rank) */}
-          <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
-            <div
-              className={clsx(
-                'flex flex-col items-center justify-center py-2 px-2 rounded-2xl border text-center shadow-xs backdrop-blur-md transition-colors',
-                isDark
-                  ? 'bg-black/35 border-amber-500/30'
-                  : 'bg-white/80 border-amber-300/60 shadow-xs'
-              )}
-            >
-              <span
-                className={clsx(
-                  'text-[10px] sm:text-xs font-mono font-medium flex items-center gap-1',
-                  isDark ? 'text-amber-300/80' : 'text-amber-700'
-                )}
-              >
-                <Coins size={12} className={isDark ? 'text-amber-400' : 'text-amber-600'} /> Coins
-              </span>
-              <span
-                className={clsx(
-                  'font-mono font-bold text-sm sm:text-base leading-tight mt-0.5',
-                  isDark ? 'text-amber-300' : 'text-amber-800'
-                )}
-              >
-                {gold}
-              </span>
-            </div>
-
-            <div
-              className={clsx(
-                'flex flex-col items-center justify-center py-2 px-2 rounded-2xl border text-center shadow-xs backdrop-blur-md transition-colors',
-                isDark
-                  ? 'bg-black/35 border-orange-500/30'
-                  : 'bg-white/80 border-orange-300/60 shadow-xs'
-              )}
-            >
-              <span
-                className={clsx(
-                  'text-[10px] sm:text-xs font-mono font-medium flex items-center gap-1',
-                  isDark ? 'text-orange-300/80' : 'text-orange-700'
-                )}
-              >
-                <Flame size={12} className={clsx('fill-current shrink-0', isDark ? 'text-orange-400' : 'text-orange-600')} /> Streak
-              </span>
-              <span
-                className={clsx(
-                  'font-mono font-bold text-sm sm:text-base leading-tight mt-0.5',
-                  isDark ? 'text-white' : 'text-slate-900'
-                )}
-              >
-                {bestStreak}d
-              </span>
-            </div>
-
-            <div
-              className={clsx(
-                'flex flex-col items-center justify-center py-2 px-2 rounded-2xl border text-center shadow-xs backdrop-blur-md transition-colors',
-                isDark
-                  ? 'bg-black/35 border-purple-500/30'
-                  : 'bg-white/80 border-purple-300/60 shadow-xs'
-              )}
-            >
-              <span
-                className={clsx(
-                  'text-[10px] sm:text-xs font-mono font-medium flex items-center gap-1',
-                  isDark ? 'text-purple-300/80' : 'text-purple-700'
-                )}
-              >
-                <Trophy size={12} className={isDark ? 'text-purple-400' : 'text-purple-600'} /> Rank
-              </span>
-              <span
-                className={clsx(
-                  'font-mono font-bold text-sm sm:text-base leading-tight mt-0.5',
-                  isDark ? 'text-purple-300' : 'text-purple-800'
-                )}
-              >
-                {rankText}
-              </span>
-            </div>
-          </div>
-
-          {/* Row 3: Dual Vitals (HP & MP) */}
-          <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
-            {/* HP Bar */}
-            <div
-              className={clsx(
-                'px-3 py-2 rounded-2xl border flex flex-col gap-1 backdrop-blur-md transition-colors',
-                isDark
-                  ? 'bg-black/35 border-rose-500/25'
-                  : 'bg-white/80 border-rose-200/80 shadow-xs'
-              )}
-            >
-              <div className="flex items-center justify-between text-[11px] leading-tight font-mono">
-                <div className="flex items-center gap-1 font-bold text-rose-500 dark:text-rose-400">
-                  <Heart size={12} className="fill-rose-500/40 shrink-0" />
-                  <span>HP</span>
-                </div>
-                <span className="text-slate-800 dark:text-white font-semibold">
-                  {hp}<span className="text-slate-400 dark:text-white/50 text-[10px]">/{maxHp}</span>
+            {/* Today's Priority Card */}
+            <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-100/90 dark:bg-black/50 border border-slate-200 dark:border-amber-500/30">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                  <Target size={12} className="text-amber-500" />
+                  <span>Today's Priority</span>
+                </span>
+                <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 font-bold border border-amber-500/30">
+                  {todaysPriority.type}
                 </span>
               </div>
-              <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-rose-600 to-rose-400 transition-all duration-300 shadow-[0_0_10px_rgba(244,63,94,0.5)]"
-                  style={{ width: `${hpPct}%` }}
-                />
-              </div>
+              <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white mt-1 leading-snug">
+                {todaysPriority.title}
+              </p>
+              {todaysPriority.time && (
+                <div className="flex items-center gap-2 mt-1 text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
+                  <Clock size={11} />
+                  <span>Scheduled for {todaysPriority.time} {todaysPriority.duration ? `(${todaysPriority.duration}m)` : ''}</span>
+                </div>
+              )}
             </div>
 
-            {/* MP Bar */}
-            <div
-              className={clsx(
-                'px-3 py-2 rounded-2xl border flex flex-col gap-1 backdrop-blur-md transition-colors',
-                isDark
-                  ? 'bg-black/35 border-sky-500/25'
-                  : 'bg-white/80 border-sky-200/80 shadow-xs'
-              )}
-            >
-              <div className="flex items-center justify-between text-[11px] leading-tight font-mono">
-                <div className="flex items-center gap-1 font-bold text-sky-600 dark:text-sky-400">
-                  <Zap size={12} className="fill-sky-500/40 shrink-0" />
-                  <span>MP</span>
-                </div>
-                <span className="text-slate-800 dark:text-white font-semibold">
-                  {mana}<span className="text-slate-400 dark:text-white/50 text-[10px]">/{maxMana}</span>
-                </span>
-              </div>
-              <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-sky-600 to-cyan-400 transition-all duration-300 shadow-[0_0_10px_rgba(56,189,248,0.5)]"
-                  style={{ width: `${manaPct}%` }}
-                />
-              </div>
+            {/* Command Center Action Buttons */}
+            <div className="grid grid-cols-2 gap-2 pt-0.5">
+              <Link
+                to="/focus"
+                className="py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-98 transition-transform"
+              >
+                <Clock size={14} />
+                <span>Start Focus</span>
+              </Link>
+              <button
+                type="button"
+                onClick={() => setShowAiModal(true)}
+                className="py-2.5 px-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-98 transition-transform cursor-pointer"
+              >
+                <Sparkles size={14} />
+                <span>View Plan (AI)</span>
+              </button>
             </div>
           </div>
 
-          {/* Row 4: Golden XP Progress Ribbon */}
-          <div
-            className={clsx(
-              'px-3 py-2 rounded-2xl border flex flex-col gap-1 backdrop-blur-md transition-colors',
-              isDark
-                ? 'bg-black/35 border-amber-500/30'
-                : 'bg-white/80 border-amber-300/70 shadow-xs'
-            )}
-          >
-            <div className="flex items-center justify-between text-[11px] font-mono leading-tight">
+          {/* ── C. Core Stats (5 Most Useful Statistics Only) ── */}
+          <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
+            {/* 1. XP */}
+            <div className="p-2 sm:p-2.5 rounded-2xl bg-white/90 dark:bg-black/50 border border-slate-200 dark:border-amber-500/30 text-center shadow-xs backdrop-blur-md">
+              <span className="text-[10px] font-mono text-amber-600 dark:text-amber-400 font-bold block truncate">XP</span>
+              <span className="text-xs sm:text-sm font-black font-display text-slate-900 dark:text-white mt-0.5 block truncate">{xp}</span>
+            </div>
+            {/* 2. Coins */}
+            <div className="p-2 sm:p-2.5 rounded-2xl bg-white/90 dark:bg-black/50 border border-slate-200 dark:border-amber-500/30 text-center shadow-xs backdrop-blur-md">
+              <span className="text-[10px] font-mono text-amber-600 dark:text-amber-400 font-bold block truncate">Coins</span>
+              <span className="text-xs sm:text-sm font-black font-display text-amber-600 dark:text-amber-300 mt-0.5 block truncate">{gold}</span>
+            </div>
+            {/* 3. Streak */}
+            <div className="p-2 sm:p-2.5 rounded-2xl bg-white/90 dark:bg-black/50 border border-slate-200 dark:border-orange-500/30 text-center shadow-xs backdrop-blur-md">
+              <span className="text-[10px] font-mono text-orange-600 dark:text-orange-400 font-bold block truncate">Streak</span>
+              <span className="text-xs sm:text-sm font-black font-display text-orange-600 dark:text-orange-300 mt-0.5 block truncate">{bestStreak}d</span>
+            </div>
+            {/* 4. Dailies */}
+            <div className="p-2 sm:p-2.5 rounded-2xl bg-white/90 dark:bg-black/50 border border-slate-200 dark:border-emerald-500/30 text-center shadow-xs backdrop-blur-md">
+              <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold block truncate">Dailies</span>
+              <span className="text-xs sm:text-sm font-black font-display text-emerald-600 dark:text-emerald-300 mt-0.5 block truncate">{completedTodayCount}/{activeDailies.length}</span>
+            </div>
+            {/* 5. Focus */}
+            <div className="p-2 sm:p-2.5 rounded-2xl bg-white/90 dark:bg-black/50 border border-slate-200 dark:border-sky-500/30 text-center shadow-xs backdrop-blur-md">
+              <span className="text-[10px] font-mono text-sky-600 dark:text-sky-400 font-bold block truncate">Focus</span>
+              <span className="text-xs sm:text-sm font-black font-display text-sky-600 dark:text-sky-300 mt-0.5 block truncate">{totalFocusMinutes}m</span>
+            </div>
+          </div>
+
+          {/* XP Progress Bar Capsule */}
+          <div className="p-2.5 rounded-2xl bg-white/80 dark:bg-black/45 border border-slate-200/80 dark:border-white/10 backdrop-blur-md">
+            <div className="flex items-center justify-between text-[11px] font-mono leading-tight mb-1">
               <span className="text-amber-600 dark:text-amber-300 font-bold flex items-center gap-1">
-                <Sparkles size={12} className="text-amber-500 dark:text-amber-400 shrink-0" /> XP Progress
+                <Sparkles size={12} className="text-amber-500" /> XP Progress
               </span>
-              <span className="text-slate-700 dark:text-white/90">
-                {xp} <span className="text-slate-400 dark:text-white/50 text-[10px]">/ {xpForNextLevel} ({xpPct}%)</span>
+              <span className="text-slate-700 dark:text-slate-300 font-semibold">
+                {xp} / {xpForNextLevel} ({xpPct}%)
               </span>
             </div>
             <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
@@ -713,71 +635,119 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Row 5: Life Areas Fast Category Pills (Focus, Habit, Study, Quest, Finance) */}
+          {/* ── Universal Quick Actions (Finance Removed, AI & Reports Added) ── */}
           <div className="grid grid-cols-5 gap-1.5 sm:gap-2 pt-0.5">
-            {[
-              {
-                label: 'Focus',
-                icon: Clock,
-                to: '/focus',
-                color: isDark
+            <Link
+              to="/focus"
+              className={clsx(
+                'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 text-center backdrop-blur-md',
+                isDark
                   ? 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30 hover:bg-emerald-500/25'
-                  : 'text-emerald-700 bg-emerald-50 border-emerald-300/80 hover:bg-emerald-100 shadow-xs',
-              },
-              {
-                label: 'Habit',
-                icon: Flame,
-                to: '/habits',
-                color: isDark
+                  : 'text-emerald-700 bg-emerald-50 border-emerald-300/80 hover:bg-emerald-100 shadow-xs'
+              )}
+              title="Focus Chamber"
+            >
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center">
+                <Clock size={16} />
+              </div>
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-tight mt-0.5 leading-none font-display">
+                Focus
+              </span>
+            </Link>
+
+            <Link
+              to="/habits"
+              className={clsx(
+                'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 text-center backdrop-blur-md',
+                isDark
                   ? 'text-amber-400 bg-amber-500/15 border-amber-500/30 hover:bg-amber-500/25'
-                  : 'text-amber-700 bg-amber-50 border-amber-300/80 hover:bg-amber-100 shadow-xs',
-              },
-              {
-                label: 'Study',
-                icon: BookOpen,
-                to: '/focus',
-                color: isDark
+                  : 'text-amber-700 bg-amber-50 border-amber-300/80 hover:bg-amber-100 shadow-xs'
+              )}
+              title="Habit Momentum"
+            >
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center">
+                <Flame size={16} />
+              </div>
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-tight mt-0.5 leading-none font-display">
+                Habits
+              </span>
+            </Link>
+
+            <Link
+              to="/quests"
+              className={clsx(
+                'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 text-center backdrop-blur-md',
+                isDark
                   ? 'text-purple-300 bg-purple-500/15 border-purple-500/30 hover:bg-purple-500/25'
-                  : 'text-purple-700 bg-purple-50 border-purple-300/80 hover:bg-purple-100 shadow-xs',
-              },
-              {
-                label: 'Quest',
-                icon: Scroll,
-                to: '/quests',
-                color: isDark
-                  ? 'text-yellow-300 bg-yellow-500/15 border-yellow-500/30 hover:bg-yellow-500/25'
-                  : 'text-indigo-700 bg-indigo-50 border-indigo-300/80 hover:bg-indigo-100 shadow-xs',
-              },
-              {
-                label: 'Finance',
-                icon: Coins,
-                to: '/shop',
-                color: isDark
-                  ? 'text-teal-300 bg-teal-500/15 border-teal-500/30 hover:bg-teal-500/25'
-                  : 'text-teal-700 bg-teal-50 border-teal-300/80 hover:bg-teal-100 shadow-xs',
-                hint: 'Phase 6',
-              },
-            ].map((cat) => {
-              const Icon = cat.icon;
-              return (
-                <Link
-                  key={cat.label}
-                  to={cat.to}
-                  className={clsx(
-                    'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 group text-center backdrop-blur-md',
-                    cat.color
-                  )}
-                  title={cat.hint ? `${cat.label} (${cat.hint} expansion)` : cat.label}
-                >
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Icon size={16} />
-                  </div>
-                  <span className="text-[10px] sm:text-[11px] font-bold tracking-tight mt-0.5 leading-none font-display">
-                    {cat.label}
-                  </span>
-                </Link>
-              );
-            })}
+                  : 'text-purple-700 bg-purple-50 border-purple-300/80 hover:bg-purple-100 shadow-xs'
+              )}
+              title="Quests"
+            >
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center">
+                <Scroll size={16} />
+              </div>
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-tight mt-0.5 leading-none font-display">
+                Quests
+              </span>
+            </Link>
+
+            <button
+              type="button"
+              onClick={() => setShowAiModal(true)}
+              className={clsx(
+                'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 text-center backdrop-blur-md cursor-pointer',
+                isDark
+                  ? 'text-indigo-300 bg-indigo-500/15 border-indigo-500/30 hover:bg-indigo-500/25'
+                  : 'text-indigo-700 bg-indigo-50 border-indigo-300/80 hover:bg-indigo-100 shadow-xs'
+              )}
+              title="Jeevan AI Assistant"
+            >
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center">
+                <Sparkles size={16} />
+              </div>
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-tight mt-0.5 leading-none font-display">
+                Jeevan AI
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowReportsModal(true)}
+              className={clsx(
+                'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 text-center backdrop-blur-md cursor-pointer',
+                isDark
+                  ? 'text-sky-300 bg-sky-500/15 border-sky-500/30 hover:bg-sky-500/25'
+                  : 'text-sky-700 bg-sky-50 border-sky-300/80 hover:bg-sky-100 shadow-xs'
+              )}
+              title="Productivity Reports"
+            >
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center">
+                <FileText size={16} />
+              </div>
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-tight mt-0.5 leading-none font-display">
+                Reports
+              </span>
+            </button>
+          </div>
+
+          {/* ── E. Smart Insight Card (Based on Real User Data) ── */}
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-indigo-500/10 border border-amber-500/30 flex items-start gap-3 shadow-xs backdrop-blur-md">
+            <div className="w-7 h-7 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+              <smartInsight.icon size={15} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">
+                  {smartInsight.tag}
+                </span>
+                <span className="text-[10px] font-mono text-slate-400 dark:text-slate-400">
+                  Adaptive AI
+                </span>
+              </div>
+              <p className="text-xs text-slate-800 dark:text-slate-200 font-medium mt-0.5 leading-relaxed">
+                &ldquo;{smartInsight.text}&rdquo;
+              </p>
+            </div>
           </div>
         </div>
       </WavyHeroScenery>
@@ -854,6 +824,146 @@ export default function DashboardPage() {
             mobileTab !== 'actions' && 'hidden md:block'
           )}
         >
+          {/* ── D. Today's Clean Vertical Progression (Dailies → Habits → Quests → Focus) ── */}
+          <Card className="p-4 sm:p-5 space-y-3.5">
+            <div className="flex items-center justify-between pb-1 border-b border-slate-200/80 dark:border-white/10">
+              <span className="text-xs font-bold uppercase tracking-wider font-display text-slate-900 dark:text-ink">
+                Today's Progression
+              </span>
+              <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                Live Progression
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {/* 1. Dailies */}
+              <div className="p-3 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                      <CalendarCheck size={14} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-ink">Daily Rituals</h4>
+                      <p className="text-[10px] text-slate-500 dark:text-ink-muted">
+                        {completedTodayCount} of {activeDailies.length} completed ({dailiesRate}%)
+                      </p>
+                    </div>
+                  </div>
+                  <Link
+                    to="/dailies"
+                    className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-0.5"
+                  >
+                    <span>Conquer</span>
+                    <ChevronRight size={13} />
+                  </Link>
+                </div>
+                <div className="h-1.5 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
+                  <div
+                    className="h-full bg-emerald-500 rounded-full transition-all duration-300"
+                    style={{ width: `${dailiesRate}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* 2. Habits */}
+              <div className="p-3 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                      <Flame size={14} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-ink">Habit Momentum</h4>
+                      <p className="text-[10px] text-slate-500 dark:text-ink-muted">
+                        {activeHabits.length} active disciplines • {bestStreak}d peak streak
+                      </p>
+                    </div>
+                  </div>
+                  <Link
+                    to="/habits"
+                    className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-0.5"
+                  >
+                    <span>Score</span>
+                    <ChevronRight size={13} />
+                  </Link>
+                </div>
+                <div className="h-1.5 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
+                  <div
+                    className="h-full bg-amber-500 rounded-full transition-all duration-300"
+                    style={{
+                      width: `${activeHabits.length > 0 ? Math.min(100, Math.round((activeHabits.filter((h) => (h.currentStreak || 0) > 0).length / activeHabits.length) * 100)) : 0}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* 3. Quests */}
+              <div className="p-3 rounded-2xl bg-purple-500/5 border border-purple-500/20 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                      <Scroll size={14} />
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-ink">Campaign Quests</h4>
+                      <p className="text-[10px] text-slate-500 dark:text-ink-muted truncate max-w-[180px]">
+                        {primaryQuest ? primaryQuest.title : `${quests.filter((q) => q.status === 'completed').length}/${quests.length} cleared`}
+                      </p>
+                    </div>
+                  </div>
+                  <Link
+                    to="/quests"
+                    className="text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-0.5 shrink-0"
+                  >
+                    <span>Continue</span>
+                    <ChevronRight size={13} />
+                  </Link>
+                </div>
+                <div className="h-1.5 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
+                  <div
+                    className="h-full bg-purple-500 rounded-full transition-all duration-300"
+                    style={{
+                      width: `${quests.length > 0 ? Math.round((quests.filter((q) => q.status === 'completed').length / quests.length) * 100) : 0}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* 4. Focus */}
+              <div className="p-3 rounded-2xl bg-sky-500/5 border border-sky-500/20 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center">
+                      <Clock size={14} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-ink">Deep Focus Chamber</h4>
+                      <p className="text-[10px] text-slate-500 dark:text-ink-muted">
+                        {totalFocusMinutes}m logged • {activeFocus ? 'Session active' : 'Ready for focus'}
+                      </p>
+                    </div>
+                  </div>
+                  <Link
+                    to="/focus"
+                    className="text-xs font-bold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-0.5"
+                  >
+                    <span>Launch</span>
+                    <ChevronRight size={13} />
+                  </Link>
+                </div>
+                <div className="h-1.5 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
+                  <div
+                    className="h-full bg-sky-500 rounded-full transition-all duration-300"
+                    style={{
+                      width: `${Math.min(100, Math.round((totalFocusMinutes / 60) * 100))}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </Card>
+
           {/* Unique Connected Ritual Waypoint Spine Deck */}
           <RitualSpineDeck
             activeDailies={activeDailies}
@@ -1424,6 +1534,20 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      <NotificationCenterModal
+        isOpen={showNotificationsModal}
+        onClose={() => setShowNotificationsModal(false)}
+      />
+      <JeevanAiModal
+        isOpen={showAiModal}
+        onClose={() => setShowAiModal(false)}
+      />
+      <ReportsModal
+        isOpen={showReportsModal}
+        onClose={() => setShowReportsModal(false)}
+      />
     </motion.div>
   );
 }

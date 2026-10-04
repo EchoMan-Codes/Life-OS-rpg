@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import PropTypes from 'prop-types';
-import { Flame, Shield } from 'lucide-react';
+import { Flame, Shield, Clock, Bell } from 'lucide-react';
 import clsx from 'clsx';
 
 import { spring } from '@/lib/motionVariants';
@@ -184,15 +184,49 @@ export function DailyCard({ daily, onEdit }) {
 
         {/* ── Daily Details ── */}
         <div className="flex-1 min-w-0 pr-2">
-          <div className="flex items-center gap-2 flex-wrap mb-1">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap mb-1">
             <h3
               className={clsx(
-                'text-sm md:text-base font-semibold text-ink truncate max-w-full',
+                'text-sm md:text-base font-semibold text-ink truncate max-w-full font-display',
                 'transition-opacity duration-150'
               )}
             >
               {daily.title}
             </h3>
+
+            {/* Scheduled Time & Duration Pill */}
+            {daily.scheduledTime && (
+              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-700 dark:text-indigo-300 text-[10px] font-mono font-bold shrink-0">
+                <Clock size={11} className="text-indigo-500" />
+                <span>{daily.scheduledTime}</span>
+                {daily.durationMinutes ? <span className="opacity-80">· {daily.durationMinutes}m</span> : null}
+              </div>
+            )}
+
+            {/* Priority Badge */}
+            {daily.priority && daily.priority !== 'medium' && (
+              <span
+                className={clsx(
+                  'px-1.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase shrink-0 border',
+                  daily.priority === 'critical' && 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30',
+                  daily.priority === 'high' && 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30',
+                  daily.priority === 'low' && 'bg-slate-500/10 text-slate-500 border-slate-500/20'
+                )}
+              >
+                {daily.priority}
+              </span>
+            )}
+
+            {/* Reminder Indicator Pill */}
+            {daily.reminderEnabled && (
+              <span
+                title={`Reminder set for ${daily.reminderMinutesBefore || 10}m before`}
+                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 shrink-0"
+              >
+                <Bell size={10} className="fill-emerald-500/40" />
+                <span>{daily.reminderMinutesBefore ? `${daily.reminderMinutesBefore}m` : 'At time'}</span>
+              </span>
+            )}
 
             {/* Difficulty Badge */}
             <span
@@ -217,7 +251,7 @@ export function DailyCard({ daily, onEdit }) {
           </div>
 
           {daily.description && (
-            <p className="text-xs text-ink-muted line-clamp-1 mb-2 leading-relaxed">
+            <p className="text-xs text-ink-muted line-clamp-2 mb-2 leading-relaxed font-medium">
               {daily.description}
             </p>
           )}

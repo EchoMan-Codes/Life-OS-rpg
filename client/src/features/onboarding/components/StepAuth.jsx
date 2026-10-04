@@ -11,11 +11,15 @@ import {
   Edit2,
   Eye,
   EyeOff,
+  KeyRound,
+  CheckCircle2,
+  ArrowLeft,
 } from 'lucide-react';
 import clsx from 'clsx';
 
 import { useAuth } from '@/features/auth/hooks';
 import { PasswordMeter } from '@/features/auth/components/PasswordMeter';
+import { forgotPassword, resetPassword } from '@/features/auth/api';
 import { generateSystemSynthesis } from '../constants';
 import { JeevanLoader } from '@/components/ui/JeevanLoader';
 import { useJeevanTransition } from '@/context/JeevanTransitionContext';
@@ -27,7 +31,8 @@ import { Capacitor } from '@capacitor/core';
  * StepAuth
  * Authentication & Personalization confirmation card.
  * Supports smooth directional transition between Sign In and Sign Up,
- * Google OAuth, email credentials, and password strength validation.
+ * Google OAuth, email credentials, password strength validation,
+ * Remember Me persistence, and Forgot Password recovery.
  */
 export function StepAuth({
   answers,
@@ -36,23 +41,74 @@ export function StepAuth({
   initialMode = 'register',
   hideDossier = false,
 }) {
-  const [mode, setMode] = useState(initialMode); // 'register' | 'login'
-  const [email, setEmail] = useState('');
+  const [mode, setMode] = useState(initialMode); // 'register' | 'login' | 'forgot_password' | 'reset_password'
+  const [email, setEmail] = useState(() => {
+    return localStorage.getItem('lifeos_saved_email') || '';
+  });
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [passwordValid, setPasswordValid] = useState(false);
   const [localError, setLocalError] = useState('');
+  const [localSuccess, setLocalSuccess] = useState('');
+  const [rememberMe, setRememberMe] = useState(() => {
+    return localStorage.getItem('lifeos_remember_me') === 'true';
+  });
+  const [resetToken, setResetToken] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [isSendingReset, setIsSendingReset] = useState(false);
 
   const { login, register, isLoggingIn, isRegistering } = useAuth();
   const { triggerTransition } = useJeevanTransition();
-  const isSubmitting = isLoggingIn || isRegistering;
+  const isSubmitting = isLoggingIn || isRegistering || isSendingReset;
 
   const synthesis = answers ? generateSystemSynthesis(answers) : null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLocalError('');
+    setLocalSuccess('');
+
+    if (mode === 'forgot_password') {
+      if (!email.trim()) {
+        setLocalError('Please enter your email address.');
+        return;
+      }
+      try {
+        setIsSendingReset(true);
+        await forgotPassword({ email: email.trim() });
+        setLocalSuccess('Reset link dispatched! Please check your email inbox.');
+      } catch (err) {
+        const errorMsg =
+          err?.response?.data?.error?.message ||
+          'Failed to dispatch reset link. Please check your email address.';
+        setLocalError(errorMsg);
+      } finally {
+        setIsSendingReset(false);
+      }
+      return;
+    }
+
+    if (mode === 'reset_password') {
+      if (!resetToken.trim() || !newPassword) {
+        setLocalError('Please provide both the reset token and your new password.');
+        return;
+      }
+      try {
+        setIsSendingReset(true);
+        await resetPassword({ token: resetToken.trim(), newPassword });
+        setLocalSuccess('Password reset successfully! Please sign in with your new credentials.');
+        setMode('login');
+      } catch (err) {
+        const errorMsg =
+          err?.response?.data?.error?.message ||
+          'Password reset failed. The token may be expired or invalid.';
+        setLocalError(errorMsg);
+      } finally {
+        setIsSendingReset(false);
+      }
+      return;
+    }
 
     if (mode === 'register') {
       if (!displayName.trim()) {
@@ -90,29 +146,37 @@ export function StepAuth({
         }
         setLocalError(errorMsg);
       }
-    } else {
-      // Login mode
-      try {
-        await login({ email, password });
-        await triggerTransition({
-          variant: 'full',
-          message: 'Entering Jeevan...',
-          submessage: 'Synchronizing Account & Character Data',
-          duration: 2600,
-        });
-        onComplete();
-      } catch (err) {
-        let errorMsg = err?.response?.data?.error?.message;
-        if (!errorMsg) {
-          if (err?.code === 'ERR_NETWORK' || err?.message === 'Network Error') {
-            errorMsg =
-              'Unable to reach Jeevan server. Please check your network connection.';
-          } else {
-            errorMsg = err?.message || 'Invalid credentials. Please try again.';
-          }
-        }
-        setLocalError(errorMsg);
+      return;
+    }
+
+    // Login mode
+    try {
+      await login({ email, password });
+      if (rememberMe) {
+        localStorage.setItem('lifeos_remember_me', 'true');
+        localStorage.setItem('lifeos_saved_email', email);
+      } else {
+        localStorage.removeItem('lifeos_remember_me');
+        localStorage.removeItem('lifeos_saved_email');
       }
+      await triggerTransition({
+        variant: 'full',
+        message: 'Entering Jeevan...',
+        submessage: 'Synchronizing Account & Character Data',
+        duration: 2600,
+      });
+      onComplete();
+    } catch (err) {
+      let errorMsg = err?.response?.data?.error?.message;
+      if (!errorMsg) {
+        if (err?.code === 'ERR_NETWORK' || err?.message === 'Network Error') {
+          errorMsg =
+            'Unable to reach Jeevan server. Please check your network connection.';
+        } else {
+          errorMsg = err?.message || 'Invalid credentials. Please try again.';
+        }
+      }
+      setLocalError(errorMsg);
     }
   };
 
@@ -277,47 +341,140 @@ export function StepAuth({
           </div>
         </div>
 
-        {/* Password */}
-        <div className="space-y-1">
-          <label
-            htmlFor="onboarding-password"
-            className="text-[11px] font-medium text-slate-300 uppercase tracking-wider font-mono block"
-          >
-            Password
-          </label>
-          <div className="relative">
-            <input
-              id="onboarding-password"
-              type={showPassword ? 'text' : 'password'}
-              required
-              autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-              placeholder="••••••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white placeholder-slate-500 text-sm focus:border-purple-400 focus:ring-1 focus:ring-purple-400 focus:outline-none transition-all pl-9 pr-9"
-            />
-            <Lock
-              size={15}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors p-0.5 cursor-pointer"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-            >
-              {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-            </button>
-          </div>
+        {/* Password (for login and register) */}
+        {(mode === 'login' || mode === 'register') && (
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor="onboarding-password"
+                className="text-[11px] font-medium text-slate-300 uppercase tracking-wider font-mono block"
+              >
+                Password
+              </label>
+              {mode === 'login' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('forgot_password');
+                    setLocalError('');
+                    setLocalSuccess('');
+                  }}
+                  className="text-[11px] text-purple-400 hover:text-purple-300 font-semibold underline underline-offset-2 cursor-pointer"
+                >
+                  Forgot password?
+                </button>
+              )}
+            </div>
+            <div className="relative">
+              <input
+                id="onboarding-password"
+                type={showPassword ? 'text' : 'password'}
+                required
+                autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+                placeholder="••••••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white placeholder-slate-500 text-sm focus:border-purple-400 focus:ring-1 focus:ring-purple-400 focus:outline-none transition-all pl-9 pr-9"
+              />
+              <Lock
+                size={15}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors p-0.5 cursor-pointer"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+              </button>
+            </div>
 
-          {/* Password strength meter */}
-          {mode === 'register' && (
-            <PasswordMeter
-              password={password}
-              onChange={({ isValid }) => setPasswordValid(isValid)}
-            />
-          )}
-        </div>
+            {/* Password strength meter */}
+            {mode === 'register' && (
+              <PasswordMeter
+                password={password}
+                onChange={({ isValid }) => setPasswordValid(isValid)}
+              />
+            )}
+          </div>
+        )}
+
+        {/* Remember Me Checkbox (Login mode only) */}
+        {mode === 'login' && (
+          <div className="flex items-center justify-between pt-0.5">
+            <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-slate-300">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 rounded border-white/20 bg-white/10 text-purple-600 focus:ring-purple-500 focus:ring-offset-0 cursor-pointer"
+              />
+              <span>Remember me on this device</span>
+            </label>
+          </div>
+        )}
+
+        {/* Reset Token & New Password (if in reset_password mode) */}
+        {mode === 'reset_password' && (
+          <>
+            <div className="space-y-1">
+              <label
+                htmlFor="reset-token"
+                className="text-[11px] font-medium text-slate-300 uppercase tracking-wider font-mono block"
+              >
+                Reset Token
+              </label>
+              <div className="relative">
+                <input
+                  id="reset-token"
+                  type="text"
+                  required
+                  placeholder="Paste secure reset token"
+                  value={resetToken}
+                  onChange={(e) => setResetToken(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white placeholder-slate-500 text-sm focus:border-purple-400 focus:ring-1 focus:ring-purple-400 focus:outline-none transition-all pl-9"
+                />
+                <KeyRound
+                  size={15}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label
+                htmlFor="reset-new-password"
+                className="text-[11px] font-medium text-slate-300 uppercase tracking-wider font-mono block"
+              >
+                New Password
+              </label>
+              <div className="relative">
+                <input
+                  id="reset-new-password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  placeholder="Min 8 characters"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white placeholder-slate-500 text-sm focus:border-purple-400 focus:ring-1 focus:ring-purple-400 focus:outline-none transition-all pl-9 pr-9"
+                />
+                <Lock
+                  size={15}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors p-0.5 cursor-pointer"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Inline Error */}
         <AnimatePresence>
@@ -330,6 +487,21 @@ export function StepAuth({
             >
               <AlertCircle size={15} className="shrink-0 mt-0.5 text-rose-400" />
               <span className="leading-snug">{localError}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Inline Success */}
+        <AnimatePresence>
+          {localSuccess && (
+            <motion.div
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-300 flex items-start gap-2.5"
+            >
+              <CheckCircle2 size={15} className="shrink-0 mt-0.5 text-emerald-400" />
+              <span className="leading-snug">{localSuccess}</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -351,13 +523,25 @@ export function StepAuth({
             <>
               <JeevanLoader variant="micro" className="text-white" />
               <span>
-                {mode === 'register' ? 'Initializing Character...' : 'Authenticating...'}
+                {mode === 'register'
+                  ? 'Initializing Character...'
+                  : mode === 'forgot_password'
+                  ? 'Dispatching Reset...'
+                  : mode === 'reset_password'
+                  ? 'Updating Password...'
+                  : 'Authenticating...'}
               </span>
             </>
           ) : (
             <>
               <span>
-                {mode === 'register' ? 'Create Account' : 'Sign In'}
+                {mode === 'register'
+                  ? 'Create Account'
+                  : mode === 'forgot_password'
+                  ? 'Send Reset Link'
+                  : mode === 'reset_password'
+                  ? 'Set New Password'
+                  : 'Sign In'}
               </span>
               <ArrowRight size={16} />
             </>
@@ -365,30 +549,63 @@ export function StepAuth({
         </motion.button>
       </form>
 
-      {/* ── 4. Toggle Mode Link (Sign In ↔ Sign Up) ── */}
-      <div className="text-center pt-1">
-        {mode === 'register' ? (
+      {/* ── 4. Toggle Mode Links ── */}
+      <div className="text-center pt-1 space-y-1.5">
+        {mode === 'register' && (
           <button
             type="button"
             onClick={() => {
               setMode('login');
               setLocalError('');
+              setLocalSuccess('');
             }}
             className="text-xs text-slate-400 hover:text-purple-300 font-medium transition-colors cursor-pointer"
           >
             Already have an account? <span className="text-purple-400 font-semibold underline underline-offset-2">Sign in</span>
           </button>
-        ) : (
+        )}
+
+        {mode === 'login' && (
           <button
             type="button"
             onClick={() => {
               setMode('register');
               setLocalError('');
+              setLocalSuccess('');
             }}
             className="text-xs text-slate-400 hover:text-purple-300 font-medium transition-colors cursor-pointer"
           >
             New here? <span className="text-purple-400 font-semibold underline underline-offset-2">Create an account</span>
           </button>
+        )}
+
+        {(mode === 'forgot_password' || mode === 'reset_password') && (
+          <div className="flex items-center justify-center gap-3 text-xs">
+            <button
+              type="button"
+              onClick={() => {
+                setMode('login');
+                setLocalError('');
+                setLocalSuccess('');
+              }}
+              className="text-slate-400 hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+            >
+              <ArrowLeft size={12} />
+              <span>Back to Sign In</span>
+            </button>
+            <span className="text-white/20">•</span>
+            <button
+              type="button"
+              onClick={() => {
+                setMode(mode === 'forgot_password' ? 'reset_password' : 'forgot_password');
+                setLocalError('');
+                setLocalSuccess('');
+              }}
+              className="text-purple-400 hover:underline cursor-pointer"
+            >
+              {mode === 'forgot_password' ? 'Have a token? Enter token' : 'Need a token? Send email'}
+            </button>
+          </div>
         )}
       </div>
     </div>

@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 
 import { AppShell } from '@/components/layout';
 import { initNativeApp, initNativeStatusBar } from '@/lib/native';
+import { useAuth } from '@/features/auth/hooks';
 import AuthCallback from '@/pages/AuthCallback';
 import DashboardPage from '@/pages/DashboardPage';
 import HabitsPage from '@/pages/HabitsPage';
@@ -18,6 +19,8 @@ import OnboardingPage from '@/features/onboarding/OnboardingPage';
 
 export default function App() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   useEffect(() => {
     initNativeStatusBar();
@@ -26,6 +29,41 @@ export default function App() {
     });
     return cleanup;
   }, [navigate]);
+
+  useEffect(() => {
+    if (authLoading) return;
+
+    const pathname = location.pathname;
+    if (pathname.startsWith('/auth/callback') || pathname === '/dev') return;
+
+    const isOnboardingOrLogin = pathname === '/onboarding' || pathname === '/login';
+
+    if (!isAuthenticated) {
+      if (!isOnboardingOrLogin) {
+        let hasCompletedOnboarding = false;
+        try {
+          hasCompletedOnboarding = localStorage.getItem('lifeos_onboarding_completed') === 'true';
+        } catch {}
+
+        if (!hasCompletedOnboarding) {
+          navigate('/onboarding', { replace: true });
+        } else {
+          navigate('/login', { replace: true });
+        }
+      }
+    } else {
+      if (pathname === '/login') {
+        navigate('/', { replace: true });
+      } else if (pathname === '/onboarding') {
+        try {
+          const hasCompletedOnboarding = localStorage.getItem('lifeos_onboarding_completed') === 'true';
+          if (hasCompletedOnboarding) {
+            navigate('/', { replace: true });
+          }
+        } catch {}
+      }
+    }
+  }, [isAuthenticated, authLoading, location.pathname, navigate]);
   return (
     <AppShell>
       <Routes>

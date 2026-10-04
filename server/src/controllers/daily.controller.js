@@ -34,13 +34,7 @@ export class DailyController {
    */
   async createDaily(req, res, next) {
     try {
-      const { title, description, difficulty, activeDays } = req.body;
-      const daily = await dailyService.createDaily(req.user.id, {
-        title,
-        description,
-        difficulty,
-        activeDays,
-      });
+      const daily = await dailyService.createDaily(req.user.id, req.body);
       return res.status(201).json({ data: daily });
     } catch (err) {
       next(err);
@@ -52,13 +46,7 @@ export class DailyController {
    */
   async updateDaily(req, res, next) {
     try {
-      const { title, description, difficulty, activeDays } = req.body;
-      const daily = await dailyService.updateDaily(req.user.id, req.params.id, {
-        title,
-        description,
-        difficulty,
-        activeDays,
-      });
+      const daily = await dailyService.updateDaily(req.user.id, req.params.id, req.body);
       return res.status(200).json({ data: daily });
     } catch (err) {
       next(err);

@@ -88,6 +88,9 @@ export const api = axios.create({
   withCredentials: true,
 });
 
+export const apiClient = api;
+export default api;
+
 
 /**
  * Single-flight silent refresh manager.

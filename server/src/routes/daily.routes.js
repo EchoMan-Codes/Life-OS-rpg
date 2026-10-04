@@ -15,6 +15,12 @@ const createDailySchema = z.object({
     .array(z.number().int().min(0).max(6))
     .min(1, 'At least one active day is required')
     .default([0, 1, 2, 3, 4, 5, 6]),
+  scheduledTime: z.string().trim().max(20).nullable().optional(),
+  durationMinutes: z.number().int().min(1).max(720).optional(),
+  priority: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+  reminderEnabled: z.boolean().optional(),
+  reminderMinutesBefore: z.number().int().min(0).max(1440).optional(),
+  targetDate: z.string().nullable().optional(),
 });
 
 const updateDailySchema = z.object({
@@ -22,6 +28,12 @@ const updateDailySchema = z.object({
   description: z.string().trim().max(1000).nullable().optional(),
   difficulty: z.enum(['trivial', 'easy', 'medium', 'hard']).optional(),
   activeDays: z.array(z.number().int().min(0).max(6)).min(1).optional(),
+  scheduledTime: z.string().trim().max(20).nullable().optional(),
+  durationMinutes: z.number().int().min(1).max(720).optional(),
+  priority: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+  reminderEnabled: z.boolean().optional(),
+  reminderMinutesBefore: z.number().int().min(0).max(1440).optional(),
+  targetDate: z.string().nullable().optional(),
 });
 
 // All daily routes require authentication

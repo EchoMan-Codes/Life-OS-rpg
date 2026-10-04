@@ -3,6 +3,14 @@ import { applyReward, revertReward, xpRequiredFor } from './progression.service.
 import { calculateDailyReward } from './reward-table.js';
 import { getUserLocalDate, checkAndProcessUserReset } from './daily-reset.service.js';
 
+const DAILY_SELECT_FIELDS = `
+  id, user_id, title, description, difficulty, active_days,
+  streak_current, streak_best, streak_shield_charges, is_complete_today,
+  last_reset_date::text as last_reset_date,
+  scheduled_time, duration_minutes, priority, reminder_enabled, reminder_minutes_before, target_date::text as target_date,
+  created_at, archived_at
+`;
+
 /**
  * Format raw PostgreSQL daily row into API-ready object.
  */
@@ -19,6 +27,12 @@ export function formatDaily(row) {
     streakShieldCharges: row.streak_shield_charges,
     isCompleteToday: Boolean(row.is_complete_today),
     lastResetDate: row.last_reset_date ? String(row.last_reset_date).slice(0, 10) : null,
+    scheduledTime: row.scheduled_time || null,
+    durationMinutes: row.duration_minutes !== undefined && row.duration_minutes !== null ? Number(row.duration_minutes) : 30,
+    priority: row.priority || 'medium',
+    reminderEnabled: Boolean(row.reminder_enabled),
+    reminderMinutesBefore: row.reminder_minutes_before !== undefined && row.reminder_minutes_before !== null ? Number(row.reminder_minutes_before) : 10,
+    targetDate: row.target_date ? String(row.target_date).slice(0, 10) : null,
     createdAt: row.created_at ? new Date(row.created_at).toISOString() : null,
     archivedAt: row.archived_at ? new Date(row.archived_at).toISOString() : null,
   };
@@ -67,9 +81,7 @@ export class DailyService {
     }
 
     let sql = `
-      SELECT id, user_id, title, description, difficulty, active_days,
-             streak_current, streak_best, streak_shield_charges, is_complete_today,
-             last_reset_date::text as last_reset_date, created_at, archived_at
+      SELECT ${DAILY_SELECT_FIELDS}
       FROM dailies
       WHERE user_id = $1
     `;
@@ -94,9 +106,7 @@ export class DailyService {
    */
   async getDailyById(userId, dailyId) {
     const result = await query(
-      `SELECT id, user_id, title, description, difficulty, active_days,
-              streak_current, streak_best, streak_shield_charges, is_complete_today,
-              last_reset_date::text as last_reset_date, created_at, archived_at
+      `SELECT ${DAILY_SELECT_FIELDS}
        FROM dailies
        WHERE id = $1 AND user_id = $2`,
       [dailyId, userId]
@@ -117,24 +127,45 @@ export class DailyService {
    *
    * @param {string} userId - User UUID
    * @param {object} data
-   * @param {string} data.title
-   * @param {string} [data.description]
-   * @param {'trivial'|'easy'|'medium'|'hard'} [data.difficulty='easy']
-   * @param {number[]} [data.activeDays=[0,1,2,3,4,5,6]]
    * @returns {Promise<object>}
    */
-  async createDaily(userId, { title, description = null, difficulty = 'easy', activeDays = [0, 1, 2, 3, 4, 5, 6] }) {
+  async createDaily(userId, {
+    title,
+    description = null,
+    difficulty = 'easy',
+    activeDays = [0, 1, 2, 3, 4, 5, 6],
+    scheduledTime = null,
+    durationMinutes = 30,
+    priority = 'medium',
+    reminderEnabled = false,
+    reminderMinutesBefore = 10,
+    targetDate = null,
+  }) {
     const userRes = await query('SELECT timezone FROM users WHERE id = $1', [userId]);
     const timezone = userRes.rows[0]?.timezone || 'UTC';
     const localToday = getUserLocalDate(new Date(), timezone);
 
     const result = await query(
-      `INSERT INTO dailies (user_id, title, description, difficulty, active_days, last_reset_date)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id, user_id, title, description, difficulty, active_days,
-                 streak_current, streak_best, streak_shield_charges, is_complete_today,
-                 last_reset_date::text as last_reset_date, created_at, archived_at`,
-      [userId, title.trim(), description ? description.trim() : null, difficulty, activeDays, localToday]
+      `INSERT INTO dailies (
+         user_id, title, description, difficulty, active_days, last_reset_date,
+         scheduled_time, duration_minutes, priority, reminder_enabled, reminder_minutes_before, target_date
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+       RETURNING ${DAILY_SELECT_FIELDS}`,
+      [
+        userId,
+        title.trim(),
+        description ? description.trim() : null,
+        difficulty,
+        activeDays,
+        localToday,
+        scheduledTime ? scheduledTime.trim() : null,
+        durationMinutes,
+        priority,
+        Boolean(reminderEnabled),
+        reminderMinutesBefore,
+        targetDate || null,
+      ]
     );
 
     return formatDaily(result.rows[0]);
@@ -181,6 +212,30 @@ export class DailyService {
       updates.push(`active_days = $${idx++}`);
       values.push(data.activeDays);
     }
+    if (data.scheduledTime !== undefined) {
+      updates.push(`scheduled_time = $${idx++}`);
+      values.push(data.scheduledTime ? data.scheduledTime.trim() : null);
+    }
+    if (data.durationMinutes !== undefined) {
+      updates.push(`duration_minutes = $${idx++}`);
+      values.push(data.durationMinutes);
+    }
+    if (data.priority !== undefined) {
+      updates.push(`priority = $${idx++}`);
+      values.push(data.priority);
+    }
+    if (data.reminderEnabled !== undefined) {
+      updates.push(`reminder_enabled = $${idx++}`);
+      values.push(Boolean(data.reminderEnabled));
+    }
+    if (data.reminderMinutesBefore !== undefined) {
+      updates.push(`reminder_minutes_before = $${idx++}`);
+      values.push(data.reminderMinutesBefore);
+    }
+    if (data.targetDate !== undefined) {
+      updates.push(`target_date = $${idx++}`);
+      values.push(data.targetDate || null);
+    }
 
     if (updates.length === 0) {
       return this.getDailyById(userId, dailyId);
@@ -191,9 +246,7 @@ export class DailyService {
       UPDATE dailies
       SET ${updates.join(', ')}
       WHERE id = $${idx++} AND user_id = $${idx++}
-      RETURNING id, user_id, title, description, difficulty, active_days,
-                streak_current, streak_best, streak_shield_charges, is_complete_today,
-                last_reset_date::text as last_reset_date, created_at, archived_at
+      RETURNING ${DAILY_SELECT_FIELDS}
     `;
 
     const result = await query(sql, values);
@@ -368,9 +421,7 @@ export class DailyService {
         `UPDATE dailies
          SET is_complete_today = true
          WHERE id = $1
-         RETURNING id, user_id, title, description, difficulty, active_days,
-                   streak_current, streak_best, streak_shield_charges, is_complete_today,
-                   last_reset_date::text as last_reset_date, created_at, archived_at`,
+         RETURNING ${DAILY_SELECT_FIELDS}`,
         [daily.id]
       );
 
@@ -484,9 +535,7 @@ export class DailyService {
         `UPDATE dailies
          SET is_complete_today = false
          WHERE id = $1
-         RETURNING id, user_id, title, description, difficulty, active_days,
-                   streak_current, streak_best, streak_shield_charges, is_complete_today,
-                   last_reset_date::text as last_reset_date, created_at, archived_at`,
+         RETURNING ${DAILY_SELECT_FIELDS}`,
         [daily.id]
       );
 

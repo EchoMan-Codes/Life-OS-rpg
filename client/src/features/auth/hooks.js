@@ -8,6 +8,11 @@ import {
   refreshToken,
   logoutUser,
   fetchCurrentUser,
+  updateUserProfile,
+  forgotPassword,
+  resetPassword,
+  resetUserAccount,
+  deleteUserAccount,
 } from './api';
 
 export const ME_QUERY_KEY = ['me'];
@@ -86,6 +91,73 @@ export function useRegister() {
 }
 
 /**
+ * Mutation hook for updating profile.
+ */
+export function useUpdateProfile() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateUserProfile,
+    onSuccess: (data) => {
+      queryClient.setQueryData(ME_QUERY_KEY, data.user);
+      queryClient.invalidateQueries({ queryKey: ['character'] });
+    },
+  });
+}
+
+/**
+ * Mutation hook for requesting password reset.
+ */
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: forgotPassword,
+  });
+}
+
+/**
+ * Mutation hook for resetting password.
+ */
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: resetPassword,
+  });
+}
+
+/**
+ * Mutation hook for resetting account progress back to Level 1.
+ */
+export function useResetAccount() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: resetUserAccount,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['character'] });
+      queryClient.invalidateQueries({ queryKey: ['habits'] });
+      queryClient.invalidateQueries({ queryKey: ['dailies'] });
+      queryClient.invalidateQueries({ queryKey: ['quests'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+    },
+  });
+}
+
+/**
+ * Mutation hook for deleting account.
+ */
+export function useDeleteAccount() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteUserAccount,
+    onSuccess: () => {
+      setAccessToken(null);
+      queryClient.setQueryData(ME_QUERY_KEY, null);
+      queryClient.clear();
+    },
+  });
+}
+
+/**
  * Mutation hook for logging out.
  */
 export function useLogout() {
@@ -115,6 +187,9 @@ export function useAuth() {
   const loginMutation = useLogin();
   const registerMutation = useRegister();
   const logoutMutation = useLogout();
+  const updateProfileMutation = useUpdateProfile();
+  const resetAccountMutation = useResetAccount();
+  const deleteAccountMutation = useDeleteAccount();
   const [sessionExpired, setSessionExpired] = useState(false);
 
   useEffect(() => {
@@ -145,5 +220,11 @@ export function useAuth() {
     registerError: registerMutation.error,
     logout: logoutMutation.mutateAsync,
     isLoggingOut: logoutMutation.isPending,
+    updateProfile: updateProfileMutation.mutateAsync,
+    isUpdatingProfile: updateProfileMutation.isPending,
+    resetAccount: resetAccountMutation.mutateAsync,
+    isResettingAccount: resetAccountMutation.isPending,
+    deleteAccount: deleteAccountMutation.mutateAsync,
+    isDeletingAccount: deleteAccountMutation.isPending,
   };
 }

@@ -18,10 +18,10 @@ import { calculateHabitReward } from '@/features/habits/rewardTable';
 import { ItemActionMenu } from '@/components/ui';
 
 const DIFFICULTY_CONFIG = {
-  trivial: { label: 'Trivial', color: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-400' },
-  easy: { label: 'Easy', color: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-400' },
-  medium: { label: 'Medium', color: 'bg-amber-500/15 border-amber-500/30 text-amber-700 dark:text-amber-400' },
-  hard: { label: 'Hard', color: 'bg-rose-500/15 border-rose-500/30 text-rose-700 dark:text-rose-400' },
+  trivial: { label: 'Trivial', reward: { xp: 3, gold: 1 }, color: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-400' },
+  easy: { label: 'Easy', reward: { xp: 8, gold: 3 }, color: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-400' },
+  medium: { label: 'Medium', reward: { xp: 15, gold: 6 }, color: 'bg-amber-500/15 border-amber-500/30 text-amber-700 dark:text-amber-400' },
+  hard: { label: 'Hard', reward: { xp: 25, gold: 10 }, color: 'bg-rose-500/15 border-rose-500/30 text-rose-700 dark:text-rose-400' },
 };
 
 const WEEK_DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -289,6 +289,11 @@ export function HabitCard({ habit, onEdit }) {
               {diffConfig.label}
             </span>
 
+            {/* XP Reward Badge */}
+            <span className="px-2 py-0.5 text-[10px] font-mono font-bold rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 shrink-0">
+              +{diffConfig.reward?.xp || 8} XP
+            </span>
+
             {/* Streak Counter Pill */}
             <div
               className={clsx(
@@ -314,9 +319,9 @@ export function HabitCard({ habit, onEdit }) {
             </div>
           </div>
 
-          {/* Row 2: Subtitle / Description / Time Target */}
+          {/* Row 2: Meaningful Description (2-3 lines without immediately opening) */}
           {habit.description && (
-            <p className="text-xs text-slate-500 dark:text-ink-muted line-clamp-1 mb-2 font-medium">
+            <p className="text-xs text-slate-600 dark:text-ink-muted line-clamp-3 mb-2 font-medium leading-relaxed">
               {habit.description}
             </p>
           )}

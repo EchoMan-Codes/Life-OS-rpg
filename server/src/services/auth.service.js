@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import { ZxcvbnFactory } from '@zxcvbn-ts/core';
 import { translations, dictionary } from '@zxcvbn-ts/language-en';
@@ -9,6 +10,8 @@ import {
   hashRefreshToken,
   getRefreshTokenExpiry,
 } from './token.service.js';
+import { sendPasswordResetEmail } from '../utils/mailer.js';
+import { env } from '../config/env.js';
 
 // Initialize zxcvbn factory with English language dictionary
 const zxcvbnValidator = new ZxcvbnFactory({
@@ -289,7 +292,8 @@ export class AuthService {
    */
   async getUserById(userId) {
     const res = await query(
-      `SELECT id, email, display_name, avatar_url, timezone, created_at
+      `SELECT id, email, display_name, avatar_url, timezone, motto,
+              notification_preferences, ai_preferences, onboarding_completed, created_at
        FROM users WHERE id = $1`,
       [userId]
     );
@@ -308,6 +312,19 @@ export class AuthService {
       displayName: user.display_name,
       avatarUrl: user.avatar_url,
       timezone: user.timezone || 'UTC',
+      motto: user.motto || '',
+      notificationPreferences: user.notification_preferences || {
+        dailyReminders: true,
+        habitReminders: true,
+        questReminders: true,
+        reminderMinutesBefore: 10,
+        soundEnabled: true,
+      },
+      aiPreferences: user.ai_preferences || {
+        tone: 'encouraging',
+        featuresEnabled: true,
+      },
+      onboardingCompleted: !!user.onboarding_completed,
       createdAt: user.created_at,
     };
   }
@@ -404,6 +421,233 @@ export class AuthService {
       };
     });
   }
+
+  /**
+   * Request password reset token and send email.
+   */
+  async forgotPassword({ email }) {
+    const normalizedEmail = email.toLowerCase().trim();
+    const res = await query('SELECT id, email, display_name FROM users WHERE email = $1', [normalizedEmail]);
+    
+    // Constant response time/behavior to mitigate user enumeration
+    if (res.rows.length === 0) {
+      return { message: 'If an account exists with that email, a password reset link has been sent.' };
+    }
+
+    const user = res.rows[0];
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await query(
+      `INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
+       VALUES ($1, $2, $3)`,
+      [user.id, tokenHash, expiresAt]
+    );
+
+    const clientOrigin = env.CORS_ORIGIN ? (Array.isArray(env.CORS_ORIGIN) ? env.CORS_ORIGIN[0] : env.CORS_ORIGIN.split(',')[0]) : 'http://localhost:5173';
+    const resetUrl = `${clientOrigin.replace(/\/$/, '')}/reset-password?token=${rawToken}`;
+
+    try {
+      await sendPasswordResetEmail({
+        to: user.email,
+        resetUrl,
+        displayName: user.display_name,
+      });
+    } catch (mailErr) {
+      console.error('[AUTH] Failed to send password reset email:', mailErr);
+    }
+
+    return { message: 'If an account exists with that email, a password reset link has been sent.' };
+  }
+
+  /**
+   * Reset password using token.
+   */
+  async resetPassword({ token, newPassword }) {
+    if (!token) {
+      const err = new Error('Reset token is required.');
+      err.status = 400;
+      throw err;
+    }
+
+    // Password strength check
+    const zxcvbnResult = zxcvbnValidator.check(newPassword);
+    if (zxcvbnResult.score < 2) {
+      const err = new Error('Password is too weak. Please choose a stronger password.');
+      err.status = 400;
+      err.code = 'WEAK_PASSWORD';
+      err.suggestions = zxcvbnResult.feedback.suggestions || [];
+      throw err;
+    }
+
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    return withTransaction(async (client) => {
+      const tokenRes = await client.query(
+        `SELECT id, user_id, expires_at, used_at
+         FROM password_reset_tokens
+         WHERE token_hash = $1 FOR UPDATE`,
+        [tokenHash]
+      );
+
+      const tokenRecord = tokenRes.rows[0];
+      if (!tokenRecord || tokenRecord.used_at || new Date(tokenRecord.expires_at) < new Date()) {
+        const err = new Error('Invalid, used, or expired reset token.');
+        err.status = 400;
+        err.code = 'INVALID_TOKEN';
+        throw err;
+      }
+
+      const passwordHash = await bcrypt.hash(newPassword, 12);
+
+      // Update user's password
+      await client.query(
+        'UPDATE users SET password_hash = $1, updated_at = now() WHERE id = $2',
+        [passwordHash, tokenRecord.user_id]
+      );
+
+      // Mark token as used
+      await client.query(
+        'UPDATE password_reset_tokens SET used_at = now() WHERE id = $1',
+        [tokenRecord.id]
+      );
+
+      // Revoke all active sessions
+      await client.query(
+        'UPDATE refresh_tokens SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL',
+        [tokenRecord.user_id]
+      );
+
+      return { success: true, message: 'Password has been successfully reset. Please log in.' };
+    });
+  }
+
+  /**
+   * Update user profile settings.
+   */
+  async updateProfile(userId, { displayName, motto, avatarUrl, timezone, notificationPreferences, aiPreferences, onboardingCompleted }) {
+    const updates = [];
+    const params = [userId];
+
+    if (displayName !== undefined) {
+      params.push(displayName.trim());
+      updates.push(`display_name = $${params.length}`);
+    }
+
+    if (motto !== undefined) {
+      params.push(motto.trim());
+      updates.push(`motto = $${params.length}`);
+    }
+
+    if (avatarUrl !== undefined) {
+      params.push(avatarUrl);
+      updates.push(`avatar_url = $${params.length}`);
+    }
+
+    if (timezone !== undefined && isValidTimezone(timezone)) {
+      params.push(timezone);
+      updates.push(`timezone = $${params.length}`);
+    }
+
+    if (notificationPreferences !== undefined) {
+      params.push(JSON.stringify(notificationPreferences));
+      updates.push(`notification_preferences = $${params.length}::jsonb`);
+    }
+
+    if (aiPreferences !== undefined) {
+      params.push(JSON.stringify(aiPreferences));
+      updates.push(`ai_preferences = $${params.length}::jsonb`);
+    }
+
+    if (onboardingCompleted !== undefined) {
+      params.push(Boolean(onboardingCompleted));
+      updates.push(`onboarding_completed = $${params.length}`);
+    }
+
+    if (updates.length === 0) {
+      return this.getUserById(userId);
+    }
+
+    updates.push('updated_at = now()');
+
+    await query(
+      `UPDATE users SET ${updates.join(', ')} WHERE id = $1`,
+      params
+    );
+
+    return this.getUserById(userId);
+  }
+
+  /**
+   * Reset RPG Progression and all tasks/habits/inventory back to Level 1.
+   */
+  async resetAccount(userId) {
+    return withTransaction(async (client) => {
+      // 1. Reset character stats
+      await client.query(
+        `UPDATE character_stats
+         SET level = 1,
+             current_hp = 100,
+             max_hp = 100,
+             current_mana = 50,
+             max_mana = 50,
+             current_xp = 0,
+             next_level_xp = 100,
+             gold = 0,
+             strength = 10,
+             intelligence = 10,
+             willpower = 10,
+             agility = 10,
+             constitution = 10,
+             total_habits_completed = 0,
+             total_dailies_completed = 0,
+             total_quests_completed = 0,
+             current_streak = 0,
+             longest_streak = 0,
+             updated_at = now()
+         WHERE user_id = $1`,
+        [userId]
+      );
+
+      // 2. Clear habits & logs
+      await client.query('DELETE FROM habit_logs WHERE user_id = $1', [userId]);
+      await client.query('DELETE FROM habits WHERE user_id = $1', [userId]);
+
+      // 3. Clear dailies & completions
+      await client.query('DELETE FROM daily_completions WHERE user_id = $1', [userId]);
+      await client.query('DELETE FROM dailies WHERE user_id = $1', [userId]);
+
+      // 4. Clear quests
+      await client.query('DELETE FROM quest_completions WHERE user_id = $1', [userId]);
+      await client.query('DELETE FROM quest_milestones WHERE user_id = $1', [userId]);
+      await client.query('DELETE FROM quest_items WHERE user_id = $1', [userId]);
+      await client.query('DELETE FROM quests WHERE user_id = $1', [userId]);
+
+      // 5. Clear inventory, focus sessions, reflections, notifications
+      await client.query('DELETE FROM user_inventory WHERE user_id = $1', [userId]);
+      await client.query('DELETE FROM focus_sessions WHERE user_id = $1', [userId]);
+      await client.query('DELETE FROM reflections WHERE user_id = $1', [userId]);
+      await client.query('DELETE FROM notifications WHERE user_id = $1', [userId]);
+
+      return { success: true, message: 'Account progression has been reset to Level 1.' };
+    });
+  }
+
+  /**
+   * Permanently delete user account and all cascaded data.
+   */
+  async deleteAccount(userId, confirmation) {
+    if (confirmation !== 'DELETE') {
+      const err = new Error('Confirmation keyword DELETE is required to permanently delete your account.');
+      err.status = 400;
+      throw err;
+    }
+
+    await query('DELETE FROM users WHERE id = $1', [userId]);
+    return { success: true, message: 'Account permanently deleted.' };
+  }
 }
 
 export const authService = new AuthService();
+

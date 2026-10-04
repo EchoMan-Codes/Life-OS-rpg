@@ -22,6 +22,31 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
+const forgotPasswordSchema = z.object({
+  email: z.string().email('Invalid email address'),
+});
+
+const resetPasswordSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+  newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
+const updateProfileSchema = z.object({
+  displayName: z.string().min(1).max(50).optional(),
+  motto: z.string().max(100).optional(),
+  avatarUrl: z.string().startsWith('data:image/').or(z.string().url()).or(z.literal('')).optional(),
+  timezone: z.string().max(50).optional(),
+  notificationPreferences: z.record(z.any()).optional(),
+  aiPreferences: z.record(z.any()).optional(),
+  onboardingCompleted: z.boolean().optional(),
+});
+
+const deleteAccountSchema = z.object({
+  confirmation: z.literal('DELETE', {
+    errorMap: () => ({ message: "Must provide confirmation string 'DELETE'" }),
+  }),
+});
+
 // Email & Password registration (rate limited to 5 req/min per IP)
 router.post(
   '/register',
@@ -38,6 +63,22 @@ router.post(
   authController.login
 );
 
+// Forgot password (rate limited to 5 req/min per IP)
+router.post(
+  '/forgot-password',
+  authRateLimiter,
+  validate(forgotPasswordSchema),
+  authController.forgotPassword
+);
+
+// Reset password (rate limited to 5 req/min per IP)
+router.post(
+  '/reset-password',
+  authRateLimiter,
+  validate(resetPasswordSchema),
+  authController.resetPassword
+);
+
 // Refresh token rotation (HttpOnly cookie)
 router.post('/refresh', authController.refresh);
 
@@ -46,6 +87,15 @@ router.post('/logout', authController.logout);
 
 // Current user profile
 router.get('/me', requireAuth, authController.me);
+
+// Update user profile
+router.patch('/profile', requireAuth, validate(updateProfileSchema), authController.updateProfile);
+
+// Reset RPG progression to Level 1
+router.post('/reset-account', requireAuth, authController.resetAccount);
+
+// Permanently delete user account
+router.delete('/account', requireAuth, validate(deleteAccountSchema), authController.deleteAccount);
 
 // Google OAuth initiate
 router.get('/google', (req, res, next) => {
@@ -79,3 +129,4 @@ router.get(
 );
 
 export default router;
+

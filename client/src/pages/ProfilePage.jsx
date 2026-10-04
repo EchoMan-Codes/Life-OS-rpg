@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import {
@@ -31,6 +31,13 @@ import {
   Award,
   Dumbbell,
   Wallet,
+  AlertTriangle,
+  Trash2,
+  RotateCcw,
+  FileText,
+  Bell,
+  Loader2,
+  X,
 } from 'lucide-react';
 import {
   BarChart,
@@ -55,6 +62,8 @@ import { useFloatingText } from '@/features/character/floatingText';
 import { openBattleLogDrawer } from '@/features/celebration/celebrationEvents';
 import { AttributesRadarChart } from '@/components/hud/AttributesRadarChart';
 import { useTheme } from '@/lib/theme';
+import { ReportsModal } from '@/features/reports/ReportsModal';
+import { NotificationCenterModal } from '@/features/notifications/components/NotificationCenterModal';
 
 const ATTR_DETAILS = [
   {
@@ -118,7 +127,7 @@ const ATTR_DETAILS = [
  */
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, updateProfile, resetAccount, deleteAccount } = useAuth();
   const { data: character = {} } = useCharacter();
   const { data: habits = [] } = useHabits();
   const { data: dailies = [] } = useDailies();
@@ -130,6 +139,17 @@ export default function ProfilePage() {
 
   // Active tab: 'overview' | 'stats' | 'achievements' | 'settings'
   const [activeTab, setActiveTab] = useState('overview');
+
+  // Modals & Avatar state
+  const fileInputRef = useRef(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [showReportsModal, setShowReportsModal] = useState(false);
+  const [showNotificationsModal, setShowNotificationsModal] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   // Editable motto quote
   const [motto, setMotto] = useState(() => {
@@ -151,10 +171,103 @@ export default function ProfilePage() {
     });
   };
 
-  const handleSaveMotto = () => {
+  const handleSaveMotto = async () => {
     setMotto(mottoInput);
     localStorage.setItem('lifeos_user_motto', mottoInput);
     setIsEditingMotto(false);
+    try {
+      await updateProfile({ motto: mottoInput });
+    } catch (err) {
+      console.error('Failed to sync motto:', err);
+    }
+  };
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Please choose an image under 5MB');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (readerEvent) => {
+      const img = new Image();
+      img.onload = async () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 200;
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const base64 = canvas.toDataURL('image/jpeg', 0.82);
+        try {
+          setIsUploadingAvatar(true);
+          await updateProfile({ avatarUrl: base64 });
+          spawnFloatingText('Avatar Updated!');
+        } catch (err) {
+          console.error('Failed to update avatar:', err);
+          alert('Failed to update avatar. Please try again.');
+        } finally {
+          setIsUploadingAvatar(false);
+        }
+      };
+      img.src = readerEvent.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveAvatar = async () => {
+    try {
+      setIsUploadingAvatar(true);
+      await updateProfile({ avatarUrl: '' });
+      spawnFloatingText('Avatar Removed');
+    } catch (err) {
+      console.error('Failed to remove avatar:', err);
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleResetAccount = async () => {
+    try {
+      setIsResetting(true);
+      await resetAccount();
+      setShowResetModal(false);
+      spawnFloatingText('Account Reset Completed');
+    } catch (err) {
+      console.error('Reset account failed:', err);
+      alert('Failed to reset account. Please try again.');
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText.trim() !== 'DELETE') return;
+    try {
+      setIsDeleting(true);
+      await deleteAccount({ confirmation: 'DELETE' });
+      setShowDeleteModal(false);
+      navigate('/login');
+    } catch (err) {
+      console.error('Delete account failed:', err);
+      alert('Failed to delete account. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // Real character progression stats
@@ -371,12 +484,21 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* ── 2. Atmospheric Hero Identity Banner with Wavy Scenery ── */}
-      <WavyHeroScenery variant="profile" className="p-4 sm:p-6">
-        <div className="flex flex-col items-center text-center">
+      {/* Hidden file input for custom profile avatar */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        accept="image/*"
+        onChange={handleAvatarChange}
+      />
+
+      {/* ── 2. Atmospheric Hero Identity Banner with Wavy Scenery & High-Contrast Shield ── */}
+      <WavyHeroScenery variant="profile" className="p-3 sm:p-5">
+        <div className="relative rounded-3xl bg-slate-950/80 dark:bg-slate-950/90 backdrop-blur-xl p-4 sm:p-6 border border-white/15 shadow-2xl flex flex-col items-center text-center">
           {/* Avatar Positioned with Glow Ring */}
           <div className="relative group">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-amber-400/80 shadow-2xl overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-700 flex items-center justify-center text-white">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-amber-400 shadow-2xl overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-700 flex items-center justify-center text-white">
               {avatarUrl ? (
                 <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
               ) : (
@@ -384,37 +506,67 @@ export default function ProfilePage() {
               )}
             </div>
 
-            {/* Camera Icon Overlay Badge */}
+            {/* Camera / Upload Action Button */}
             <button
               type="button"
-              className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-slate-900 text-white dark:bg-white dark:text-obsidian flex items-center justify-center shadow-md hover:scale-105 transition-transform"
-              title="Update avatar"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploadingAvatar}
+              className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-transform border-2 border-slate-950 cursor-pointer"
+              title="Upload new profile picture"
+              aria-label="Upload new profile picture"
             >
-              <Camera size={13} />
+              {isUploadingAvatar ? (
+                <Loader2 size={14} className="animate-spin text-slate-950" />
+              ) : (
+                <Camera size={14} />
+              )}
             </button>
           </div>
 
-          {/* Name & Title */}
-          <h2 className="text-xl sm:text-2xl font-black font-display text-white mt-2.5">
+          {/* Quick Avatar Actions (if avatar exists) */}
+          {avatarUrl && (
+            <div className="flex items-center gap-2 mt-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="text-[10px] font-mono text-amber-300 hover:underline cursor-pointer"
+              >
+                Change photo
+              </button>
+              <span className="text-white/30 text-xs">•</span>
+              <button
+                type="button"
+                onClick={handleRemoveAvatar}
+                className="text-[10px] font-mono text-rose-300 hover:underline cursor-pointer"
+              >
+                Remove
+              </button>
+            </div>
+          )}
+
+          {/* Name & Title with Crystal-Clear Contrast */}
+          <h2 className="text-xl sm:text-2xl font-black font-display text-white mt-2.5 tracking-tight drop-shadow-sm">
             {displayName}
           </h2>
-          <div className="flex items-center gap-1.5 text-xs text-indigo-200/80 font-mono mt-0.5">
-            <span className="font-bold text-amber-300">Lv. {level}</span>
-            <span>•</span>
-            <span>{characterTitle}</span>
+          <div className="flex items-center gap-2 text-xs font-mono mt-1 text-slate-200">
+            <span className="font-bold text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-md border border-amber-400/30">
+              Lv. {level}
+            </span>
+            <span className="text-white/40">•</span>
+            <span className="text-indigo-200 font-semibold">{characterTitle}</span>
           </div>
 
           {/* XP Progress Bar Capsule */}
           <div className="w-full max-w-sm mt-3 px-2">
-            <div className="flex items-center justify-between text-[11px] font-mono text-indigo-200/70 mb-1">
-              <span>XP Progress</span>
+            <div className="flex items-center justify-between text-xs font-mono mb-1">
+              <span className="text-slate-300">XP Progress</span>
               <span className="font-bold text-white">
-                {xp.toLocaleString()} / {xpForNextLevel.toLocaleString()} XP
+                {xp.toLocaleString()} / {xpForNextLevel.toLocaleString()} XP ({xpPercent}%)
               </span>
             </div>
-            <div className="h-2 rounded-full bg-black/40 overflow-hidden border border-white/10 shadow-inner">
+            <div className="h-2.5 rounded-full bg-black/60 overflow-hidden border border-white/20 shadow-inner">
               <motion.div
-                className="h-full bg-gradient-to-r from-amber-500 via-orange-400 to-amber-300 rounded-full shadow-[0_0_10px_rgba(245,158,11,0.5)]"
+                className="h-full bg-gradient-to-r from-amber-400 via-orange-400 to-amber-300 rounded-full shadow-[0_0_12px_rgba(245,158,11,0.6)]"
                 initial={{ width: 0 }}
                 animate={{ width: `${xpPercent}%` }}
                 transition={spring.snappy}
@@ -423,64 +575,64 @@ export default function ProfilePage() {
           </div>
 
           {/* ── 3. Lifetime Stats Row (Coins, Streak, Rank) ── */}
-          <div className="grid grid-cols-3 gap-2 sm:gap-3.5 w-full max-w-md mt-4 pt-3.5 border-t border-white/10">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full max-w-md mt-4 pt-3.5 border-t border-white/15">
             {/* Coins */}
-            <div className="flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-black/35 border border-amber-500/30 shadow-2xs text-center backdrop-blur-md">
-              <div className="flex items-center gap-1 text-[11px] font-mono text-amber-300 font-semibold">
-                <Coins size={13} className="text-amber-400" />
+            <div className="flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-black/50 border border-amber-500/40 shadow-sm text-center">
+              <div className="flex items-center gap-1 text-xs font-mono text-amber-300 font-bold">
+                <Coins size={14} className="text-amber-400" />
                 <span>Coins</span>
               </div>
-              <span className="text-lg sm:text-2xl font-black font-display text-amber-300 mt-0.5">
+              <span className="text-xl sm:text-2xl font-black font-display text-amber-300 mt-0.5">
                 {gold}
               </span>
             </div>
 
             {/* Day Streak */}
-            <div className="flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-black/35 border border-orange-500/30 shadow-2xs text-center backdrop-blur-md">
-              <div className="flex items-center gap-1 text-[11px] font-mono text-orange-300 font-semibold">
-                <Flame size={13} className="text-orange-400 fill-current" />
+            <div className="flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-black/50 border border-orange-500/40 shadow-sm text-center">
+              <div className="flex items-center gap-1 text-xs font-mono text-orange-300 font-bold">
+                <Flame size={14} className="text-orange-400 fill-current" />
                 <span>Day Streak</span>
               </div>
-              <span className="text-lg sm:text-2xl font-black font-display text-white mt-0.5">
+              <span className="text-xl sm:text-2xl font-black font-display text-white mt-0.5">
                 {bestStreak}
               </span>
             </div>
 
             {/* Rank */}
-            <div className="flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-black/35 border border-purple-500/30 shadow-2xs text-center backdrop-blur-md">
-              <div className="flex items-center gap-1 text-[11px] font-mono text-purple-300 font-semibold">
-                <Trophy size={13} className="text-purple-400" />
+            <div className="flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl bg-black/50 border border-purple-500/40 shadow-sm text-center">
+              <div className="flex items-center gap-1 text-xs font-mono text-purple-300 font-bold">
+                <Trophy size={14} className="text-purple-400" />
                 <span>Rank</span>
               </div>
-              <span className="text-base sm:text-xl font-black font-display text-purple-300 mt-0.5 truncate">
+              <span className="text-base sm:text-lg font-black font-display text-purple-300 mt-0.5 truncate">
                 {rankText}
               </span>
             </div>
           </div>
 
           {/* ── 4. Editable Motto Quote Card ── */}
-          <div className="w-full max-w-md mt-3.5 p-3 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-between gap-3 text-xs backdrop-blur-md">
+          <div className="w-full max-w-md mt-3.5 p-3 rounded-2xl bg-black/50 border border-white/15 flex items-center justify-between gap-3 text-xs backdrop-blur-md">
             {isEditingMotto ? (
               <div className="flex items-center gap-2 flex-1">
                 <input
                   type="text"
                   value={mottoInput}
                   onChange={(e) => setMottoInput(e.target.value)}
-                  className="flex-1 bg-black/50 border border-white/20 rounded-xl px-2.5 py-1 text-xs text-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  className="flex-1 bg-black/70 border border-white/20 rounded-xl px-2.5 py-1 text-xs text-white focus:outline-none focus:ring-1 focus:ring-amber-500"
                   placeholder="Enter your personal motto..."
                   maxLength={60}
                 />
                 <button
                   type="button"
                   onClick={handleSaveMotto}
-                  className="p-1.5 rounded-xl bg-amber-500 text-slate-950 font-bold hover:bg-amber-400 transition-colors"
+                  className="p-1.5 rounded-xl bg-amber-500 text-slate-950 font-bold hover:bg-amber-400 transition-colors cursor-pointer"
                 >
                   <Check size={14} />
                 </button>
               </div>
             ) : (
               <>
-                <p className="italic text-indigo-100/90 truncate font-serif">
+                <p className="italic text-slate-200 truncate font-serif">
                   &ldquo;{motto}&rdquo;
                 </p>
                 <button
@@ -489,7 +641,7 @@ export default function ProfilePage() {
                     setMottoInput(motto);
                     setIsEditingMotto(true);
                   }}
-                  className="p-1 text-indigo-300 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                  className="p-1.5 text-amber-300 hover:text-white rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
                   title="Edit motto"
                 >
                   <Edit2 size={13} />
@@ -998,37 +1150,156 @@ export default function ProfilePage() {
               </div>
             </Card>
 
+            {/* Reports & Data Export */}
+            <Card className="p-4 sm:p-5 space-y-3">
+              <span className="text-xs font-bold uppercase tracking-wider font-display text-slate-900 dark:text-ink block">
+                Reports & Data Export
+              </span>
+              <p className="text-xs text-slate-500 dark:text-ink-muted">
+                Generate high-resolution performance PDF charts, Excel workbooks, and raw CSV files of your authentic telemetry.
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowReportsModal(true)}
+                className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 border border-amber-500/30 text-amber-700 dark:text-amber-300 font-bold text-xs transition-all shadow-xs cursor-pointer active:scale-98"
+              >
+                <div className="flex items-center gap-2.5">
+                  <FileText size={17} className="text-amber-500" />
+                  <span>Open Reports & Export Sanctum</span>
+                </div>
+                <ArrowRight size={15} />
+              </button>
+            </Card>
+
+            {/* Notification Center & Preferences */}
+            <Card className="p-4 sm:p-5 space-y-3">
+              <span className="text-xs font-bold uppercase tracking-wider font-display text-slate-900 dark:text-ink block">
+                Notifications & Reminders
+              </span>
+              <p className="text-xs text-slate-500 dark:text-ink-muted">
+                Manage your scheduled reminders for dailies, habit nudges, and notification preferences.
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowNotificationsModal(true)}
+                className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-indigo-500/10 hover:bg-indigo-500/15 border border-indigo-500/30 text-indigo-700 dark:text-indigo-300 font-bold text-xs transition-all shadow-xs cursor-pointer active:scale-98"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Bell size={17} className="text-indigo-500" />
+                  <span>Notification Center & Preferences</span>
+                </div>
+                <ArrowRight size={15} />
+              </button>
+            </Card>
+
             {/* System Preferences & Audio */}
             <Card className="p-4 sm:p-5 space-y-3">
               <span className="text-xs font-bold uppercase tracking-wider font-display text-slate-900 dark:text-ink block">
-                Audio & Account
+                Audio & Sound FX
               </span>
 
-              <div className="space-y-2">
-                <button
-                  type="button"
-                  onClick={toggleSound}
-                  className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 dark:bg-white/[0.02] dark:hover:bg-white/[0.05] dark:border-white/10 transition-all text-xs text-slate-800 dark:text-ink cursor-pointer"
-                >
-                  <div className="flex items-center gap-2.5">
-                    {soundEnabled ? (
-                      <Volume2 size={16} className="text-amber-500" />
-                    ) : (
-                      <VolumeX size={16} className="text-slate-400" />
-                    )}
-                    <span>Audio Haptic FX</span>
-                  </div>
-                  <span className="font-mono text-[11px] text-slate-500 dark:text-ink-muted uppercase">
-                    {soundEnabled ? 'Enabled' : 'Muted'}
-                  </span>
-                </button>
+              <button
+                type="button"
+                onClick={toggleSound}
+                className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 dark:bg-white/[0.02] dark:hover:bg-white/[0.05] dark:border-white/10 transition-all text-xs text-slate-800 dark:text-ink cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  {soundEnabled ? (
+                    <Volume2 size={16} className="text-amber-500" />
+                  ) : (
+                    <VolumeX size={16} className="text-slate-400" />
+                  )}
+                  <span>Audio Haptic FX</span>
+                </div>
+                <span className="font-mono text-[11px] text-slate-500 dark:text-ink-muted uppercase">
+                  {soundEnabled ? 'Enabled' : 'Muted'}
+                </span>
+              </button>
+            </Card>
 
+            {/* Onboarding & Setup Reset */}
+            <Card className="p-4 sm:p-5 space-y-3">
+              <span className="text-xs font-bold uppercase tracking-wider font-display text-slate-900 dark:text-ink block">
+                Onboarding & Setup
+              </span>
+              <p className="text-xs text-slate-500 dark:text-ink-muted">
+                Re-take the initial 5-step personalization survey to adjust your primary goals, schedule, and AI preferences.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  try {
+                    localStorage.removeItem('lifeos_onboarding_completed');
+                  } catch {}
+                  navigate('/onboarding');
+                }}
+                className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-purple-500/10 hover:bg-purple-500/15 border border-purple-500/30 text-purple-700 dark:text-purple-300 font-bold text-xs transition-all shadow-xs cursor-pointer active:scale-98"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Sparkles size={17} className="text-purple-500" />
+                  <span>Reset & Retake Onboarding</span>
+                </div>
+                <ArrowRight size={15} />
+              </button>
+            </Card>
+
+            {/* Danger Zone: Account Management */}
+            <Card className="p-4 sm:p-5 space-y-3 border-rose-500/30">
+              <span className="text-xs font-bold uppercase tracking-wider font-display text-rose-600 dark:text-rose-400 block">
+                Danger Zone & Account Management
+              </span>
+
+              <div className="space-y-3 pt-1">
+                {/* Reset Account Progress */}
+                <div className="p-3.5 rounded-2xl bg-amber-500/5 border border-amber-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-ink flex items-center gap-1.5">
+                      <RotateCcw size={14} className="text-amber-500" />
+                      <span>Reset Account Progress</span>
+                    </h4>
+                    <p className="text-[11px] text-slate-500 dark:text-ink-muted mt-0.5">
+                      Reset character level to 1, clear all gold, reset habits, dailies, and quests back to a fresh state.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowResetModal(true)}
+                    className="px-3.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-700 dark:text-amber-300 font-bold text-xs transition-all cursor-pointer shrink-0 self-start sm:self-auto"
+                  >
+                    Reset Progress
+                  </button>
+                </div>
+
+                {/* Delete Account */}
+                <div className="p-3.5 rounded-2xl bg-rose-500/5 border border-rose-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h4 className="text-xs font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
+                      <Trash2 size={14} className="text-rose-500" />
+                      <span>Delete Account Permanently</span>
+                    </h4>
+                    <p className="text-[11px] text-slate-500 dark:text-ink-muted mt-0.5">
+                      Permanently erase your account, profile, and all progression history.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDeleteConfirmText('');
+                      setShowDeleteModal(true);
+                    }}
+                    className="px-3.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs transition-all shadow-xs cursor-pointer shrink-0 self-start sm:self-auto"
+                  >
+                    Delete Account
+                  </button>
+                </div>
+
+                {/* Sign Out */}
                 <button
                   type="button"
                   onClick={async () => {
                     await logout();
                   }}
-                  className="w-full flex items-center justify-between p-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/25 transition-all text-xs text-rose-600 dark:text-hp font-semibold mt-3 cursor-pointer"
+                  className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/10 transition-all text-xs text-slate-700 dark:text-ink font-semibold cursor-pointer mt-2"
                 >
                   <div className="flex items-center gap-2.5">
                     <LogOut size={16} />
@@ -1041,6 +1312,157 @@ export default function ProfilePage() {
               </div>
             </Card>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Reports Modal */}
+      <ReportsModal
+        isOpen={showReportsModal}
+        onClose={() => setShowReportsModal(false)}
+      />
+
+      {/* Notification Center Modal */}
+      <NotificationCenterModal
+        isOpen={showNotificationsModal}
+        onClose={() => setShowNotificationsModal(false)}
+      />
+
+      {/* Reset Account Confirmation Modal */}
+      <AnimatePresence>
+        {showResetModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-slate-900 border border-amber-500/40 rounded-3xl p-5 max-w-sm w-full shadow-2xl space-y-4"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                  <RotateCcw size={20} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-ink font-display">
+                    Reset Account Progress?
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-ink-muted">
+                    This will revert your RPG stats to Level 1.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-slate-700 dark:text-slate-300 space-y-1.5">
+                <p className="font-semibold text-amber-700 dark:text-amber-400">
+                  The following will be reset:
+                </p>
+                <ul className="list-disc list-inside space-y-0.5 text-[11px] text-slate-600 dark:text-slate-400">
+                  <li>Level reset to 1 and XP set to 0</li>
+                  <li>Coins/Gold set to 0</li>
+                  <li>All active Habits, Dailies & Quests removed</li>
+                  <li>Progression stats & streaks restored to baseline</li>
+                </ul>
+                <p className="text-[10px] text-slate-500 dark:text-ink-muted pt-1">
+                  Your login email, password, and account credentials will remain preserved.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowResetModal(false)}
+                  disabled={isResetting}
+                  className="flex-1 py-2.5 rounded-xl border border-slate-300 dark:border-white/10 text-xs font-semibold text-slate-700 dark:text-ink hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResetAccount}
+                  disabled={isResetting}
+                  className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  {isResetting ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <span>Confirm Reset</span>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Account Danger Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-slate-900 border border-rose-500/40 rounded-3xl p-5 max-w-sm w-full shadow-2xl space-y-4"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                  <AlertTriangle size={20} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-ink font-display">
+                    Delete Account Permanently?
+                  </h3>
+                  <p className="text-xs text-rose-600 dark:text-rose-400 font-semibold">
+                    This action is permanent and cannot be undone.
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-600 dark:text-ink-muted">
+                Your account, profile information, authentication credentials, and all recorded progression data will be permanently wiped.
+              </p>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-mono text-slate-600 dark:text-slate-400 block">
+                  To confirm, type <span className="font-bold text-rose-600 dark:text-rose-400">DELETE</span> below:
+                </label>
+                <input
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  placeholder="Type DELETE"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-rose-500/40 text-xs font-mono text-slate-900 dark:text-ink focus:outline-none focus:ring-2 focus:ring-rose-500"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={isDeleting}
+                  className="flex-1 py-2.5 rounded-xl border border-slate-300 dark:border-white/10 text-xs font-semibold text-slate-700 dark:text-ink hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteAccount}
+                  disabled={deleteConfirmText.trim() !== 'DELETE' || isDeleting}
+                  className={clsx(
+                    'flex-1 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-md',
+                    deleteConfirmText.trim() === 'DELETE' && !isDeleting
+                      ? 'bg-rose-600 hover:bg-rose-700 text-white cursor-pointer active:scale-98'
+                      : 'bg-rose-500/30 text-rose-300 cursor-not-allowed'
+                  )}
+                >
+                  {isDeleting ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <span>Delete Forever</span>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </motion.div>

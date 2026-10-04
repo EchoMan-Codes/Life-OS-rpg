@@ -122,25 +122,6 @@ export class AuthController {
     }
   }
 
-  async updateOnboarding(req, res, next) {
-    try {
-      const { onboardingCompleted, onboardingAnswers, selectedSection } = req.body;
-      const user = await authService.updateOnboarding({
-        userId: req.user.id,
-        onboardingCompleted,
-        onboardingAnswers,
-        selectedSection,
-      });
-      return res.status(200).json({
-        data: {
-          user,
-        },
-      });
-    } catch (err) {
-      next(err);
-    }
-  }
-
   async googleCallback(req, res) {
     if (!req.user || !req.user.rawRefreshToken) {
       return res.redirect(`${env.CLIENT_ORIGIN}/auth/callback?auth_error=google_failed`);

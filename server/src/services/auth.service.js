@@ -67,7 +67,7 @@ export class AuthService {
       const userRes = await client.query(
         `INSERT INTO users (email, password_hash, display_name, timezone)
          VALUES ($1, $2, $3, $4)
-         RETURNING id, email, display_name, avatar_url, timezone, onboarding_completed, onboarding_answers, selected_section, created_at`,
+         RETURNING id, email, display_name, avatar_url, timezone, created_at`,
         [normalizedEmail, passwordHash, displayName.trim(), safeTimezone]
       );
       const user = userRes.rows[0];
@@ -91,9 +91,6 @@ export class AuthService {
           displayName: user.display_name,
           avatarUrl: user.avatar_url,
           timezone: user.timezone || 'UTC',
-          onboardingCompleted: Boolean(user.onboarding_completed),
-          onboardingAnswers: user.onboarding_answers,
-          selectedSection: user.selected_section || 'habits-study',
           createdAt: user.created_at,
         },
         accessToken,
@@ -109,7 +106,7 @@ export class AuthService {
     const normalizedEmail = email.toLowerCase().trim();
 
     const userRes = await query(
-      `SELECT id, email, password_hash, display_name, avatar_url, timezone, onboarding_completed, onboarding_answers, selected_section, created_at
+      `SELECT id, email, password_hash, display_name, avatar_url, timezone, created_at
        FROM users WHERE email = $1`,
       [normalizedEmail]
     );
@@ -150,9 +147,6 @@ export class AuthService {
           displayName: user.display_name,
           avatarUrl: user.avatar_url,
           timezone: user.timezone || 'UTC',
-          onboardingCompleted: Boolean(user.onboarding_completed),
-          onboardingAnswers: user.onboarding_answers,
-          selectedSection: user.selected_section || 'habits-study',
           createdAt: user.created_at,
         },
         accessToken,
@@ -295,7 +289,7 @@ export class AuthService {
    */
   async getUserById(userId) {
     const res = await query(
-      `SELECT id, email, display_name, avatar_url, timezone, onboarding_completed, onboarding_answers, selected_section, created_at
+      `SELECT id, email, display_name, avatar_url, timezone, created_at
        FROM users WHERE id = $1`,
       [userId]
     );
@@ -314,50 +308,6 @@ export class AuthService {
       displayName: user.display_name,
       avatarUrl: user.avatar_url,
       timezone: user.timezone || 'UTC',
-      onboardingCompleted: Boolean(user.onboarding_completed),
-      onboardingAnswers: user.onboarding_answers,
-      selectedSection: user.selected_section || 'habits-study',
-      createdAt: user.created_at,
-    };
-  }
-
-  /**
-   * Persist onboarding answers and section selection for a user.
-   */
-  async updateOnboarding({ userId, onboardingCompleted, onboardingAnswers, selectedSection }) {
-    const res = await query(
-      `UPDATE users
-       SET onboarding_completed = COALESCE($1, onboarding_completed),
-           onboarding_answers = COALESCE($2, onboarding_answers),
-           selected_section = COALESCE($3, selected_section),
-           updated_at = now()
-       WHERE id = $4
-       RETURNING id, email, display_name, avatar_url, timezone, onboarding_completed, onboarding_answers, selected_section, created_at`,
-      [
-        onboardingCompleted !== undefined ? onboardingCompleted : null,
-        onboardingAnswers !== undefined ? (typeof onboardingAnswers === 'object' ? JSON.stringify(onboardingAnswers) : onboardingAnswers) : null,
-        selectedSection !== undefined ? selectedSection : null,
-        userId,
-      ]
-    );
-
-    const user = res.rows[0];
-    if (!user) {
-      const err = new Error('User not found.');
-      err.status = 404;
-      err.code = 'USER_NOT_FOUND';
-      throw err;
-    }
-
-    return {
-      id: user.id,
-      email: user.email,
-      displayName: user.display_name,
-      avatarUrl: user.avatar_url,
-      timezone: user.timezone || 'UTC',
-      onboardingCompleted: Boolean(user.onboarding_completed),
-      onboardingAnswers: user.onboarding_answers,
-      selectedSection: user.selected_section || 'habits-study',
       createdAt: user.created_at,
     };
   }
@@ -381,7 +331,7 @@ export class AuthService {
     return withTransaction(async (client) => {
       // Check if user exists by google_id
       let userRes = await client.query(
-        `SELECT id, email, display_name, avatar_url, onboarding_completed, onboarding_answers, selected_section, created_at
+        `SELECT id, email, display_name, avatar_url, created_at
          FROM users WHERE google_id = $1`,
         [googleId]
       );
@@ -400,7 +350,7 @@ export class AuthService {
       } else {
         // Check if existing user by email to link account
         userRes = await client.query(
-          `SELECT id, email, display_name, avatar_url, onboarding_completed, onboarding_answers, selected_section, created_at
+          `SELECT id, email, display_name, avatar_url, created_at
            FROM users WHERE email = $1`,
           [email]
         );
@@ -421,7 +371,7 @@ export class AuthService {
           const insertRes = await client.query(
             `INSERT INTO users (email, google_id, display_name, avatar_url)
              VALUES ($1, $2, $3, $4)
-             RETURNING id, email, display_name, avatar_url, onboarding_completed, onboarding_answers, selected_section, created_at`,
+             RETURNING id, email, display_name, avatar_url, created_at`,
             [email, googleId, displayName, avatarUrl]
           );
           user = insertRes.rows[0];
@@ -447,9 +397,6 @@ export class AuthService {
           email: user.email,
           displayName: user.display_name,
           avatarUrl: user.avatar_url,
-          onboardingCompleted: Boolean(user.onboarding_completed),
-          onboardingAnswers: user.onboarding_answers,
-          selectedSection: user.selected_section || 'habits-study',
           createdAt: user.created_at,
         },
         accessToken,

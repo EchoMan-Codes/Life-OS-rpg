@@ -42,7 +42,6 @@ import clsx from 'clsx';
 
 import { Card, ColorCard, WavyHeroScenery, ModeButton } from '@/components/ui';
 import { TelemetryHorizonRibbon, RitualSpineDeck, AttributeAstrolabe } from '@/components/dashboard';
-import { GlobalCommandCenterRibbon } from '@/components/dashboard/GlobalCommandCenterRibbon';
 import { useTheme } from '@/lib/theme';
 import { useAuth } from '@/features/auth/hooks';
 import { useCharacter } from '@/features/character/hooks';
@@ -421,9 +420,6 @@ export default function DashboardPage() {
               </button>
             </div>
           </div>
-
-          {/* ── Global Command Center Ribbon ── */}
-          <GlobalCommandCenterRibbon />
 
           {/* ── Visual Focal Hero: Good Evening / Morning Greeting Banner ── */}
           <div

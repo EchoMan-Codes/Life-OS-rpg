@@ -67,6 +67,12 @@ export function StepAuth({
       }
       try {
         await register({ email, password, displayName: displayName.trim() });
+        await triggerTransition({
+          variant: 'full',
+          message: 'Welcome to Jeevan',
+          submessage: 'Activating Personal Operating System',
+          duration: 2600,
+        });
         onComplete();
       } catch (err) {
         let errorMsg =
@@ -88,6 +94,12 @@ export function StepAuth({
       // Login mode
       try {
         await login({ email, password });
+        await triggerTransition({
+          variant: 'full',
+          message: 'Entering Jeevan...',
+          submessage: 'Synchronizing Account & Character Data',
+          duration: 2600,
+        });
         onComplete();
       } catch (err) {
         let errorMsg = err?.response?.data?.error?.message;

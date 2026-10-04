@@ -14,9 +14,6 @@ import { LIFEOS_OPEN_BATTLE_LOG_EVENT } from '@/features/celebration/celebration
 import { ThemeRippleOverlay, JeevanLoader } from '@/components/ui';
 import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
-import { FloatingAiCompanion } from '@/features/ai/components/FloatingAiCompanion';
-import { AiChatSheet } from '@/features/ai/components/AiChatSheet';
-import { SectionSwitcherModal } from '@/features/navigation/SectionSwitcherModal';
 
 /**
  * App shell — desktop sidebar + mobile bottom nav + persistent top player HUD.
@@ -32,12 +29,9 @@ export function AppShell({ children }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [battleDrawerOpen, setBattleDrawerOpen] = useState(false);
-  const [aiSheetOpen, setAiSheetOpen] = useState(false);
-  const [sectionSwitcherOpen, setSectionSwitcherOpen] = useState(false);
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isDashboard = location.pathname === '/';
   const isProfile = location.pathname === '/profile';
-  const isAiPage = location.pathname === '/ai';
 
   const [hasLaunched, setHasLaunched] = useState(false);
 
@@ -45,24 +39,28 @@ export function AppShell({ children }) {
     setHasLaunched(true);
   };
 
-  // Listen for global open battle log and section switcher events
+  // Listen for global open battle log events
   useEffect(() => {
     const handleOpenBattleLog = () => setBattleDrawerOpen(true);
-    const handleOpenSwitcher = () => setSectionSwitcherOpen(true);
-
     window.addEventListener(LIFEOS_OPEN_BATTLE_LOG_EVENT, handleOpenBattleLog);
-    window.addEventListener('lifeos:open-section-switcher', handleOpenSwitcher);
-
-    return () => {
-      window.removeEventListener(LIFEOS_OPEN_BATTLE_LOG_EVENT, handleOpenBattleLog);
-      window.removeEventListener('lifeos:open-section-switcher', handleOpenSwitcher);
-    };
+    return () => window.removeEventListener(LIFEOS_OPEN_BATTLE_LOG_EVENT, handleOpenBattleLog);
   }, []);
 
   if (isOnboardingPage) {
     return (
       <ToastProvider>
         <ThemeRippleOverlay />
+        <AnimatePresence>
+          {!hasLaunched && (
+            <JeevanLoader
+              variant="full"
+              message="Launching Jeevan OS..."
+              submessage="Live. Track. Grow."
+              duration={2500}
+              onComplete={handleLaunchComplete}
+            />
+          )}
+        </AnimatePresence>
         <div className="min-h-screen bg-obsidian text-ink">
           {children}
         </div>
@@ -91,7 +89,6 @@ export function AppShell({ children }) {
             collapsed={sidebarCollapsed}
             onToggle={() => setSidebarCollapsed((prev) => !prev)}
             onOpenAuth={() => setAuthModalOpen(true)}
-            onOpenSectionSwitcher={() => setSectionSwitcherOpen(true)}
           />
         )}
 
@@ -125,13 +122,8 @@ export function AppShell({ children }) {
           </div>
         </main>
 
-        {/* Mobile: Bottom nav with specialized section items & Switcher */}
-        {!isDesktop && (
-          <BottomNav
-            onOpenAuth={() => setAuthModalOpen(true)}
-            onOpenSectionSwitcher={() => setSectionSwitcherOpen(true)}
-          />
-        )}
+        {/* Mobile: Bottom nav with Hub drawer */}
+        {!isDesktop && <BottomNav onOpenAuth={() => setAuthModalOpen(true)} />}
 
         {/* Battle Chronicles Slide-over Drawer */}
         <BattleActivityDrawer
@@ -149,23 +141,6 @@ export function AppShell({ children }) {
         <AuthModal
           isOpen={authModalOpen}
           onClose={() => setAuthModalOpen(false)}
-        />
-
-        {/* Universal 3D Rolling Section Cards Switcher Modal */}
-        <SectionSwitcherModal
-          isOpen={sectionSwitcherOpen}
-          onClose={() => setSectionSwitcherOpen(false)}
-        />
-
-        {/* Persistent Movable Jeevan AI Companion Figure */}
-        {!isAiPage && (
-          <FloatingAiCompanion onOpenAi={() => setAiSheetOpen(true)} />
-        )}
-
-        {/* Global Jeevan AI Life Intelligence Slide-over Sheet */}
-        <AiChatSheet
-          isOpen={aiSheetOpen}
-          onClose={() => setAiSheetOpen(false)}
         />
       </div>
     </ToastProvider>

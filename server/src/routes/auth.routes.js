@@ -47,9 +47,6 @@ router.post('/logout', authController.logout);
 // Current user profile
 router.get('/me', requireAuth, authController.me);
 
-// Update onboarding progress and preferences
-router.patch('/onboarding', requireAuth, authController.updateOnboarding);
-
 // Google OAuth initiate
 router.get('/google', (req, res, next) => {
   if (!isGoogleConfigured) {

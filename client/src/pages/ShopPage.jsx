@@ -216,28 +216,6 @@ export default function ShopPage() {
         </div>
       </section>
 
-      {/* ── Rewards Section Navigation ── */}
-      <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white/[0.04] border border-white/10 overflow-x-auto scrollbar-none">
-        <div className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-obsidian shadow-md">
-          <ShoppingBag size={14} />
-          <span>Reward Shop</span>
-        </div>
-        <Link
-          to="/profile"
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 transition-all"
-        >
-          <Sparkles size={14} />
-          <span>Hero Attributes & Radar</span>
-        </Link>
-        <Link
-          to="/quests"
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 transition-all"
-        >
-          <Coins size={14} />
-          <span>Achievements & Quests</span>
-        </Link>
-      </div>
-
       {/* ── 2. Unique Spoils Vault Progression Ribbon ── */}
       <SpoilsVaultRibbon
         userGold={userGold}

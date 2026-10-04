@@ -16,9 +16,6 @@ import battleEventRoutes from './routes/battle-event.routes.js';
 import focusRoutes from './routes/focus.routes.js';
 import reflectionRoutes from './routes/reflection.routes.js';
 import restModeRoutes from './routes/rest-mode.routes.js';
-import financeRoutes from './routes/finance.routes.js';
-import studyRoutes from './routes/study.routes.js';
-import aiRoutes from './routes/ai.routes.js';
 
 const app = express();
 
@@ -102,12 +99,6 @@ app.use('/api/v1/reflections', reflectionRoutes);
 app.use('/reflections', reflectionRoutes);
 app.use('/api/v1/rest-mode', restModeRoutes);
 app.use('/rest-mode', restModeRoutes);
-app.use('/api/v1/finance', financeRoutes);
-app.use('/finance', financeRoutes);
-app.use('/api/v1/study', studyRoutes);
-app.use('/study', studyRoutes);
-app.use('/api/v1/ai', aiRoutes);
-app.use('/ai', aiRoutes);
 
 // 404 handler for undefined routes
 app.use((req, res) => {

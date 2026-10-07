@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
@@ -20,8 +20,9 @@ import {
 } from 'lucide-react';
 
 import { useAuth } from '@/features/auth/hooks';
+import { useAutoHideNav } from '@/hooks/useAutoHideNav';
 import { openBattleLogDrawer, openAttributesDrawer } from '@/features/celebration/celebrationEvents';
-import { spring } from '@/lib/motionVariants';
+import { spring, pressableMobileNav } from '@/lib/motionVariants';
 import { ModeButton } from '@/components/ui/ModeButton';
 import { JeevanLogo } from '@/components/ui/JeevanLogo';
 
@@ -69,20 +70,40 @@ const moreNavItems = [
 
 /**
  * Mobile iOS-inspired floating rounded glassy navbar.
- * Elevated pill elevated above the screen edge with smooth spring tab transitions.
+ * Features intelligent auto-hide on intentional scroll-down, spring return on scroll-up/idle,
+ * sliding glass active tab pill, and haptic feedback.
  */
 export function BottomNav({ onOpenAuth }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const location = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
 
+  const isNavVisible = useAutoHideNav({ disabled: moreOpen });
   const isMoreActive = ['/profile', '/focus', '/reflection', '/shop'].includes(location.pathname);
+
+  const triggerHaptic = useCallback(() => {
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      try {
+        navigator.vibrate(8);
+      } catch {}
+    }
+  }, []);
 
   return (
     <>
-      <div
+      <motion.div
         style={{ bottom: 'max(1rem, calc(0.5rem + env(safe-area-inset-bottom, 0px)))' }}
-        className="fixed inset-x-3 sm:inset-x-6 max-w-md mx-auto z-40 md:hidden pointer-events-none"
+        initial={false}
+        animate={{
+          y: isNavVisible ? 0 : 88,
+          opacity: isNavVisible ? 1 : 0,
+          scale: isNavVisible ? 1 : 0.95,
+        }}
+        transition={spring.navbar}
+        className={clsx(
+          'fixed inset-x-3 sm:inset-x-6 max-w-md mx-auto z-40 md:hidden pointer-events-none'
+        )}
+        aria-hidden={!isNavVisible}
       >
         <nav
           className={clsx(
@@ -90,9 +111,7 @@ export function BottomNav({ onOpenAuth }) {
             'flex items-center justify-around gap-1',
             'h-16 px-2 py-1.5',
             'rounded-full',
-            'bg-white/90 dark:bg-obsidian-950/85 backdrop-blur-2xl',
-            'border border-slate-200/90 dark:border-white/15',
-            'shadow-[0_12px_36px_rgba(0,0,0,0.08),inset_0_1px_1px_rgba(255,255,255,0.8)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.65),inset_0_1px_1px_rgba(255,255,255,0.22)]'
+            'floating-glass-bar'
           )}
         >
           {primaryNavItems.map(({ to, icon: Icon, label }) => {
@@ -101,26 +120,32 @@ export function BottomNav({ onOpenAuth }) {
               <NavLink
                 key={to}
                 to={to}
-                onClick={() => setMoreOpen(false)}
-                className="relative flex-1 h-full flex flex-col items-center justify-center focus:outline-none select-none"
+                tabIndex={isNavVisible ? 0 : -1}
+                onClick={() => {
+                  triggerHaptic();
+                  setMoreOpen(false);
+                }}
+                className="relative flex-1 h-full flex flex-col items-center justify-center focus:outline-none select-none rounded-full focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-attr-perception"
               >
                 {isActive && (
                   <motion.div
                     layoutId="ios-active-nav-pill"
-                    className="absolute inset-1 rounded-full bg-indigo-50/90 border border-indigo-200/80 shadow-xs dark:bg-white/[0.12] dark:border-white/15"
+                    className="absolute inset-1 rounded-full bg-indigo-50/90 border border-indigo-200/80 shadow-[0_2px_10px_rgba(99,102,241,0.15)] dark:bg-white/[0.12] dark:border-white/15 dark:shadow-[0_2px_12px_rgba(255,255,255,0.08)]"
                     transition={spring.capsule}
                   />
                 )}
                 <motion.div
-                  whileTap={{ scale: 0.88 }}
+                  whileTap={{ scale: 0.91 }}
                   transition={spring.capsule}
                   className="relative z-10 flex flex-col items-center justify-center gap-0.5"
                 >
                   <Icon
                     size={19}
                     className={clsx(
-                      'transition-colors duration-150',
-                      isActive ? 'text-indigo-600 dark:text-attr-perception' : 'text-slate-500 dark:text-ink-muted/80'
+                      'transition-all duration-150',
+                      isActive
+                        ? 'text-indigo-600 dark:text-attr-perception -translate-y-0.5'
+                        : 'text-slate-500 dark:text-ink-muted/80'
                     )}
                   />
                   <span
@@ -139,27 +164,33 @@ export function BottomNav({ onOpenAuth }) {
           {/* More Hub Capsule Tab */}
           <button
             type="button"
-            onClick={() => setMoreOpen((prev) => !prev)}
+            tabIndex={isNavVisible ? 0 : -1}
+            onClick={() => {
+              triggerHaptic();
+              setMoreOpen((prev) => !prev);
+            }}
             aria-label="Open more features menu"
-            className="relative flex-1 h-full flex flex-col items-center justify-center focus:outline-none select-none"
+            className="relative flex-1 h-full flex flex-col items-center justify-center focus:outline-none select-none rounded-full focus-visible:ring-2 focus-visible:ring-amber-500 dark:focus-visible:ring-gold"
           >
             {(isMoreActive || moreOpen) && (
               <motion.div
                 layoutId="ios-active-nav-pill"
-                className="absolute inset-1 rounded-full bg-amber-500/15 border border-amber-500/30 shadow-xs dark:bg-gold/15 dark:border-gold/30"
+                className="absolute inset-1 rounded-full bg-amber-500/15 border border-amber-500/30 shadow-[0_2px_10px_rgba(245,158,11,0.2)] dark:bg-gold/15 dark:border-gold/30"
                 transition={spring.capsule}
               />
             )}
             <motion.div
-              whileTap={{ scale: 0.88 }}
+              whileTap={{ scale: 0.91 }}
               transition={spring.capsule}
               className="relative z-10 flex flex-col items-center justify-center gap-0.5"
             >
               <Menu
                 size={19}
                 className={clsx(
-                  'transition-colors duration-150',
-                  isMoreActive || moreOpen ? 'text-amber-600 dark:text-gold' : 'text-slate-500 dark:text-ink-muted/80'
+                  'transition-all duration-150',
+                  isMoreActive || moreOpen
+                    ? 'text-amber-600 dark:text-gold -translate-y-0.5'
+                    : 'text-slate-500 dark:text-ink-muted/80'
                 )}
               />
               <span
@@ -173,7 +204,7 @@ export function BottomNav({ onOpenAuth }) {
             </motion.div>
           </button>
         </nav>
-      </div>
+      </motion.div>
 
       {/* Expandable Mobile Hub Drawer (iOS Glassy Sheet) */}
       <AnimatePresence>

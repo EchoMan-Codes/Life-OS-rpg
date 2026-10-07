@@ -86,10 +86,21 @@ export async function updateUserProfile(profileData) {
 /**
  * Reset RPG progression back to Level 1.
  *
- * @returns {Promise<{ stats: object }>}
+ * @returns {Promise<{ message: string }>}
  */
 export async function resetUserAccount() {
   const { data } = await api.post('/auth/reset-account');
+  return data.data;
+}
+
+/**
+ * Granular section reset targeting specific domain.
+ *
+ * @param {{ target: 'progression'|'habits'|'dailies'|'quests'|'inventory'|'all' }} payload
+ * @returns {Promise<{ message: string }>}
+ */
+export async function resetSection(payload) {
+  const { data } = await api.post('/auth/reset-section', payload);
   return data.data;
 }
 

@@ -296,7 +296,7 @@ export function useReorderQuestItems() {
 }
 
 /**
- * Hook to complete a checklist subtask.
+ * Hook to complete a checklist subtask with optimistic UI.
  */
 export function useCompleteQuestItem() {
   const queryClient = useQueryClient();
@@ -304,6 +304,35 @@ export function useCompleteQuestItem() {
 
   return useMutation({
     mutationFn: ({ questId, itemId }) => completeQuestItem(questId, itemId),
+    onMutate: async ({ questId, itemId }) => {
+      await queryClient.cancelQueries({ queryKey: ['quests'] });
+      const previousQuests = queryClient.getQueryData(['quests', { status: 'active' }]);
+
+      queryClient.setQueriesData({ queryKey: ['quests'] }, (old) => {
+        if (!Array.isArray(old)) return old;
+        return old.map((q) => {
+          if (q.id !== questId) return q;
+          const updatedItems = (q.items || []).map((it) =>
+            it.id === itemId ? { ...it, isComplete: true } : it
+          );
+          const completedCount = updatedItems.filter((i) => i.isComplete).length;
+          const progressPercent = updatedItems.length > 0 ? Math.round((completedCount / updatedItems.length) * 100) : 0;
+          return { ...q, items: updatedItems, progressPercent };
+        });
+      });
+
+      return { previousQuests };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousQuests) {
+        queryClient.setQueryData(['quests', { status: 'active' }], context.previousQuests);
+      }
+      showToast({
+        title: 'Completion Failed',
+        message: err?.response?.data?.error?.message || 'Failed to complete subtask.',
+        type: 'error',
+      });
+    },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['quests'] });
       queryClient.invalidateQueries({ queryKey: ['character'] });
@@ -317,18 +346,11 @@ export function useCompleteQuestItem() {
         });
       }
     },
-    onError: (err) => {
-      showToast({
-        title: 'Completion Failed',
-        message: err?.response?.data?.error?.message || 'Failed to complete subtask.',
-        type: 'error',
-      });
-    },
   });
 }
 
 /**
- * Hook to undo a checklist subtask completion.
+ * Hook to undo a checklist subtask completion with optimistic UI.
  */
 export function useUndoQuestItem() {
   const queryClient = useQueryClient();
@@ -336,16 +358,38 @@ export function useUndoQuestItem() {
 
   return useMutation({
     mutationFn: ({ questId, itemId }) => undoQuestItem(questId, itemId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['quests'] });
-      queryClient.invalidateQueries({ queryKey: ['character'] });
+    onMutate: async ({ questId, itemId }) => {
+      await queryClient.cancelQueries({ queryKey: ['quests'] });
+      const previousQuests = queryClient.getQueryData(['quests', { status: 'active' }]);
+
+      queryClient.setQueriesData({ queryKey: ['quests'] }, (old) => {
+        if (!Array.isArray(old)) return old;
+        return old.map((q) => {
+          if (q.id !== questId) return q;
+          const updatedItems = (q.items || []).map((it) =>
+            it.id === itemId ? { ...it, isComplete: false } : it
+          );
+          const completedCount = updatedItems.filter((i) => i.isComplete).length;
+          const progressPercent = updatedItems.length > 0 ? Math.round((completedCount / updatedItems.length) * 100) : 0;
+          return { ...q, items: updatedItems, progressPercent };
+        });
+      });
+
+      return { previousQuests };
     },
-    onError: (err) => {
+    onError: (err, variables, context) => {
+      if (context?.previousQuests) {
+        queryClient.setQueryData(['quests', { status: 'active' }], context.previousQuests);
+      }
       showToast({
         title: 'Undo Failed',
         message: err?.response?.data?.error?.message || 'Failed to undo subtask.',
         type: 'error',
       });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quests'] });
+      queryClient.invalidateQueries({ queryKey: ['character'] });
     },
   });
 }

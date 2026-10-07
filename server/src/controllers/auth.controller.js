@@ -169,6 +169,16 @@ export class AuthController {
     }
   }
 
+  async resetSection(req, res, next) {
+    try {
+      const { target } = req.body;
+      const result = await authService.resetSection(req.user.id, target);
+      return res.status(200).json({ data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
+
   async deleteAccount(req, res, next) {
     try {
       const result = await authService.deleteAccount(req.user.id, req.body.confirmation);
@@ -181,4 +191,3 @@ export class AuthController {
 }
 
 export const authController = new AuthController();
-

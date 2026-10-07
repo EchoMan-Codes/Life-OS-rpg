@@ -11,12 +11,7 @@ import {
   Plus,
   Flame,
   User as UserIcon,
-  LogOut,
   Swords,
-  Volume2,
-  VolumeX,
-  Sun,
-  Moon,
   ArrowLeft,
   ArrowRight,
   Settings,
@@ -31,16 +26,7 @@ import {
   Award,
   Dumbbell,
   Wallet,
-  AlertTriangle,
-  Trash2,
-  RotateCcw,
-  FileText,
-  Bell,
   Loader2,
-  X,
-  Bot,
-  Headphones,
-  MessageSquare,
 } from 'lucide-react';
 import {
   BarChart,
@@ -64,10 +50,10 @@ import { useFocusHistory } from '@/features/focus/hooks';
 import { useFloatingText } from '@/features/character/floatingText';
 import { openBattleLogDrawer } from '@/features/celebration/celebrationEvents';
 import { AttributesRadarChart } from '@/components/hud/AttributesRadarChart';
-import { useTheme } from '@/lib/theme';
 import { ReportsModal } from '@/features/reports/ReportsModal';
 import { NotificationCenterModal } from '@/features/notifications/components/NotificationCenterModal';
 import { FeedbackModal } from '@/features/feedback/components/FeedbackModal';
+import { SettingsCarousel } from '@/components/settings/SettingsCarousel';
 
 const ATTR_DETAILS = [
   {
@@ -131,7 +117,7 @@ const ATTR_DETAILS = [
  */
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { user, logout, updateProfile, resetAccount, deleteAccount } = useAuth();
+  const { user, updateProfile } = useAuth();
   const { data: character = {} } = useCharacter();
   const { data: habits = [] } = useHabits();
   const { data: dailies = [] } = useDailies();
@@ -139,7 +125,6 @@ export default function ProfilePage() {
   const { data: focusSessions = [] } = useFocusHistory({ limit: 50 });
   const allocateMutation = useAllocateAttribute();
   const { spawnFloatingText } = useFloatingText();
-  const { mode, setMode } = useTheme();
 
   // Active tab: 'overview' | 'stats' | 'achievements' | 'settings'
   const [activeTab, setActiveTab] = useState('overview');
@@ -150,32 +135,6 @@ export default function ProfilePage() {
   const [showReportsModal, setShowReportsModal] = useState(false);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const [showResetModal, setShowResetModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteConfirmText, setDeleteConfirmText] = useState('');
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isResetting, setIsResetting] = useState(false);
-
-  // AI Agent Configuration
-  const [aiPreferences, setAiPreferences] = useState(() => {
-    return user?.aiPreferences || {
-      enabled: true,
-      provider: 'auto',
-      allowTelemetry: true,
-      autoCreateDailies: false,
-      requireConfirmation: true,
-    };
-  });
-
-  const handleUpdateAiPref = async (key, val) => {
-    const updated = { ...aiPreferences, [key]: val };
-    setAiPreferences(updated);
-    try {
-      await updateProfile({ aiPreferences: updated });
-    } catch (e) {
-      console.warn('Failed to persist AI preferences:', e);
-    }
-  };
 
   // Editable motto quote
   const [motto, setMotto] = useState(() => {
@@ -183,19 +142,6 @@ export default function ProfilePage() {
   });
   const [isEditingMotto, setIsEditingMotto] = useState(false);
   const [mottoInput, setMottoInput] = useState(motto);
-
-  // Audio preference
-  const [soundEnabled, setSoundEnabled] = useState(() => {
-    return localStorage.getItem('lifeos_sound_enabled') !== 'false';
-  });
-
-  const toggleSound = () => {
-    setSoundEnabled((prev) => {
-      const next = !prev;
-      localStorage.setItem('lifeos_sound_enabled', String(next));
-      return next;
-    });
-  };
 
   const handleSaveMotto = async () => {
     setMotto(mottoInput);
@@ -267,34 +213,6 @@ export default function ProfilePage() {
     }
   };
 
-  const handleResetAccount = async () => {
-    try {
-      setIsResetting(true);
-      await resetAccount();
-      setShowResetModal(false);
-      spawnFloatingText('Account Reset Completed');
-    } catch (err) {
-      console.error('Reset account failed:', err);
-      alert('Failed to reset account. Please try again.');
-    } finally {
-      setIsResetting(false);
-    }
-  };
-
-  const handleDeleteAccount = async () => {
-    if (deleteConfirmText.trim() !== 'DELETE') return;
-    try {
-      setIsDeleting(true);
-      await deleteAccount({ confirmation: 'DELETE' });
-      setShowDeleteModal(false);
-      navigate('/login');
-    } catch (err) {
-      console.error('Delete account failed:', err);
-      alert('Failed to delete account. Please try again.');
-    } finally {
-      setIsDeleting(false);
-    }
-  };
 
   // Real character progression stats
   const attributes = character.attributes || {};
@@ -1133,7 +1051,7 @@ export default function ProfilePage() {
           </motion.div>
         )}
 
-        {/* Tab 4: Settings & Preferences */}
+        {/* Tab 4: Settings & Preferences Hub as Premium Glass Carousel */}
         {activeTab === 'settings' && (
           <motion.div
             key="settings"
@@ -1143,370 +1061,20 @@ export default function ProfilePage() {
             transition={spring.snappy}
             className="space-y-4"
           >
-            {/* Appearance Mode Controller */}
-            <Card className="p-4 sm:p-5 space-y-3">
-              <span className="text-xs font-bold uppercase tracking-wider font-display text-slate-900 dark:text-ink block">
-                Appearance Mode
-              </span>
-              <div className="grid grid-cols-3 gap-2 p-1.5 rounded-2xl bg-slate-100/90 border border-slate-200 dark:bg-white/[0.03] dark:border-white/10 backdrop-blur-md">
-                {[
-                  { id: 'dark', label: 'Dark', icon: Moon },
-                  { id: 'dim', label: 'Dim', icon: Sparkles },
-                  { id: 'light', label: 'Light', icon: Sun },
-                ].map((item) => {
-                  const Icon = item.icon;
-                  const isActive = mode === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => setMode(item.id)}
-                      className={clsx(
-                        'py-2 px-2 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer',
-                        isActive
-                          ? 'bg-white text-slate-900 font-bold shadow-xs border border-slate-300 dark:bg-white/10 dark:text-ink dark:border-white/20'
-                          : 'text-slate-600 dark:text-ink-muted hover:text-slate-900 dark:hover:text-ink'
-                      )}
-                    >
-                      <Icon size={14} className={isActive ? 'text-amber-500' : 'text-slate-400'} />
-                      <span>{item.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </Card>
-
-            {/* Reports & Data Export */}
-            <Card className="p-4 sm:p-5 space-y-3">
-              <span className="text-xs font-bold uppercase tracking-wider font-display text-slate-900 dark:text-ink block">
-                Reports & Data Export
-              </span>
-              <p className="text-xs text-slate-500 dark:text-ink-muted">
-                Generate high-resolution performance PDF charts, Excel workbooks, and raw CSV files of your authentic telemetry.
-              </p>
-              <button
-                type="button"
-                onClick={() => setShowReportsModal(true)}
-                className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 border border-amber-500/30 text-amber-700 dark:text-amber-300 font-bold text-xs transition-all shadow-xs cursor-pointer active:scale-98"
-              >
-                <div className="flex items-center gap-2.5">
-                  <FileText size={17} className="text-amber-500" />
-                  <span>Open Reports & Export Sanctum</span>
-                </div>
-                <ArrowRight size={15} />
-              </button>
-            </Card>
-
-            {/* Notification Center & Preferences */}
-            <Card className="p-4 sm:p-5 space-y-3">
-              <span className="text-xs font-bold uppercase tracking-wider font-display text-slate-900 dark:text-ink block">
-                Notifications & Reminders
-              </span>
-              <p className="text-xs text-slate-500 dark:text-ink-muted">
-                Manage your scheduled reminders for dailies, habit nudges, and notification preferences.
-              </p>
-              <button
-                type="button"
-                onClick={() => setShowNotificationsModal(true)}
-                className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-indigo-500/10 hover:bg-indigo-500/15 border border-indigo-500/30 text-indigo-700 dark:text-indigo-300 font-bold text-xs transition-all shadow-xs cursor-pointer active:scale-98"
-              >
-                <div className="flex items-center gap-2.5">
-                  <Bell size={17} className="text-indigo-500" />
-                  <span>Notification Center & Preferences</span>
-                </div>
-                <ArrowRight size={15} />
-              </button>
-            </Card>
-
-            {/* AI Agent & Automation Settings */}
-            <Card className="p-4 sm:p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold uppercase tracking-wider font-display text-slate-900 dark:text-ink flex items-center gap-1.5">
-                    <Bot size={15} className="text-cyan-500" />
-                    <span>Jeevan AI Agent & Automation</span>
-                  </span>
-                  <p className="text-xs text-slate-500 dark:text-ink-muted mt-0.5">
-                    Configure LLM intelligence, telemetry access, and task creation rules.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleUpdateAiPref('enabled', !aiPreferences.enabled)}
-                  className={clsx(
-                    'w-10 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer shrink-0',
-                    aiPreferences.enabled !== false ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-white/15'
-                  )}
-                >
-                  <div
-                    className={clsx(
-                      'w-5 h-5 rounded-full bg-white shadow-xs transition-transform',
-                      aiPreferences.enabled !== false ? 'translate-x-4' : 'translate-x-0'
-                    )}
-                  />
-                </button>
-              </div>
-
-              {aiPreferences.enabled !== false && (
-                <div className="space-y-3 pt-1 border-t border-slate-200/80 dark:border-white/10">
-                  {/* Provider Selection */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
-                      AI Reasoning Provider
-                    </label>
-                    <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-                      {[
-                        { id: 'auto', label: 'Auto (Best)' },
-                        { id: 'gemini', label: 'Google Gemini' },
-                        { id: 'openai', label: 'OpenAI GPT' },
-                        { id: 'offline', label: 'Offline Engine' },
-                      ].map((p) => (
-                        <button
-                          key={p.id}
-                          type="button"
-                          onClick={() => handleUpdateAiPref('provider', p.id)}
-                          className={clsx(
-                            'py-2 px-2 rounded-xl text-[11px] font-semibold border transition-all text-center cursor-pointer',
-                            (aiPreferences.provider || 'auto') === p.id
-                              ? 'border-cyan-500 bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 font-bold'
-                              : 'border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-600 dark:text-ink-muted'
-                          )}
-                        >
-                          {p.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Telemetry Access */}
-                  <div
-                    onClick={() => handleUpdateAiPref('allowTelemetry', !aiPreferences.allowTelemetry)}
-                    className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 cursor-pointer"
-                  >
-                    <div>
-                      <p className="text-xs font-semibold text-slate-800 dark:text-ink">
-                        Telemetry & Productivity History
-                      </p>
-                      <p className="text-[10px] text-slate-500 dark:text-ink-muted">
-                        Allow AI to analyze habits, dailies, streaks, and focus sessions
-                      </p>
-                    </div>
-                    <div
-                      className={clsx(
-                        'w-9 h-5 rounded-full transition-colors relative p-0.5 shrink-0',
-                        aiPreferences.allowTelemetry !== false ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-white/15'
-                      )}
-                    >
-                      <div
-                        className={clsx(
-                          'w-4 h-4 rounded-full bg-white shadow-xs transition-transform',
-                          aiPreferences.allowTelemetry !== false ? 'translate-x-4' : 'translate-x-0'
-                        )}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Auto Create Tasks vs Propose */}
-                  <div
-                    onClick={() => handleUpdateAiPref('autoCreateDailies', !aiPreferences.autoCreateDailies)}
-                    className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 cursor-pointer"
-                  >
-                    <div>
-                      <p className="text-xs font-semibold text-slate-800 dark:text-ink">
-                        Allow AI to create Dailies automatically
-                      </p>
-                      <p className="text-[10px] text-slate-500 dark:text-ink-muted">
-                        {aiPreferences.autoCreateDailies
-                          ? 'Tasks are added directly to your schedule'
-                          : 'Proposes daily schedule cards for manual confirmation'}
-                      </p>
-                    </div>
-                    <div
-                      className={clsx(
-                        'w-9 h-5 rounded-full transition-colors relative p-0.5 shrink-0',
-                        aiPreferences.autoCreateDailies ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-white/15'
-                      )}
-                    >
-                      <div
-                        className={clsx(
-                          'w-4 h-4 rounded-full bg-white shadow-xs transition-transform',
-                          aiPreferences.autoCreateDailies ? 'translate-x-4' : 'translate-x-0'
-                        )}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Require Confirmation for Destructive Changes */}
-                  <div
-                    onClick={() => handleUpdateAiPref('requireConfirmation', !aiPreferences.requireConfirmation)}
-                    className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 cursor-pointer"
-                  >
-                    <div>
-                      <p className="text-xs font-semibold text-slate-800 dark:text-ink">
-                        Require Confirmation for Task Modifications
-                      </p>
-                      <p className="text-[10px] text-slate-500 dark:text-ink-muted">
-                        Always display an action review card before modifying or deleting existing tasks
-                      </p>
-                    </div>
-                    <div
-                      className={clsx(
-                        'w-9 h-5 rounded-full transition-colors relative p-0.5 shrink-0',
-                        aiPreferences.requireConfirmation !== false ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-white/15'
-                      )}
-                    >
-                      <div
-                        className={clsx(
-                          'w-4 h-4 rounded-full bg-white shadow-xs transition-transform',
-                          aiPreferences.requireConfirmation !== false ? 'translate-x-4' : 'translate-x-0'
-                        )}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </Card>
-
-            {/* Help, Feedback & Contact Support */}
-            <Card className="p-4 sm:p-5 space-y-3">
-              <span className="text-xs font-bold uppercase tracking-wider font-display text-slate-900 dark:text-ink block">
-                Support, Feedback & Inquiries
-              </span>
-              <p className="text-xs text-slate-500 dark:text-ink-muted">
-                Report issues, suggest features, or reach out directly to the Jeevan engineering team.
-              </p>
-              <button
-                type="button"
-                onClick={() => setShowFeedbackModal(true)}
-                className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 hover:from-indigo-500/20 hover:to-purple-500/20 border border-indigo-500/30 text-indigo-700 dark:text-indigo-300 font-bold text-xs transition-all shadow-xs cursor-pointer active:scale-98"
-              >
-                <div className="flex items-center gap-2.5">
-                  <Headphones size={17} className="text-indigo-500" />
-                  <span>Open Help & Feedback Center</span>
-                </div>
-                <ArrowRight size={15} />
-              </button>
-            </Card>
-
-            {/* System Preferences & Audio */}
-            <Card className="p-4 sm:p-5 space-y-3">
-              <span className="text-xs font-bold uppercase tracking-wider font-display text-slate-900 dark:text-ink block">
-                Audio & Sound FX
-              </span>
-
-              <button
-                type="button"
-                onClick={toggleSound}
-                className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 dark:bg-white/[0.02] dark:hover:bg-white/[0.05] dark:border-white/10 transition-all text-xs text-slate-800 dark:text-ink cursor-pointer"
-              >
-                <div className="flex items-center gap-2.5">
-                  {soundEnabled ? (
-                    <Volume2 size={16} className="text-amber-500" />
-                  ) : (
-                    <VolumeX size={16} className="text-slate-400" />
-                  )}
-                  <span>Audio Haptic FX</span>
-                </div>
-                <span className="font-mono text-[11px] text-slate-500 dark:text-ink-muted uppercase">
-                  {soundEnabled ? 'Enabled' : 'Muted'}
-                </span>
-              </button>
-            </Card>
-
-            {/* Onboarding & Setup Reset */}
-            <Card className="p-4 sm:p-5 space-y-3">
-              <span className="text-xs font-bold uppercase tracking-wider font-display text-slate-900 dark:text-ink block">
-                Onboarding & Setup
-              </span>
-              <p className="text-xs text-slate-500 dark:text-ink-muted">
-                Re-take the initial 5-step personalization survey to adjust your primary goals, schedule, and AI preferences.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  try {
-                    localStorage.removeItem('lifeos_onboarding_completed');
-                  } catch {}
-                  navigate('/onboarding');
-                }}
-                className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-purple-500/10 hover:bg-purple-500/15 border border-purple-500/30 text-purple-700 dark:text-purple-300 font-bold text-xs transition-all shadow-xs cursor-pointer active:scale-98"
-              >
-                <div className="flex items-center gap-2.5">
-                  <Sparkles size={17} className="text-purple-500" />
-                  <span>Reset & Retake Onboarding</span>
-                </div>
-                <ArrowRight size={15} />
-              </button>
-            </Card>
-
-            {/* Danger Zone: Account Management */}
-            <Card className="p-4 sm:p-5 space-y-3 border-rose-500/30">
-              <span className="text-xs font-bold uppercase tracking-wider font-display text-rose-600 dark:text-rose-400 block">
-                Danger Zone & Account Management
-              </span>
-
-              <div className="space-y-3 pt-1">
-                {/* Reset Account Progress */}
-                <div className="p-3.5 rounded-2xl bg-amber-500/5 border border-amber-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-900 dark:text-ink flex items-center gap-1.5">
-                      <RotateCcw size={14} className="text-amber-500" />
-                      <span>Reset Account Progress</span>
-                    </h4>
-                    <p className="text-[11px] text-slate-500 dark:text-ink-muted mt-0.5">
-                      Reset character level to 1, clear all gold, reset habits, dailies, and quests back to a fresh state.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowResetModal(true)}
-                    className="px-3.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-700 dark:text-amber-300 font-bold text-xs transition-all cursor-pointer shrink-0 self-start sm:self-auto"
-                  >
-                    Reset Progress
-                  </button>
-                </div>
-
-                {/* Delete Account */}
-                <div className="p-3.5 rounded-2xl bg-rose-500/5 border border-rose-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <h4 className="text-xs font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
-                      <Trash2 size={14} className="text-rose-500" />
-                      <span>Delete Account Permanently</span>
-                    </h4>
-                    <p className="text-[11px] text-slate-500 dark:text-ink-muted mt-0.5">
-                      Permanently erase your account, profile, and all progression history.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDeleteConfirmText('');
-                      setShowDeleteModal(true);
-                    }}
-                    className="px-3.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs transition-all shadow-xs cursor-pointer shrink-0 self-start sm:self-auto"
-                  >
-                    Delete Account
-                  </button>
-                </div>
-
-                {/* Sign Out */}
-                <button
-                  type="button"
-                  onClick={async () => {
-                    await logout();
-                  }}
-                  className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/10 transition-all text-xs text-slate-700 dark:text-ink font-semibold cursor-pointer mt-2"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <LogOut size={16} />
-                    <span>Sign Out of Sanctum</span>
-                  </div>
-                  <span className="text-[10px] font-mono uppercase tracking-wider opacity-80">
-                    Disconnect
-                  </span>
-                </button>
-              </div>
-            </Card>
+            <SettingsCarousel
+              onOpenNotifications={() => setShowNotificationsModal(true)}
+              onOpenFeedback={() => setShowFeedbackModal(true)}
+              onOpenReports={() => setShowReportsModal(true)}
+              onRetakeOnboarding={() => {
+                try {
+                  localStorage.removeItem('lifeos_onboarding_completed');
+                } catch {}
+                navigate('/onboarding');
+              }}
+              fileInputRef={fileInputRef}
+              isUploadingAvatar={isUploadingAvatar}
+              handleRemoveAvatar={handleRemoveAvatar}
+            />
           </motion.div>
         )}
       </AnimatePresence>
@@ -1529,144 +1097,7 @@ export default function ProfilePage() {
         onClose={() => setShowFeedbackModal(false)}
       />
 
-      {/* Reset Account Confirmation Modal */}
-      <AnimatePresence>
-        {showResetModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white dark:bg-slate-900 border border-amber-500/40 rounded-3xl p-5 max-w-sm w-full shadow-2xl space-y-4"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-                  <RotateCcw size={20} />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-ink font-display">
-                    Reset Account Progress?
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-ink-muted">
-                    This will revert your RPG stats to Level 1.
-                  </p>
-                </div>
-              </div>
 
-              <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-slate-700 dark:text-slate-300 space-y-1.5">
-                <p className="font-semibold text-amber-700 dark:text-amber-400">
-                  The following will be reset:
-                </p>
-                <ul className="list-disc list-inside space-y-0.5 text-[11px] text-slate-600 dark:text-slate-400">
-                  <li>Level reset to 1 and XP set to 0</li>
-                  <li>Coins/Gold set to 0</li>
-                  <li>All active Habits, Dailies & Quests removed</li>
-                  <li>Progression stats & streaks restored to baseline</li>
-                </ul>
-                <p className="text-[10px] text-slate-500 dark:text-ink-muted pt-1">
-                  Your login email, password, and account credentials will remain preserved.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setShowResetModal(false)}
-                  disabled={isResetting}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-300 dark:border-white/10 text-xs font-semibold text-slate-700 dark:text-ink hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleResetAccount}
-                  disabled={isResetting}
-                  className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  {isResetting ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <span>Confirm Reset</span>
-                  )}
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Delete Account Danger Modal */}
-      <AnimatePresence>
-        {showDeleteModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white dark:bg-slate-900 border border-rose-500/40 rounded-3xl p-5 max-w-sm w-full shadow-2xl space-y-4"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
-                  <AlertTriangle size={20} />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-ink font-display">
-                    Delete Account Permanently?
-                  </h3>
-                  <p className="text-xs text-rose-600 dark:text-rose-400 font-semibold">
-                    This action is permanent and cannot be undone.
-                  </p>
-                </div>
-              </div>
-
-              <p className="text-xs text-slate-600 dark:text-ink-muted">
-                Your account, profile information, authentication credentials, and all recorded progression data will be permanently wiped.
-              </p>
-
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-mono text-slate-600 dark:text-slate-400 block">
-                  To confirm, type <span className="font-bold text-rose-600 dark:text-rose-400">DELETE</span> below:
-                </label>
-                <input
-                  type="text"
-                  value={deleteConfirmText}
-                  onChange={(e) => setDeleteConfirmText(e.target.value)}
-                  placeholder="Type DELETE"
-                  className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-rose-500/40 text-xs font-mono text-slate-900 dark:text-ink focus:outline-none focus:ring-2 focus:ring-rose-500"
-                />
-              </div>
-
-              <div className="flex items-center gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setShowDeleteModal(false)}
-                  disabled={isDeleting}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-300 dark:border-white/10 text-xs font-semibold text-slate-700 dark:text-ink hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDeleteAccount}
-                  disabled={deleteConfirmText.trim() !== 'DELETE' || isDeleting}
-                  className={clsx(
-                    'flex-1 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-md',
-                    deleteConfirmText.trim() === 'DELETE' && !isDeleting
-                      ? 'bg-rose-600 hover:bg-rose-700 text-white cursor-pointer active:scale-98'
-                      : 'bg-rose-500/30 text-rose-300 cursor-not-allowed'
-                  )}
-                >
-                  {isDeleting ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <span>Delete Forever</span>
-                  )}
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </motion.div>
   );
 }

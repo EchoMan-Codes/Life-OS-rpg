@@ -1,3 +1,4 @@
+import { useRef, useEffect } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { NavLink } from 'react-router-dom';
 import clsx from 'clsx';
@@ -41,21 +42,60 @@ const navItems = [
 export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
   const shouldReduceMotion = useReducedMotion();
   const { user, isAuthenticated, logout, isLoggingOut } = useAuth();
+  const asideRef = useRef(null);
+  const rafRef = useRef(null);
+
+  const handleMouseMove = (e) => {
+    if (shouldReduceMotion || !asideRef.current) return;
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() => {
+      if (!asideRef.current) return;
+      const rect = asideRef.current.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      asideRef.current.style.setProperty('--mouse-x', `${x}px`);
+      asideRef.current.style.setProperty('--mouse-y', `${y}px`);
+    });
+  };
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
 
   return (
     <motion.aside
+      ref={asideRef}
+      onMouseMove={handleMouseMove}
       className={clsx(
-        'fixed top-0 left-0 h-screen z-40',
+        'group/sidebar fixed top-0 left-0 h-screen z-40',
         'hidden md:flex flex-col',
-        'bg-white dark:bg-obsidian-900 border-r border-slate-200/80 dark:border-glass-border',
-        'shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-none',
-        'transition-all duration-200'
+        'bg-white/80 dark:bg-obsidian-950/80 backdrop-blur-2xl',
+        'border-r border-slate-200/80 dark:border-glass-border',
+        'shadow-[4px_0_24px_rgba(0,0,0,0.03)] dark:shadow-[4px_0_32px_rgba(0,0,0,0.45)]',
+        'transition-all duration-200 relative overflow-hidden select-none'
       )}
       animate={{ width: collapsed ? 80 : 256 }}
       transition={shouldReduceMotion ? { duration: 0 } : spring.snappy}
     >
+      {/* Ambient cursor light-follow highlight */}
+      {!shouldReduceMotion && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300 z-0"
+          style={{
+            background:
+              'radial-gradient(320px circle at var(--mouse-x, 100px) var(--mouse-y, 100px), rgba(99, 102, 241, 0.08), transparent 70%)',
+          }}
+        />
+      )}
+
+      {/* Top subtle inner hairline border highlight */}
+      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent pointer-events-none z-10" />
+
       {/* Logo / App title */}
-      <div className="flex items-center h-16 px-4 border-b border-slate-200/80 dark:border-glass-border">
+      <div className="flex items-center h-16 px-4 border-b border-slate-200/80 dark:border-glass-border relative z-10">
         {!collapsed && (
           <motion.div
             className="flex items-center gap-2 overflow-hidden"
@@ -74,31 +114,67 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
       </div>
 
       {/* Nav items */}
-      <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+      <nav className="flex-1 py-4 px-3 space-y-1.5 overflow-y-auto relative z-10" aria-label="Desktop Navigation">
         {navItems.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
               clsx(
-                'flex items-center gap-3 px-3 py-2.5 rounded-2xl',
-                'text-sm font-medium transition-all duration-150',
+                'group/item relative flex items-center gap-3 px-3 py-2.5 rounded-2xl',
+                'text-sm font-medium transition-colors duration-150',
                 'min-h-[44px]',
-                'focus-visible:outline-2 focus-visible:outline-offset-2',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-obsidian-950',
                 isActive
-                  ? 'bg-indigo-50/90 text-indigo-700 border border-indigo-200/70 shadow-xs font-semibold dark:bg-glass dark:text-ink dark:border-glass-border'
-                  : 'text-slate-600 dark:text-ink-muted hover:bg-slate-100/70 dark:hover:bg-glass hover:text-slate-900 dark:hover:text-ink'
+                  ? 'text-indigo-600 dark:text-ink font-semibold'
+                  : 'text-slate-600 dark:text-ink-muted hover:text-slate-900 dark:hover:text-ink hover:bg-slate-100/60 dark:hover:bg-white/[0.04]'
               )
             }
           >
-            <Icon size={20} className="shrink-0" />
-            {!collapsed && <span className="truncate">{label}</span>}
+            {({ isActive }) => (
+              <>
+                {/* Active pill sliding indicator */}
+                {isActive && (
+                  <motion.div
+                    layoutId="desktop-active-nav-pill"
+                    className="absolute inset-0 rounded-2xl bg-indigo-500/10 dark:bg-indigo-500/20 border border-indigo-500/25 dark:border-indigo-400/30 shadow-xs pointer-events-none"
+                    transition={shouldReduceMotion ? { duration: 0 } : spring.navbar}
+                  />
+                )}
+
+                <Icon
+                  size={20}
+                  className={clsx(
+                    'shrink-0 relative z-10 transition-transform duration-150',
+                    isActive
+                      ? 'text-indigo-600 dark:text-indigo-400 scale-105'
+                      : 'text-slate-500 dark:text-ink-muted group-hover/item:scale-105'
+                  )}
+                />
+                {!collapsed && <span className="truncate relative z-10">{label}</span>}
+
+                {/* Collapsed Tooltip reveal with short spring */}
+                {collapsed && (
+                  <span
+                    className={clsx(
+                      'pointer-events-none absolute left-full ml-3 px-3 py-1.5 rounded-xl',
+                      'bg-slate-900/90 dark:bg-obsidian-800 text-white text-xs font-semibold whitespace-nowrap',
+                      'shadow-xl border border-white/10 z-50',
+                      'opacity-0 -translate-x-2 group-hover/item:opacity-100 group-hover/item:translate-x-0',
+                      'transition-all duration-150'
+                    )}
+                  >
+                    {label}
+                  </span>
+                )}
+              </>
+            )}
           </NavLink>
         ))}
       </nav>
 
       {/* User Session / Auth Section */}
-      <div className="px-3 py-3 border-t border-slate-200/80 dark:border-glass-border">
+      <div className="px-3 py-3 border-t border-slate-200/80 dark:border-glass-border relative z-10">
         {isAuthenticated && user ? (
           <div
             className={clsx(
@@ -139,8 +215,8 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
                 title="Log out"
                 className={clsx(
                   'p-1.5 rounded-chip text-slate-400 hover:text-rose-600 dark:text-ink-muted dark:hover:text-hp hover:bg-slate-100 dark:hover:bg-white/10',
-                  'transition-colors duration-150',
-                  'focus-visible:outline-2 focus-visible:outline-offset-2'
+                  'transition-colors duration-150 cursor-pointer',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500'
                 )}
               >
                 <LogOut size={16} />
@@ -156,8 +232,8 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
               'py-2 px-3 rounded-panel',
               'bg-indigo-50/90 hover:bg-indigo-100/90 text-indigo-700 border border-indigo-200/80',
               'dark:bg-attr-perception/10 dark:hover:bg-attr-perception/20 dark:border-attr-perception/30 dark:text-attr-perception',
-              'text-xs font-medium min-h-[40px] transition-colors duration-150',
-              'focus-visible:outline-2 focus-visible:outline-offset-2'
+              'text-xs font-medium min-h-[40px] transition-colors duration-150 cursor-pointer',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500'
             )}
             {...(shouldReduceMotion ? {} : pressable)}
           >
@@ -175,9 +251,9 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
           'flex items-center justify-center',
           'h-12 mx-3 mb-4 rounded-panel',
           'text-slate-500 hover:text-slate-800 hover:bg-slate-100/80 dark:text-ink-muted dark:hover:text-ink dark:hover:bg-glass',
-          'transition-colors duration-150',
+          'transition-colors duration-150 cursor-pointer',
           'min-h-[44px]',
-          'focus-visible:outline-2 focus-visible:outline-offset-2'
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500'
         )}
       >
         {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}

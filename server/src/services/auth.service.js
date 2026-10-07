@@ -584,27 +584,22 @@ export class AuthService {
    */
   async resetAccount(userId) {
     return withTransaction(async (client) => {
-      // 1. Reset character stats
+      // 1. Reset character stats to baseline Level 1
       await client.query(
         `UPDATE character_stats
          SET level = 1,
-             current_hp = 100,
-             max_hp = 100,
-             current_mana = 50,
-             max_mana = 50,
-             current_xp = 0,
-             next_level_xp = 100,
+             xp = 0,
+             hp = 50,
+             max_hp = 50,
+             mana = 20,
+             max_mana = 20,
              gold = 0,
-             strength = 10,
-             intelligence = 10,
-             willpower = 10,
-             agility = 10,
-             constitution = 10,
-             total_habits_completed = 0,
-             total_dailies_completed = 0,
-             total_quests_completed = 0,
-             current_streak = 0,
-             longest_streak = 0,
+             strength = 5,
+             intelligence = 5,
+             vitality = 5,
+             willpower = 5,
+             perception = 5,
+             unallocated_points = 0,
              updated_at = now()
          WHERE user_id = $1`,
         [userId]
@@ -618,19 +613,112 @@ export class AuthService {
       await client.query('DELETE FROM daily_completions WHERE user_id = $1', [userId]);
       await client.query('DELETE FROM dailies WHERE user_id = $1', [userId]);
 
-      // 4. Clear quests
+      // 4. Clear quests & milestones
       await client.query('DELETE FROM quest_completions WHERE user_id = $1', [userId]);
       await client.query('DELETE FROM quest_milestones WHERE user_id = $1', [userId]);
       await client.query('DELETE FROM quest_items WHERE user_id = $1', [userId]);
       await client.query('DELETE FROM quests WHERE user_id = $1', [userId]);
 
-      // 5. Clear inventory, focus sessions, reflections, notifications
-      await client.query('DELETE FROM user_inventory WHERE user_id = $1', [userId]);
+      // 5. Clear purchases & inventory (keeping defined reward items)
+      await client.query('DELETE FROM purchases WHERE user_id = $1', [userId]);
+      await client.query('DELETE FROM inventory WHERE user_id = $1', [userId]);
+
+      // 6. Clear focus sessions, reflections, battle events & notifications
       await client.query('DELETE FROM focus_sessions WHERE user_id = $1', [userId]);
       await client.query('DELETE FROM reflections WHERE user_id = $1', [userId]);
+      await client.query('DELETE FROM battle_events WHERE user_id = $1', [userId]);
       await client.query('DELETE FROM notifications WHERE user_id = $1', [userId]);
 
-      return { success: true, message: 'Account progression has been reset to Level 1.' };
+      return { success: true, message: 'All account progression and task history reset to fresh Level 1.' };
+    });
+  }
+
+  /**
+   * Granular section reset targeting specific domains while keeping unrelated data safe.
+   *
+   * @param {string} userId
+   * @param {'progression'|'habits'|'dailies'|'quests'|'inventory'|'all'} target
+   */
+  async resetSection(userId, target) {
+    if (!target) {
+      const err = new Error('Reset target is required.');
+      err.status = 400;
+      throw err;
+    }
+
+    if (target === 'all') {
+      return this.resetAccount(userId);
+    }
+
+    return withTransaction(async (client) => {
+      switch (target) {
+        case 'progression':
+        case 'character':
+          await client.query(
+            `UPDATE character_stats
+             SET level = 1,
+                 xp = 0,
+                 hp = 50,
+                 max_hp = 50,
+                 mana = 20,
+                 max_mana = 20,
+                 gold = 0,
+                 strength = 5,
+                 intelligence = 5,
+                 vitality = 5,
+                 willpower = 5,
+                 perception = 5,
+                 unallocated_points = 0,
+                 updated_at = now()
+             WHERE user_id = $1`,
+            [userId]
+          );
+          return { success: true, message: 'Character stats, level, and gold reset to Level 1 baseline.' };
+
+        case 'habits':
+          await client.query('DELETE FROM habit_logs WHERE user_id = $1', [userId]);
+          await client.query(
+            `UPDATE habits
+             SET current_streak = 0,
+                 best_streak = 0,
+                 last_scored_at = NULL
+             WHERE user_id = $1`,
+            [userId]
+          );
+          return { success: true, message: 'Habit streaks and logs reset to zero.' };
+
+        case 'dailies':
+          await client.query('DELETE FROM daily_completions WHERE user_id = $1', [userId]);
+          await client.query(
+            `UPDATE dailies
+             SET streak_current = 0,
+                 streak_best = 0,
+                 streak_shield_charges = 0,
+                 is_complete_today = false,
+                 last_reset_date = CURRENT_DATE
+             WHERE user_id = $1`,
+            [userId]
+          );
+          return { success: true, message: 'Daily streaks and completion statuses reset.' };
+
+        case 'quests':
+          await client.query('DELETE FROM quest_completions WHERE user_id = $1', [userId]);
+          await client.query('DELETE FROM quest_milestones WHERE user_id = $1', [userId]);
+          await client.query('DELETE FROM quest_items WHERE user_id = $1', [userId]);
+          await client.query('DELETE FROM quests WHERE user_id = $1', [userId]);
+          return { success: true, message: 'All campaigns and quest milestones cleared.' };
+
+        case 'inventory':
+          await client.query('DELETE FROM purchases WHERE user_id = $1', [userId]);
+          await client.query('DELETE FROM inventory WHERE user_id = $1', [userId]);
+          return { success: true, message: 'Purchased inventory and transaction history cleared.' };
+
+        default: {
+          const err = new Error(`Unknown reset target: ${target}`);
+          err.status = 400;
+          throw err;
+        }
+      }
     });
   }
 

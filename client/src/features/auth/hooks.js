@@ -12,6 +12,7 @@ import {
   forgotPassword,
   resetPassword,
   resetUserAccount,
+  resetSection,
   deleteUserAccount,
 } from './api';
 
@@ -142,6 +143,38 @@ export function useResetAccount() {
 }
 
 /**
+ * Mutation hook for granular section resets.
+ */
+export function useResetSection() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: resetSection,
+    onSuccess: (_, variables) => {
+      const target = variables?.target;
+      if (target === 'progression' || target === 'character') {
+        queryClient.invalidateQueries({ queryKey: ['character'] });
+      } else if (target === 'habits') {
+        queryClient.invalidateQueries({ queryKey: ['habits'] });
+      } else if (target === 'dailies') {
+        queryClient.invalidateQueries({ queryKey: ['dailies'] });
+      } else if (target === 'quests') {
+        queryClient.invalidateQueries({ queryKey: ['quests'] });
+      } else if (target === 'inventory') {
+        queryClient.invalidateQueries({ queryKey: ['inventory'] });
+        queryClient.invalidateQueries({ queryKey: ['character'] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['character'] });
+        queryClient.invalidateQueries({ queryKey: ['habits'] });
+        queryClient.invalidateQueries({ queryKey: ['dailies'] });
+        queryClient.invalidateQueries({ queryKey: ['quests'] });
+        queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      }
+    },
+  });
+}
+
+/**
  * Mutation hook for deleting account.
  */
 export function useDeleteAccount() {
@@ -189,6 +222,7 @@ export function useAuth() {
   const logoutMutation = useLogout();
   const updateProfileMutation = useUpdateProfile();
   const resetAccountMutation = useResetAccount();
+  const resetSectionMutation = useResetSection();
   const deleteAccountMutation = useDeleteAccount();
   const [sessionExpired, setSessionExpired] = useState(false);
 
@@ -224,6 +258,8 @@ export function useAuth() {
     isUpdatingProfile: updateProfileMutation.isPending,
     resetAccount: resetAccountMutation.mutateAsync,
     isResettingAccount: resetAccountMutation.isPending,
+    resetSection: resetSectionMutation.mutateAsync,
+    isResettingSection: resetSectionMutation.isPending,
     deleteAccount: deleteAccountMutation.mutateAsync,
     isDeletingAccount: deleteAccountMutation.isPending,
   };

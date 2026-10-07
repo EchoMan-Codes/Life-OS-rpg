@@ -94,6 +94,9 @@ router.patch('/profile', requireAuth, validate(updateProfileSchema), authControl
 // Reset RPG progression to Level 1
 router.post('/reset-account', requireAuth, authController.resetAccount);
 
+// Granular section resets
+router.post('/reset-section', requireAuth, authController.resetSection);
+
 // Permanently delete user account
 router.delete('/account', requireAuth, validate(deleteAccountSchema), authController.deleteAccount);
 

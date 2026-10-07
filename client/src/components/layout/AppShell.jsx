@@ -110,8 +110,9 @@ export function AppShell({ children }) {
         {/* Floating Combat Text Portal */}
         <FloatingTextContainer />
 
-        {/* Main content area with strict mobile safe-area handling */}
+        {/* Main content area with strict mobile safe-area handling and stable #page-stage */}
         <main
+          id="page-stage"
           style={!isDesktop ? {
             paddingTop: isDashboard || isProfile
               ? 'max(0.75rem, env(safe-area-inset-top, 0px))'

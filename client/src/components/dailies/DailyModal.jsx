@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PropTypes from 'prop-types';
 import { X, Sparkles, Calendar, Clock, Bell, AlertTriangle } from 'lucide-react';
@@ -9,6 +9,7 @@ import { useCreateDaily, useUpdateDaily } from '@/features/dailies/hooks';
 import { JeevanLoader } from '@/components/ui/JeevanLoader';
 import { useJeevanTransition } from '@/context/JeevanTransitionContext';
 import { notificationService } from '@/lib/notifications';
+import { computeNextFireTimes } from '@/lib/scheduler';
 
 const DIFFICULTIES = [
   { value: 'trivial', label: 'Trivial' },
@@ -67,6 +68,20 @@ function DailyForm({ dailyToEdit, onClose }) {
   const [reminderEnabled, setReminderEnabled] = useState(() => Boolean(dailyToEdit?.reminderEnabled));
   const [reminderMinutesBefore, setReminderMinutesBefore] = useState(() => dailyToEdit?.reminderMinutesBefore ?? 10);
   const [error, setError] = useState(null);
+
+  const fireTimes = useMemo(() => {
+    if (!reminderEnabled || !scheduledTime) return [];
+    return computeNextFireTimes({
+      item: {
+        scheduledTime,
+        activeDays,
+        reminderEnabled,
+        reminderMinutesBefore,
+      },
+      itemType: 'daily',
+      limit: 3,
+    });
+  }, [reminderEnabled, scheduledTime, activeDays, reminderMinutesBefore]);
 
   const toggleDay = (dayIndex) => {
     setActiveDays((prev) => {
@@ -262,21 +277,64 @@ function DailyForm({ dailyToEdit, onClose }) {
         </div>
 
         {reminderEnabled && (
-          <div className="pt-1">
-            <label className="block text-[11px] text-slate-500 dark:text-ink-muted mb-1">
-              Notify me before session
-            </label>
-            <select
-              value={reminderMinutesBefore}
-              onChange={(e) => setReminderMinutesBefore(Number(e.target.value))}
-              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/10 text-xs text-slate-900 dark:text-ink focus:outline-none focus:ring-1 focus:ring-amber-500"
-            >
-              {REMINDER_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value} className="bg-slate-900 text-white">
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+          <div className="pt-1 space-y-2.5">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-ink-muted mb-1.5">
+                Notify before scheduled time
+              </label>
+              <div className="grid grid-cols-3 gap-1.5">
+                {REMINDER_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setReminderMinutesBefore(opt.value)}
+                    className={clsx(
+                      'py-1.5 px-2 rounded-xl text-[11px] font-medium border text-center transition-all cursor-pointer',
+                      reminderMinutesBefore === opt.value
+                        ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/60 shadow-xs font-bold'
+                        : 'bg-white dark:bg-white/[0.04] text-slate-500 dark:text-ink-muted border-slate-200 dark:border-white/10 hover:border-slate-300'
+                    )}
+                  >
+                    {opt.value === 0 ? 'At time' : `${opt.value}m prior`}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Authoritative Live Reminder Preview */}
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 space-y-1.5">
+              <div className="flex items-center justify-between text-amber-600 dark:text-amber-400 font-bold text-[11px]">
+                <span className="flex items-center gap-1.5">
+                  <Clock size={12} />
+                  <span>Authoritative Next Reminders</span>
+                </span>
+                <span className="font-mono text-[10px] opacity-80">
+                  {reminderMinutesBefore === 0 ? 'Exact Time' : `-${reminderMinutesBefore}m`}
+                </span>
+              </div>
+              {scheduledTime ? (
+                fireTimes.length > 0 ? (
+                  <div className="space-y-1 pt-0.5">
+                    {fireTimes.map((ft, idx) => (
+                      <div key={idx} className="flex items-center justify-between text-[11px] text-slate-700 dark:text-ink-muted">
+                        <span className="font-medium text-slate-900 dark:text-ink">{ft.formattedDisplay}</span>
+                        <span className="text-[10px] text-amber-600 dark:text-amber-400 font-mono">
+                          {ft.isPast ? '(due)' : 'scheduled'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-slate-500 dark:text-ink-muted">
+                    No active slots scheduled within 60 days for selected days.
+                  </p>
+                )
+              ) : (
+                <p className="text-[11px] text-slate-500 dark:text-ink-muted">
+                  Set a Scheduled Time above to compute exact fire times.
+                </p>
+              )}
+            </div>
           </div>
         )}
       </div>

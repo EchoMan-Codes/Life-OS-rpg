@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import PropTypes from 'prop-types';
-import { X, Scroll, Plus, Trash2, Bell } from 'lucide-react';
+import { X, Scroll, Plus, Trash2, Bell, Clock } from 'lucide-react';
 import clsx from 'clsx';
 
 import { modalPanel } from '@/lib/motionVariants';
@@ -9,6 +9,7 @@ import { useCreateQuest, useUpdateQuest } from '@/features/quests/hooks';
 import { JeevanLoader } from '@/components/ui/JeevanLoader';
 import { useJeevanTransition } from '@/context/JeevanTransitionContext';
 import { notificationService } from '@/lib/notifications';
+import { computeNextFireTimes } from '@/lib/scheduler';
 
 const PRIORITIES = [
   { value: 'low', label: 'Low' },
@@ -41,6 +42,21 @@ function QuestForm({ questToEdit, onClose }) {
   const [items, setItems] = useState(() => (questToEdit?.items ? questToEdit.items.map((i) => i.title) : []));
   const [newItemInput, setNewItemInput] = useState('');
   const [error, setError] = useState(null);
+
+  const fireTimes = useMemo(() => {
+    if (!reminderEnabled) return [];
+    return computeNextFireTimes({
+      item: {
+        dueDate: dueDate || null,
+        reminderEnabled,
+        reminderTime,
+        reminderDaysBefore,
+        reminderFrequency,
+      },
+      itemType: 'quest',
+      limit: 3,
+    });
+  }, [reminderEnabled, dueDate, reminderTime, reminderDaysBefore, reminderFrequency]);
 
   const isEditing = Boolean(questToEdit);
   const isPending = createMutation.isPending || updateMutation.isPending;
@@ -305,6 +321,35 @@ function QuestForm({ questToEdit, onClose }) {
                     <option value={7}>1 week before</option>
                   </select>
                 </div>
+              )}
+            </div>
+
+            {/* Authoritative Live Reminder Preview */}
+            <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 space-y-1.5">
+              <div className="flex items-center justify-between text-indigo-400 font-bold text-[11px]">
+                <span className="flex items-center gap-1.5">
+                  <Clock size={12} />
+                  <span>Authoritative Next Reminders</span>
+                </span>
+                <span className="font-mono text-[10px] opacity-80">
+                  {reminderFrequency === 'on_due_date' ? 'On Due Date' : `${reminderDaysBefore}d before`}
+                </span>
+              </div>
+              {fireTimes.length > 0 ? (
+                <div className="space-y-1 pt-0.5">
+                  {fireTimes.map((ft, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-[11px] text-ink-muted">
+                      <span className="font-medium text-ink">{ft.formattedDisplay}</span>
+                      <span className="text-[10px] text-indigo-400 font-mono">
+                        {ft.isPast ? '(due)' : 'scheduled'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[11px] text-ink-muted">
+                  {dueDate ? 'No remaining reminder fire times before due date.' : 'Set a Due Date above to preview authoritative reminders.'}
+                </p>
               )}
             </div>
           </div>

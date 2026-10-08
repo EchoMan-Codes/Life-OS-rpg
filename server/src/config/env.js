@@ -27,11 +27,16 @@ const envSchema = z.object({
   SMTP_PASS: z.string().optional(),
   SMTP_FROM: z.string().optional().default('Jeevan <no-reply@jeevan.app>'),
 
-  AI_PROVIDER: z.enum(['openai', 'gemini']).default('openai'),
+  AI_PROVIDER: z.string().default('openai'),
   OPENAI_API_KEY: z.string().optional(),
-  OPENAI_MODEL: z.string().default('gpt-6-sol'),
+  OPENAI_MODEL: z.string().default('gpt-4o-mini'),
+  OPENAI_BASE_URL: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_MODEL: z.string().default('gemini-1.5-flash'),
+
+  VAPID_PUBLIC_KEY: z.string().optional(),
+  VAPID_PRIVATE_KEY: z.string().optional(),
+  VAPID_SUBJECT: z.string().optional().default('mailto:support@jeevan.app'),
 });
 
 const parsed = envSchema.safeParse(process.env);

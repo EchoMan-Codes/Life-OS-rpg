@@ -41,4 +41,9 @@ export const notificationApi = {
     const res = await apiClient.put('/notifications/preferences', preferences);
     return res.data.data;
   },
+
+  async getScheduled() {
+    const res = await apiClient.get('/notifications/scheduled');
+    return res.data.data;
+  },
 };

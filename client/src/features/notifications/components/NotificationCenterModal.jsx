@@ -12,6 +12,9 @@ import {
   Award,
   SlidersHorizontal,
   ChevronRight,
+  Clock,
+  Moon,
+  AlertCircle,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { Link } from 'react-router-dom';
@@ -23,15 +26,18 @@ import {
   useDeleteNotification,
   useNotificationPreferences,
   useUpdateNotificationPreferences,
+  useScheduledNotifications,
 } from '../hooks';
 
 export function NotificationCenterModal({ isOpen, onClose }) {
+  const [activeTab, setActiveTab] = useState('recent'); // 'recent' | 'scheduled' | 'missed'
   const [filterType, setFilterType] = useState('all');
   const [showPreferences, setShowPreferences] = useState(false);
 
   const { data: notifData = { notifications: [] }, isLoading } = useNotifications({
     type: filterType !== 'all' ? filterType : undefined,
   });
+  const { data: scheduledList = [], isLoading: isLoadingScheduled } = useScheduledNotifications();
   const markAsReadMutation = useMarkNotificationAsRead();
   const markAllMutation = useMarkAllNotificationsAsRead();
   const deleteMutation = useDeleteNotification();
@@ -40,6 +46,7 @@ export function NotificationCenterModal({ isOpen, onClose }) {
   const updatePrefsMutation = useUpdateNotificationPreferences();
 
   const notifications = notifData.notifications || [];
+  const missedNotifications = notifications.filter((n) => n.isMissed || n.quietHoursSuppressed);
 
   // Group notifications into Today and Earlier
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -143,30 +150,73 @@ export function NotificationCenterModal({ isOpen, onClose }) {
               </div>
             </div>
 
-            {/* Filter Pills */}
-            <div className="flex items-center gap-1.5 p-3 px-4 border-b border-slate-200/60 dark:border-white/5 overflow-x-auto no-scrollbar bg-slate-50/40 dark:bg-transparent">
+            {/* Segmented Top Tabs */}
+            <div className="flex items-center gap-1.5 px-4 pt-3 pb-2 border-b border-slate-200/60 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01]">
               {[
-                { id: 'all', label: 'All' },
-                { id: 'daily_reminder', label: 'Dailies' },
-                { id: 'habit_reminder', label: 'Habits' },
-                { id: 'quest_deadline', label: 'Quests' },
-                { id: 'ai_recommendation', label: 'AI Insights' },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setFilterType(tab.id)}
-                  className={clsx(
-                    'px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all',
-                    filterType === tab.id
-                      ? 'bg-amber-500 text-slate-950 shadow-xs'
-                      : 'bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-ink-muted hover:text-slate-900 dark:hover:text-ink border border-slate-200/80 dark:border-white/5'
-                  )}
-                >
-                  {tab.label}
-                </button>
-              ))}
+                { id: 'recent', label: 'Recent Alerts', count: notifData.unreadCount },
+                { id: 'scheduled', label: 'Upcoming Scheduled', count: scheduledList.length },
+                { id: 'missed', label: 'Missed / Held', count: missedNotifications.length },
+              ].map((tab) => {
+                const isActive = activeTab === tab.id && !showPreferences;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      setShowPreferences(false);
+                    }}
+                    className={clsx(
+                      'flex items-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer',
+                      isActive
+                        ? 'bg-amber-500 text-slate-950 shadow-xs'
+                        : 'text-slate-500 dark:text-ink-muted hover:text-slate-900 dark:hover:text-ink hover:bg-slate-100 dark:hover:bg-white/[0.04]'
+                    )}
+                  >
+                    <span>{tab.label}</span>
+                    {tab.count !== undefined && tab.count > 0 && (
+                      <span
+                        className={clsx(
+                          'px-1.5 py-0.2 rounded-full text-[10px] font-mono',
+                          isActive
+                            ? 'bg-slate-950 text-amber-400 font-bold'
+                            : 'bg-amber-500/20 text-amber-500 font-semibold'
+                        )}
+                      >
+                        {tab.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
+
+            {/* Sub-Filter Pills (Active only on Recent tab) */}
+            {activeTab === 'recent' && !showPreferences && (
+              <div className="flex items-center gap-1.5 p-2.5 px-4 border-b border-slate-200/60 dark:border-white/5 overflow-x-auto no-scrollbar bg-slate-50/30 dark:bg-transparent">
+                {[
+                  { id: 'all', label: 'All' },
+                  { id: 'daily_reminder', label: 'Dailies' },
+                  { id: 'habit_reminder', label: 'Habits' },
+                  { id: 'quest_deadline', label: 'Quests' },
+                  { id: 'ai_recommendation', label: 'AI Insights' },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setFilterType(tab.id)}
+                    className={clsx(
+                      'px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer',
+                      filterType === tab.id
+                        ? 'bg-slate-900 dark:bg-white/20 text-white shadow-xs'
+                        : 'bg-slate-100 dark:bg-white/[0.04] text-slate-600 dark:text-ink-muted hover:text-slate-900 dark:hover:text-ink border border-slate-200/80 dark:border-white/5'
+                    )}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Content Body */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -286,6 +336,100 @@ export function NotificationCenterModal({ isOpen, onClose }) {
                     );
                   })}
                 </div>
+              ) : activeTab === 'scheduled' ? (
+                /* Tab 2: Upcoming Scheduled Occurrences */
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-ink-muted">
+                      Live Authoritative Schedule
+                    </p>
+                    <span className="text-[11px] text-slate-400 font-mono">
+                      {scheduledList.length} fire times queued
+                    </span>
+                  </div>
+
+                  {isLoadingScheduled ? (
+                    <div className="py-12 text-center text-xs text-slate-400">Computing authoritative schedule...</div>
+                  ) : scheduledList.length === 0 ? (
+                    <div className="py-12 flex flex-col items-center justify-center text-center">
+                      <div className="w-12 h-12 rounded-3xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-400 mb-3">
+                        <Clock size={22} />
+                      </div>
+                      <h4 className="text-sm font-bold text-slate-800 dark:text-ink">No Scheduled Reminders</h4>
+                      <p className="text-xs text-slate-500 dark:text-ink-muted mt-1 max-w-xs">
+                        Enable smart reminders on any Daily or Quest to see its next fire times here.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {scheduledList.map((occ, idx) => (
+                        <div
+                          key={occ.occurrenceKey || idx}
+                          className="flex items-center justify-between p-3 rounded-2xl bg-white dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10"
+                        >
+                          <div className="flex items-center gap-3 truncate">
+                            <div className="w-8 h-8 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center shrink-0">
+                              {occ.itemType === 'quest' ? <Scroll size={15} /> : <CalendarCheck size={15} />}
+                            </div>
+                            <div className="truncate">
+                              <p className="text-xs font-bold text-slate-900 dark:text-ink truncate">
+                                {occ.title}
+                              </p>
+                              <p className="text-[10px] text-slate-500 dark:text-ink-muted capitalize">
+                                {occ.itemType} ritual
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end shrink-0 gap-0.5">
+                            <span className="text-xs font-semibold text-slate-800 dark:text-ink font-mono">
+                              {occ.formattedDisplay}
+                            </span>
+                            <span className="text-[10px] text-amber-500 font-mono">
+                              {occ.offsetMinutes === 0 ? 'at start' : `${occ.offsetMinutes}m prior`}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : activeTab === 'missed' ? (
+                /* Tab 3: Missed / Silenced */
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-ink-muted">
+                      Silenced & Offline Reminders
+                    </p>
+                    <span className="text-[11px] text-slate-400 font-mono">
+                      {missedNotifications.length} missed
+                    </span>
+                  </div>
+
+                  {missedNotifications.length === 0 ? (
+                    <div className="py-12 flex flex-col items-center justify-center text-center">
+                      <div className="w-12 h-12 rounded-3xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 flex items-center justify-center text-emerald-500 mb-3">
+                        <Moon size={22} />
+                      </div>
+                      <h4 className="text-sm font-bold text-slate-800 dark:text-ink">No Missed Alerts</h4>
+                      <p className="text-xs text-slate-500 dark:text-ink-muted mt-1 max-w-xs">
+                        All scheduled rituals were delivered on time. No alerts were silenced during quiet hours.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {missedNotifications.map((notif) => (
+                        <NotificationItem
+                          key={notif.id}
+                          notif={notif}
+                          getTypeIcon={getTypeIcon}
+                          onMarkRead={() => markAsReadMutation.mutate(notif.id)}
+                          onDelete={() => deleteMutation.mutate(notif.id)}
+                          onClose={onClose}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
               ) : isLoading ? (
                 <div className="py-12 text-center text-xs text-slate-400">Loading notifications...</div>
               ) : notifications.length === 0 ? (
@@ -300,7 +444,7 @@ export function NotificationCenterModal({ isOpen, onClose }) {
                   </p>
                 </div>
               ) : (
-                /* Notifications List */
+                /* Tab 1: Recent Notifications List */
                 <div className="space-y-4">
                   {todayNotifications.length > 0 && (
                     <div className="space-y-2">

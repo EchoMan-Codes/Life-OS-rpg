@@ -72,3 +72,11 @@ export function useUpdateNotificationPreferences() {
     },
   });
 }
+
+export function useScheduledNotifications() {
+  return useQuery({
+    queryKey: ['notifications', 'scheduled'],
+    queryFn: () => notificationApi.getScheduled(),
+    staleTime: 60 * 1000,
+  });
+}

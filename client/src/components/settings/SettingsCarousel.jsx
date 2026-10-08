@@ -29,6 +29,11 @@ import {
   Check,
   Camera,
   Coins,
+  BellRing,
+  BellOff,
+  Smartphone,
+  Send,
+  Clock,
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -38,6 +43,12 @@ import { useAuth } from '@/features/auth/hooks';
 import { useTheme } from '@/lib/theme';
 import { useToast } from '@/components/ui/useToast';
 import { playSound } from '@/lib/sound';
+import { notificationService } from '@/lib/notifications';
+import {
+  useScheduledNotifications,
+  useNotificationPreferences,
+  useUpdateNotificationPreferences,
+} from '@/features/notifications/hooks';
 
 import { SETTINGS_SECTIONS, RESET_TARGETS } from './settingsConstants';
 
@@ -116,6 +127,80 @@ export function SettingsCarousel({
       console.warn('Failed to persist AI preferences:', e);
       showToast({ title: 'Sync Error', message: 'Could not save AI preferences.', type: 'error' });
     }
+  };
+
+  // Notification Hub State
+  const { data: notifPreferences = {} } = useNotificationPreferences();
+  const updateNotifPrefsMutation = useUpdateNotificationPreferences();
+  const { data: scheduledOccurrences = [], isLoading: isLoadingScheduled } = useScheduledNotifications();
+
+  const [browserPermission, setBrowserPermission] = useState(() => {
+    if (typeof window === 'undefined' || !('Notification' in window)) return 'unsupported';
+    return Notification.permission;
+  });
+  const [pushState, setPushState] = useState('idle');
+  const [isSendingTest, setIsSendingTest] = useState(false);
+
+  const isIos = notificationService.isIosDevice();
+  const isIosStandalone = notificationService.isIosStandalone();
+
+  const handleEnablePush = async () => {
+    try {
+      setPushState('requesting');
+      const granted = await notificationService.requestPermission();
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        setBrowserPermission(Notification.permission);
+      }
+      if (granted) {
+        setPushState('granted');
+        showToast({
+          title: 'Push Notifications Enabled',
+          message: 'Authoritative background reminders and alerts are active.',
+          type: 'success',
+        });
+      } else {
+        setPushState('denied');
+        showToast({
+          title: 'Permission Denied',
+          message: 'Notification permission was denied. See instructions below to re-enable in browser settings.',
+          type: 'error',
+        });
+      }
+    } catch (err) {
+      setPushState('error');
+      showToast({
+        title: 'Push Setup Error',
+        message: err.message || 'Could not register push notifications.',
+        type: 'error',
+      });
+    }
+  };
+
+  const handleSendTestNotification = async () => {
+    try {
+      setIsSendingTest(true);
+      await notificationService.sendTestNotification();
+      showToast({
+        title: 'Test Notification Delivered',
+        message: 'Real notification dispatched. Check your device banner or notification tray.',
+        type: 'success',
+      });
+    } catch (err) {
+      showToast({
+        title: 'Delivery Failed',
+        message: err?.response?.data?.error?.message || err.message || 'Could not dispatch test notification.',
+        type: 'error',
+      });
+    } finally {
+      setIsSendingTest(false);
+    }
+  };
+
+  const handleUpdateNotifPref = (key, val) => {
+    updateNotifPrefsMutation.mutate({
+      ...notifPreferences,
+      [key]: val,
+    });
   };
 
   // Granular Reset Dialog States
@@ -494,35 +579,317 @@ export function SettingsCarousel({
 
           {/* SECTION B: Notifications & Reminders */}
           {selectedSectionId === 'notifications' && (
-            <Card variant="elevated" className="p-4 sm:p-6 space-y-4">
+            <Card variant="elevated" className="p-4 sm:p-6 space-y-5">
               <div className="flex items-center justify-between pb-3 border-b border-slate-200/80 dark:border-white/10">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 flex items-center justify-center">
-                    <Bell size={18} />
+                    <BellRing size={18} />
                   </div>
                   <div>
                     <h3 className="text-sm font-bold font-display text-slate-900 dark:text-ink">
                       Alerts & Reminders Hub
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-ink-muted">
-                      Manage scheduled notifications for daily rituals, streak nudges & bedtime.
+                      Authoritative scheduling, Web Push delivery, and quiet hours.
                     </p>
                   </div>
                 </div>
+
+                {/* Browser Permission Badge */}
+                <div className="flex items-center gap-2">
+                  <span
+                    className={clsx(
+                      'px-2.5 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider',
+                      browserPermission === 'granted'
+                        ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                        : browserPermission === 'denied'
+                        ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'
+                        : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                    )}
+                  >
+                    {browserPermission === 'granted'
+                      ? 'Push Granted'
+                      : browserPermission === 'denied'
+                      ? 'Push Blocked'
+                      : 'Permission Default'}
+                  </span>
+                </div>
               </div>
 
-              <div className="space-y-3 pt-1">
+              {/* Master Toggle & Web Push Permissions */}
+              <div className="space-y-3">
+                {/* Master Switch */}
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                      <Bell size={16} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-900 dark:text-ink">System Notifications Active</p>
+                      <p className="text-[10px] text-slate-500 dark:text-ink-muted">
+                        Master switch for all scheduled ritual reminders and streak nudges
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleUpdateNotifPref('enabled', notifPreferences.enabled === false)}
+                    className={clsx(
+                      'w-10 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer',
+                      notifPreferences.enabled !== false ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-white/15'
+                    )}
+                  >
+                    <div
+                      className={clsx(
+                        'w-5 h-5 rounded-full bg-white shadow-xs transition-transform',
+                        notifPreferences.enabled !== false ? 'translate-x-4' : 'translate-x-0'
+                      )}
+                    />
+                  </button>
+                </div>
+
+                {/* Push Permission Card */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-slate-900 dark:text-ink">Web Push & Service Worker</p>
+                      <p className="text-[10px] text-slate-500 dark:text-ink-muted">
+                        Receive alerts even when your browser tab is closed or in the background
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {browserPermission !== 'granted' && (
+                        <button
+                          type="button"
+                          onClick={handleEnablePush}
+                          disabled={pushState === 'requesting'}
+                          className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-all shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                        >
+                          {pushState === 'requesting' ? (
+                            <>
+                              <Loader2 size={12} className="animate-spin" />
+                              <span>Requesting...</span>
+                            </>
+                          ) : (
+                            <>
+                              <BellRing size={12} />
+                              <span>Enable Push</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={handleSendTestNotification}
+                        disabled={isSendingTest}
+                        className="px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/15 text-slate-800 dark:text-ink font-semibold text-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                      >
+                        {isSendingTest ? (
+                          <Loader2 size={12} className="animate-spin" />
+                        ) : (
+                          <Send size={12} />
+                        )}
+                        <span>Send Test</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Denied Help Callout */}
+                  {browserPermission === 'denied' && (
+                    <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs space-y-1">
+                      <div className="flex items-center gap-1.5 text-rose-500 font-bold">
+                        <AlertTriangle size={14} />
+                        <span>Push Notifications Blocked by Browser</span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 dark:text-ink-muted leading-relaxed">
+                        To receive alerts, unblock notifications in your browser settings:
+                      </p>
+                      <ul className="text-[10px] text-slate-500 dark:text-ink-muted list-disc list-inside space-y-0.5">
+                        <li><strong>Chrome / Edge:</strong> Click the tune/padlock icon next to the URL &rarr; Site settings &rarr; Notifications &rarr; set to <em>Allow</em>.</li>
+                        <li><strong>Safari:</strong> Safari Preferences &rarr; Websites &rarr; Notifications &rarr; set Jeevan to <em>Allow</em>.</li>
+                      </ul>
+                    </div>
+                  )}
+                </div>
+
+                {/* iOS PWA Guide Card (conditional on iOS device) */}
+                {isIos && (
+                  <div className="p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 space-y-2">
+                    <div className="flex items-center gap-2 text-indigo-400 font-bold text-xs">
+                      <Smartphone size={15} />
+                      <span>iOS Apple Web Push Setup</span>
+                    </div>
+                    {isIosStandalone ? (
+                      <p className="text-[11px] text-emerald-400 flex items-center gap-1.5">
+                        <CheckCircle2 size={13} />
+                        <span>Running as an installed Home Screen PWA. Background push alerts supported!</span>
+                      </p>
+                    ) : (
+                      <div className="space-y-1.5 text-[11px] text-slate-600 dark:text-ink-muted">
+                        <p className="leading-relaxed">
+                          Apple requires Jeevan to be installed as a PWA on your home screen to deliver notifications:
+                        </p>
+                        <ol className="list-decimal list-inside space-y-0.5 text-[10px] font-medium text-slate-700 dark:text-ink">
+                          <li>Tap the <strong>Share</strong> button (square with arrow) at the bottom of Safari.</li>
+                          <li>Select <strong>Add to Home Screen</strong> from the menu.</li>
+                          <li>Open Jeevan from your home screen.</li>
+                          <li>Return to this Hub to enable alerts.</li>
+                        </ol>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Quiet Hours Configuration */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-slate-900 dark:text-ink">Quiet Hours Window</p>
+                      <p className="text-[10px] text-slate-500 dark:text-ink-muted">
+                        Non-critical notifications are held and silenced during sleep hours
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateNotifPref('quietHoursEnabled', notifPreferences.quietHoursEnabled === false)}
+                      className={clsx(
+                        'w-10 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer',
+                        notifPreferences.quietHoursEnabled !== false ? 'bg-indigo-500' : 'bg-slate-300 dark:bg-white/15'
+                      )}
+                    >
+                      <div
+                        className={clsx(
+                          'w-5 h-5 rounded-full bg-white shadow-xs transition-transform',
+                          notifPreferences.quietHoursEnabled !== false ? 'translate-x-4' : 'translate-x-0'
+                        )}
+                      />
+                    </button>
+                  </div>
+
+                  {notifPreferences.quietHoursEnabled !== false && (
+                    <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-200/50 dark:border-white/5">
+                      <div>
+                        <label className="block text-[10px] font-semibold text-slate-500 dark:text-ink-muted mb-1">
+                          Starts (Bedtime)
+                        </label>
+                        <input
+                          type="time"
+                          value={notifPreferences.quietHoursStart || '22:00'}
+                          onChange={(e) => handleUpdateNotifPref('quietHoursStart', e.target.value)}
+                          className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/10 text-xs text-slate-900 dark:text-ink font-mono focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-semibold text-slate-500 dark:text-ink-muted mb-1">
+                          Ends (Morning)
+                        </label>
+                        <input
+                          type="time"
+                          value={notifPreferences.quietHoursEnd || '07:00'}
+                          onChange={(e) => handleUpdateNotifPref('quietHoursEnd', e.target.value)}
+                          className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/10 text-xs text-slate-900 dark:text-ink font-mono focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Default Reminder Offset */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-2">
+                  <div>
+                    <p className="text-xs font-bold text-slate-900 dark:text-ink">Default Reminder Offset</p>
+                    <p className="text-[10px] text-slate-500 dark:text-ink-muted">
+                      Default pre-task alert time for new daily rituals
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                    {[
+                      { value: 0, label: 'At time' },
+                      { value: 5, label: '5m prior' },
+                      { value: 10, label: '10m prior' },
+                      { value: 15, label: '15m prior' },
+                      { value: 30, label: '30m prior' },
+                      { value: 60, label: '1h prior' },
+                    ].map((opt) => {
+                      const isSelected = (notifPreferences.defaultOffsetMinutes ?? 10) === opt.value;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => handleUpdateNotifPref('defaultOffsetMinutes', opt.value)}
+                          className={clsx(
+                            'py-1.5 px-1.5 rounded-xl text-[11px] font-medium border text-center transition-all cursor-pointer',
+                            isSelected
+                              ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/60 font-bold shadow-xs'
+                              : 'bg-white dark:bg-white/[0.04] text-slate-500 dark:text-ink-muted border-slate-200 dark:border-white/10'
+                          )}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Upcoming Authoritative Reminders Preview */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-ink">
+                      <Clock size={14} className="text-indigo-400" />
+                      <span>Upcoming Authoritative Occurrences</span>
+                    </div>
+                    <span className="text-[10px] font-mono text-slate-400">
+                      {scheduledOccurrences.length} scheduled
+                    </span>
+                  </div>
+
+                  {isLoadingScheduled ? (
+                    <div className="py-4 text-center text-xs text-slate-400">Loading schedule...</div>
+                  ) : scheduledOccurrences.length > 0 ? (
+                    <div className="space-y-1.5">
+                      {scheduledOccurrences.slice(0, 3).map((occ, idx) => (
+                        <div
+                          key={occ.occurrenceKey || idx}
+                          className="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/5 text-xs"
+                        >
+                          <div className="flex items-center gap-2 truncate">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                            <span className="font-semibold text-slate-800 dark:text-ink truncate">
+                              {occ.title}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-[11px] text-slate-500 dark:text-ink-muted font-mono">
+                              {occ.formattedDisplay}
+                            </span>
+                            <span className="px-1.5 py-0.5 rounded-md text-[9px] font-mono bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                              {occ.offsetMinutes === 0 ? 'at time' : `-${occ.offsetMinutes}m`}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-slate-400 py-2">
+                      No active ritual reminders scheduled. Enable reminders on your Dailies or Quests to see them here.
+                    </p>
+                  )}
+                </div>
+
+                {/* Launch Notification Center Button */}
                 <button
                   type="button"
                   onClick={onOpenNotifications}
-                  className="w-full flex items-center justify-between p-4 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/15 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 font-bold text-xs transition-all shadow-xs cursor-pointer active:scale-98"
+                  className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/15 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 font-bold text-xs transition-all shadow-xs cursor-pointer active:scale-98"
                 >
                   <div className="flex items-center gap-3">
                     <Bell size={18} className="text-emerald-500" />
-                    <div>
-                      <div className="text-left font-bold text-xs">Open Notification Center & Rules</div>
+                    <div className="text-left">
+                      <div className="font-bold text-xs">Open Notification Center & History</div>
                       <div className="text-[10px] font-normal text-slate-500 dark:text-ink-muted">
-                        Configure schedules, quiet hours, sound alerts & priority levels
+                        View recent alerts, missed notifications, and mark all as read
                       </div>
                     </div>
                   </div>

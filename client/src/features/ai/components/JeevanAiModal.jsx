@@ -399,10 +399,10 @@ export function JeevanAiModal({ isOpen, onClose, initialPrompt = '' }) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ type: 'spring', stiffness: 360, damping: 28 }}
-          className="relative w-full max-w-2xl h-[calc(92dvh-var(--keyboard-inset-bottom,0px))] sm:h-[86vh] flex flex-col rounded-3xl bg-slate-950/60 border border-white/20 shadow-[0_25px_80px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-3xl overflow-hidden z-10 transition-[height] duration-200"
+          className="relative w-full max-w-2xl h-[calc(92dvh-var(--keyboard-inset-bottom,0px))] sm:h-[86vh] flex flex-col rounded-3xl bg-slate-950/45 border border-white/20 shadow-[0_25px_80px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.25)] backdrop-blur-3xl overflow-hidden z-10 transition-[height] duration-200"
         >
           {/* Header */}
-          <div className="relative z-10 flex items-center justify-between p-3.5 sm:p-4 border-b border-white/10 bg-white/[0.04] backdrop-blur-xl">
+          <div className="relative z-10 flex items-center justify-between p-3.5 sm:p-4 border-b border-white/10 bg-white/[0.03] backdrop-blur-2xl">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-slate-950 font-bold shadow-[0_0_20px_rgba(245,158,11,0.4)] shrink-0">
                 <Sparkles size={20} className="stroke-[2.2]" />
@@ -592,7 +592,7 @@ export function JeevanAiModal({ isOpen, onClose, initialPrompt = '' }) {
               e.preventDefault();
               handleSend();
             }}
-            className="relative z-10 p-3 sm:p-4 border-t border-white/10 bg-slate-950/60 backdrop-blur-2xl flex items-center gap-2.5"
+            className="relative z-10 p-3 sm:p-4 border-t border-white/10 bg-slate-950/45 backdrop-blur-2xl flex items-center gap-2.5"
           >
             <div className="flex-1 flex items-center rounded-2xl bg-white/[0.08] border border-white/20 focus-within:border-amber-400/70 focus-within:bg-white/[0.12] transition-all px-3.5 py-1.5">
               <textarea

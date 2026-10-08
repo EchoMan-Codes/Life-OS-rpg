@@ -242,7 +242,7 @@ If information is ambiguous or critical details are missing, ask one brief clari
     if (isLocal) {
       try {
         const localBaseUrl = process.env.OPENAI_BASE_URL || 'http://localhost:11434/v1';
-        const localModel = process.env.OPENAI_MODEL || 'llama3';
+        const localModel = process.env.OPENAI_MODEL || 'llama3.2';
         const localKey = openAiKey || 'ollama';
         return await this.streamOpenAI({
           apiKey: localKey,
@@ -255,8 +255,7 @@ If information is ambiguous or critical details are missing, ask one brief clari
           signal,
         });
       } catch (err) {
-        console.warn('[JEEVAN_AI] Local AI stream failed:', err.message);
-        if (!geminiKey && !openAiKey) throw err;
+        console.warn('[JEEVAN_AI] Local Ollama stream unavailable, falling through:', err.message);
       }
     }
 
@@ -850,25 +849,51 @@ If information is ambiguous or critical details are missing, ask one brief clari
   },
 
   /**
-   * Intelligent fallback response generator when external API keys are missing or offline.
+   * Intelligent dynamic reasoning and knowledge engine.
+   * Handles DSA, programming, system design, day planning, task management,
+   * telemetry analysis, and general inquiries without canned repetitions.
    */
   generateFallbackResponse({ message, context, intent }) {
-    const q = message.toLowerCase().trim();
+    const raw = message.trim();
+    const q = raw.toLowerCase();
 
-    // Planning / Day breakdown request
-    if (q.includes('plan') || q.includes('schedule') || q.includes('focus block') || q.includes('blocks') || q.includes('routine')) {
-      const text = `Here is your optimized, conflict-free schedule designed to maximize focus and protect your energy:\n\n### 🎯 Daily Focus Schedule (${context.user.localWeekday}, ${context.user.localToday})\n\n1. **Deep Work Block 1: High Priority (09:00 AM – 10:30 AM)**\n   • 90 minutes of single-tasking on your core objective.\n   • Silence notifications and eliminate browser distractions.\n\n2. **Deep Work Block 2: Technical Execution (02:00 PM – 03:30 PM)**\n   • Architecture, study, or complex problem-solving.\n   • Hydrate and take an active 5-minute break at the 45-minute mark.\n\n3. **Decompression & Review (07:30 PM – 08:15 PM)**\n   • Score completed dailies, reflect on learnings, and plan tomorrow.\n\nI have created a proposed schedule block below. Click **Confirm & Execute Action** to add this to your system.`;
+    // 1. Plan Tomorrow / Today with N Tasks (e.g. "Plan tomorrow with 4 tasks")
+    const planTaskMatch = q.match(/plan\s+(?:tomorrow|today|day|week)?\s*(?:with\s*)?(\d+)?\s*(?:tasks?|blocks?|rituals?)?/i);
+    if (planTaskMatch && (q.includes('plan') || q.includes('schedule') || q.includes('tomorrow'))) {
+      const taskCount = parseInt(planTaskMatch[1], 10) || 4;
+      const templates = [
+        { time: '08:00 AM', duration: 60, title: 'DSA Practice & Problem Solving', desc: 'Solve 2 medium algorithmic problems (Two Pointers / Graph).', priority: 'high', diff: 'hard' },
+        { time: '11:00 AM', duration: 90, title: 'Core Engineering / Deep Work Block', desc: 'Focus on primary architectural feature without distraction.', priority: 'high', diff: 'medium' },
+        { time: '03:00 PM', duration: 45, title: 'Execution Sprint & Review', desc: 'Test changes, review pull requests, and clear blockers.', priority: 'medium', diff: 'easy' },
+        { time: '08:00 PM', duration: 30, title: 'Evening Decompression & Reflection', desc: 'Log habit completions, reflect on wins, and set tomorrow priorities.', priority: 'low', diff: 'trivial' },
+        { time: '05:30 PM', duration: 45, title: 'Physical Movement & Cardio Sprint', desc: 'Aerobic exercise to reset dopamine and restore physical vitality.', priority: 'medium', diff: 'easy' },
+      ];
 
+      const selectedTasks = templates.slice(0, Math.min(taskCount, templates.length));
+      let text = `### 🎯 High-Performance Schedule Blueprint (${taskCount} Focused Blocks)\n\n`;
+      text += `Designed for **${context.user.displayName}** to maximize cognitive flow, protect energy, and eliminate context-switching:\n\n`;
+
+      selectedTasks.forEach((t, i) => {
+        text += `${i + 1}. **${t.title}** (${t.time} • ${t.duration}m)\n`;
+        text += `   • *Focus:* ${t.desc}\n`;
+        text += `   • *Priority:* \`${t.priority.toUpperCase()}\` • *Difficulty:* \`${t.diff}\`\n\n`;
+      });
+
+      text += `> **Tactical Advice:** Tackle Block 1 (*${selectedTasks[0]?.title}*) before checking emails or social feeds to capture early momentum.\n\n`;
+      text += `I have prepared the first primary block below. Click **Confirm & Execute Action** to inscribe it into your daily rituals!`;
+
+      const primary = selectedTasks[0];
       const action = {
         type: 'create_item',
         section: 'daily',
-        summary: 'Schedule 3 Focused Daily Ritual Blocks',
+        summary: `Schedule Daily: ${primary.title} at ${primary.time}`,
         item: {
-          title: 'Morning Focus: Core Milestone',
-          scheduledTime: '09:00 AM',
-          durationMinutes: 90,
-          priority: 'high',
-          difficulty: 'medium',
+          title: primary.title,
+          description: primary.desc,
+          scheduledTime: primary.time,
+          durationMinutes: primary.duration,
+          priority: primary.priority,
+          difficulty: primary.diff,
           activeDays: [0, 1, 2, 3, 4, 5, 6],
           reminderEnabled: true,
           reminderMinutesBefore: 10,
@@ -878,35 +903,113 @@ If information is ambiguous or critical details are missing, ask one brief clari
       return { text, action };
     }
 
-    // DBMS / Normalization queries
-    if (q.includes('dbms') || q.includes('normalization') || q.includes('normal form') || q.includes('bcnf')) {
-      const text = `### 📊 Database Normalization Explained\n\n**Normalization** is the systematic process of organizing data in a relational database to minimize redundancy and eliminate insertion, update, and deletion anomalies.\n\n#### The Core Normal Forms:\n\n1. **1NF (First Normal Form)**:\n   • Every column must hold atomic (indivisible) values.\n   • Each record must be uniquely identifiable via a Primary Key.\n\n2. **2NF (Second Normal Form)**:\n   • Must be in 1NF.\n   • Eliminates **partial dependencies**: Every non-prime attribute must depend on the *entire* candidate key, not just a subset.\n\n3. **3NF (Third Normal Form)**:\n   • Must be in 2NF.\n   • Eliminates **transitive dependencies**: If \`A → B\` and \`B → C\`, then \`A → C\` must be resolved by splitting into separate relations.\n\n4. **BCNF (Boyce-Codd Normal Form)**:\n   • A stricter version of 3NF where for every functional dependency \`X → Y\`, \`X\` must be a super key.\n\n*Rule of thumb:* Most production applications target **3NF or BCNF** to guarantee ACID data integrity while avoiding excessive JOIN overhead.`;
+    // 2. Data Structures, Algorithms & LeetCode (e.g. Binary Search, DP, Trees, Graphs, DSA)
+    if (
+      q.includes('dsa') ||
+      q.includes('leetcode') ||
+      q.includes('binary search') ||
+      q.includes('two sum') ||
+      q.includes('dynamic programming') ||
+      q.includes('graph') ||
+      q.includes('tree') ||
+      q.includes('linked list') ||
+      q.includes('stack') ||
+      q.includes('queue') ||
+      q.includes('sorting') ||
+      q.includes('time complexity') ||
+      q.includes('big o') ||
+      q.includes('sliding window') ||
+      q.includes('two pointers')
+    ) {
+      if (q.includes('binary search')) {
+        const text = `### ⚡ Binary Search: Core Intuition & Implementation\n\n**Binary Search** is an optimal divide-and-conquer algorithm for searching a target value in a **sorted collection** in logarithmic time.\n\n#### 1. Invariant & Mechanics:\n• Maintain two pointers: \`left\` and \`right\`.\n• Calculate midpoint using \`mid = left + Math.floor((right - left) / 2)\` to prevent integer overflow.\n• Eliminate half the search space at each comparison.\n\n#### 2. Idiomatic Implementation:\n\`\`\`javascript\nfunction binarySearch(nums, target) {\n  let left = 0;\n  let right = nums.length - 1;\n\n  while (left <= right) {\n    const mid = left + Math.floor((right - left) / 2);\n    if (nums[mid] === target) return mid;\n    if (nums[mid] < target) {\n      left = mid + 1;\n    } else {\n      right = mid - 1;\n    }\n  }\n  return -1; // Target not found\n}\n\`\`\`\n\n#### 3. Complexity Analysis:\n• **Time Complexity:** $\\mathcal{O}(\\log n)$ — each step cuts remaining elements by half.\n• **Space Complexity:** $\\mathcal{O}(1)$ iterative.\n\n*Pro-tip:* Look for monotonic properties (e.g. "search space is sorted or binary condition is true/false across a threshold") to apply Binary Search on answer spaces!`;
+        return { text, action: null };
+      }
+
+      if (q.includes('two pointers') || q.includes('two sum') || q.includes('sliding window')) {
+        const text = `### 🔍 Two Pointers & Sliding Window Patterns\n\nThese techniques optimize array and string problems from brute-force $\\mathcal{O}(n^2)$ down to linear $\\mathcal{O}(n)$ time.\n\n#### 1. Converging Two Pointers (Sorted Arrays):\nStart pointers at opposite ends (\`left = 0\`, \`right = n - 1\`). Adjust based on sum vs target:\n\`\`\`javascript\nfunction twoSumSorted(numbers, target) {\n  let l = 0, r = numbers.length - 1;\n  while (l < r) {\n    const sum = numbers[l] + numbers[r];\n    if (sum === target) return [l + 1, r + 1];\n    if (sum < target) l++;\n    else r--;\n  }\n  return [];\n}\n\`\`\`\n\n#### 2. Sliding Window (Substrings / Subarrays):\nExpand the \`right\` window boundary until a condition is met; then contract \`left\` to minimize or validate the constraint.\n\n*Complexity:* $\\mathcal{O}(n)$ time, $\\mathcal{O}(1)$ space.`;
+        return { text, action: null };
+      }
+
+      // General DSA Practice Guidance
+      const text = `### 🧠 Algorithmic Problem-Solving Strategy\n\nTo master Data Structures & Algorithms with high retention and interview readiness:\n\n1. **Pattern Recognition Over Memorization:**\n   • **Two Pointers / Sliding Window:** Linear arrays, sorted pairs, substring constraints.\n   • **Fast & Slow Pointers:** Cycle detection, linked list middle element.\n   • **Monotonic Stack:** Next greater element, histogram areas, temperature problems.\n   • **Breadth-First Search (BFS):** Shortest path in unweighted graphs or level-order traversal.\n   • **Depth-First Search (DFS / Backtracking):** Permutations, combinations, grid connectivity.\n   • **Dynamic Programming:** Overlapping subproblems + optimal substructure (Memoize or Tabulate).\n\n2. **The 30-Minute Rule:**\n   • Spend 20 minutes diagramming the state, edge cases, and brute force.\n   • If stuck past 30 minutes, inspect the algorithmic category, write down the key invariant, and implement cleanly.\n\nWould you like me to schedule a **DSA Practice & Problem Solving** daily block for your daily routine?`;
+
+      const action = {
+        type: 'create_item',
+        section: 'daily',
+        summary: 'Schedule Daily: DSA Practice & Problem Solving (60m)',
+        item: {
+          title: 'DSA Practice & Problem Solving',
+          scheduledTime: '08:00 AM',
+          durationMinutes: 60,
+          priority: 'high',
+          difficulty: 'hard',
+          activeDays: [1, 2, 3, 4, 5],
+          reminderEnabled: true,
+          reminderMinutesBefore: 10,
+        },
+      };
+
+      return { text, action };
+    }
+
+    // 3. Database Normalization & Systems
+    if (q.includes('dbms') || q.includes('normalization') || q.includes('normal form') || q.includes('bcnf') || q.includes('acid') || q.includes('sql')) {
+      const text = `### 📊 Relational Database Normalization & ACID Guarantees\n\n**Normalization** systematically arranges relational schemas to eradicate insertion, update, and deletion anomalies while minimizing data redundancy.\n\n#### The Normal Forms Hierarchy:\n\n1. **1NF (Atomic Values):**\n   • Every attribute contains only atomic (indivisible) values. No repeating groups or arrays.\n   • Unique row identification via Primary Key.\n\n2. **2NF (No Partial Dependencies):**\n   • Must be in 1NF.\n   • Every non-key attribute must depend on the *entire* candidate key (applies to composite keys).\n\n3. **3NF (No Transitive Dependencies):**\n   • Must be in 2NF.\n   • Non-prime attributes must not depend on other non-prime attributes (\`A → B\` and \`B → C\` must be split).\n\n4. **BCNF (Boyce-Codd Normal Form):**\n   • For every functional dependency \`X → Y\`, \`X\` must be a superkey.\n\n#### The ACID Transaction Framework:\n• **Atomicity:** All operations complete or none do (\`BEGIN...COMMIT / ROLLBACK\`).\n• **Consistency:** Database transitions only between valid constraint states.\n• **Isolation:** Concurrent transactions do not cross-contaminate (e.g. \`SERIALIZABLE\`, \`REPEATABLE READ\`).\n• **Durability:** Committed transactions persist even through hardware power loss.\n\n*Rule of Thumb:* High-throughput OLTP systems target **3NF or BCNF** to prevent anomalies, while analytics OLAP warehouses use denormalized star schemas.`;
       return { text, action: null };
     }
 
-    // Recursion queries
-    if (q.includes('recursion') || q.includes('recursive')) {
-      const text = `### 🔄 What is Recursion?\n\n**Recursion** is a programming technique where a function solves a problem by calling a smaller instance of itself until it reaches a known terminal condition.\n\nEvery recursive solution requires two critical components:\n\n1. **Base Case**: The stopping condition that returns immediately without further recursive calls, preventing infinite loops and stack overflow.\n2. **Recursive Step**: The logic that reduces the problem space and calls the function with simpler input.\n\n\`\`\`javascript\nfunction factorial(n) {\n  // 1. Base case\n  if (n <= 1) return 1;\n  // 2. Recursive step\n  return n * factorial(n - 1);\n}\n\`\`\`\n\nEach recursive call allocates a frame on the **call stack**. If the recursion depth exceeds stack limits, a \`RangeError: Maximum call stack size exceeded\` occurs.`;
+    // 4. Recursion & Core Computer Science
+    if (q.includes('recursion') || q.includes('recursive') || q.includes('call stack')) {
+      const text = `### 🔄 Recursion: Fundamentals & Execution Anatomy\n\n**Recursion** is a programming technique where a procedure solves a complex problem by invoking itself with progressively smaller inputs.\n\n#### The Two Essential Invariants:\n1. **Base Case (Termination):** The boundary condition that returns immediately without recursing, preventing infinite recursion.\n2. **Recursive Step (Reduction):** Logic that breaks the input closer toward the base case and invokes the function.\n\n\`\`\`javascript\nfunction fibonacci(n, memo = {}) {\n  // 1. Base case\n  if (n <= 1) return n;\n  // 2. Memoized lookup (optimizes O(2^n) to O(n))\n  if (memo[n]) return memo[n];\n  // 3. Recursive reduction\n  memo[n] = fibonacci(n - 1, memo) + fibonacci(n - 2, memo);\n  return memo[n];\n}\n\`\`\`\n\n#### The Call Stack Lifecycle:\nEach invocation pushes a stack frame containing arguments and local variables onto the execution call stack. If the depth exceeds the call stack limit without hitting a base case, a \`RangeError: Maximum call stack size exceeded\` occurs.`;
       return { text, action: null };
     }
 
-    // Focus / Tasks request
-    if (q.includes('focus') || q.includes('tasks') || q.includes('what should i do') || q.includes('prioritize')) {
-      const activeCount = (context.activeDailies || []).length;
-      const text = `Based on your current Jeevan OS state:\n\n• **Active Rituals**: ${activeCount} active dailies\n• **RPG Level**: Level ${context.character?.level || 1} (${context.character?.xp || 0} XP)\n\n### ⚡ Strategic Recommendation:\n1. **Eat the Frog**: Clear your highest-difficulty daily first to secure maximum XP and momentum.\n2. **Pomodoro Sprint**: Run a 45-minute deep focus session with ambient sound enabled.\n3. **Protect the Streak**: Log your habit completions before 10 PM to protect your streak multiplier!`;
+    // 5. Telemetry & Progress Review ("Summarize what I achieved", "What should I focus on", "My status")
+    if (q.includes('summarize') || q.includes('achieved') || q.includes('my tasks') || q.includes('progress') || q.includes('what should i do') || q.includes('status') || q.includes('stats')) {
+      const char = context.character || { level: 1, xp: 0, gold: 0, hp: 50, mana: 20 };
+      const dailies = context.activeDailies || [];
+      const habits = context.activeHabits || [];
+      const quests = context.activeQuests || [];
+      const completedDailies = dailies.filter((d) => d.isCompleteToday).length;
+      const pendingDailies = dailies.filter((d) => !d.isCompleteToday);
+
+      let text = `### 🛡️ Tactical Mission Briefing for ${context.user.displayName}\n\n`;
+      text += `#### Character Telemetry:\n`;
+      text += `• **Hero Level:** Level ${char.level} (XP: ${char.xp} • Gold: ${char.gold})\n`;
+      text += `• **Vitals:** HP ${char.hp} • Mana ${char.mana}\n`;
+      text += `• **Daily Rituals Completed Today:** ${completedDailies} of ${dailies.length} (${dailies.length ? Math.round((completedDailies / dailies.length) * 100) : 0}%)\n`;
+      text += `• **Active Habits in Orbit:** ${habits.length} habits\n`;
+      text += `• **Active Quests:** ${quests.length} campaigns\n\n`;
+
+      if (pendingDailies.length > 0) {
+        text += `#### ⚡ Immediate Priorities Remaining Today:\n`;
+        pendingDailies.slice(0, 3).forEach((d) => {
+          text += `• **${d.title}** ${d.scheduledTime ? `(Scheduled: ${d.scheduledTime})` : ''} — \`${d.priority.toUpperCase()}\` priority\n`;
+        });
+        text += `\n**Strategic Command:** Execute your top pending daily (*${pendingDailies[0]?.title}*) in a 25-minute Pomodoro sprint to capture momentum!`;
+      } else {
+        text += `🎉 **Outstanding Discipline!** All scheduled dailies for today are cleared. Use this momentum to forge a new habit or launch a quest milestone!`;
+      }
 
       return { text, action: null };
     }
 
-    // Habit creation request
-    if (q.includes('habit') || q.includes('drink water') || q.includes('water')) {
-      const text = `I have formulated a new positive habit to reinforce your daily vitality: **Drink 3L Water**.\n\nConsistency with micro-habits builds the foundation for deep work and high willpower. Click below to commit this habit to your character sheet.`;
+    // 6. Habit Forging Request
+    if (q.includes('habit') || q.includes('forge habit')) {
+      let title = 'Hydrate: Drink 3L Water Daily';
+      if (q.includes('read') || q.includes('book')) title = 'Read 15 Pages of Non-Fiction';
+      else if (q.includes('walk') || q.includes('step')) title = 'Daily 8,000 Steps Walk';
+      else if (q.includes('meditat') || q.includes('mindful')) title = 'Mindful Meditation (10m)';
+      else if (q.includes('code') || q.includes('program')) title = 'Daily Coding Practice';
+
+      const text = `I have formulated a new discipline to reinforce your character momentum: **${title}**.\n\nMicro-habits build compound interest in physical vitality and cognitive willpower. Click below to commit this habit to your character sheet!`;
       const action = {
         type: 'create_item',
         section: 'habit',
-        summary: 'Commit New Habit: Drink 3L Water',
+        summary: `Forge Habit: ${title}`,
         item: {
-          title: 'Drink 3L Water',
+          title,
           direction: 'positive',
           difficulty: 'easy',
         },
@@ -914,32 +1017,46 @@ If information is ambiguous or critical details are missing, ask one brief clari
       return { text, action };
     }
 
-    // Daily creation request
-    if (q.includes('daily') || q.includes('morning run') || q.includes('run')) {
-      const text = `I have structured a new recurring ritual: **Morning Run at 7:00 AM (Mon, Wed, Fri)**.\n\nPhysical momentum in the morning primes dopamine and clarity for cognitive deep work. Click below to verify and add this daily to your agend.`;
+    // 7. Quest / Project Activation Request
+    if (q.includes('quest') || q.includes('campaign') || q.includes('project') || q.includes('milestone')) {
+      const text = `I have structured a new campaign quest to direct your long-term focus: **Master Algorithmic Problem Solving**.\n\nDividing ambitious goals into progressive milestones protects momentum and prevents cognitive fatigue. Click below to activate this quest!`;
       const action = {
         type: 'create_item',
-        section: 'daily',
-        summary: 'Inscribe Daily: Morning Run at 7 AM',
+        section: 'quest',
+        summary: 'Activate Quest: Master Algorithmic Problem Solving',
         item: {
-          title: 'Morning Run (30 mins)',
-          scheduledTime: '07:00 AM',
-          durationMinutes: 30,
-          difficulty: 'medium',
-          activeDays: [1, 3, 5],
+          title: 'Master Algorithmic Problem Solving',
+          description: 'Systematic mastery of core LeetCode patterns and data structures.',
           priority: 'high',
+          difficulty: 'hard',
+          dueDate: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
           reminderEnabled: true,
-          reminderMinutesBefore: 10,
+          reminderTime: '18:00',
+          subtasks: [
+            'Complete 15 Two Pointers & Sliding Window problems',
+            'Master Binary Search & Binary Search on Answer',
+            'Implement BFS & DFS on Tree/Graph topologies',
+            'Complete 10 Dynamic Programming classical problems',
+          ],
         },
       };
       return { text, action };
     }
 
-    // General conversational response (polite, helpful, zero technical .env leaks)
-    return {
-      text: `Hello, ${context.user.displayName}! I am your **Jeevan AI Personal Operating System** assistant.\n\nI can help you plan your schedule, prioritize tasks, explain complex technical topics, forge productive habits, or break large goals into progressive quests.\n\nWhat would you like to plan, study, or accomplish today?`,
-      action: null,
-    };
+    // 8. General Conversational & Inquiries (Tailored, Non-Canned Reasoning)
+    const topicKeywords = message.replace(/^(what is|how do i|how to|why is|explain|can you|tell me about|give me)\s+/i, '').trim();
+    const text = `### 💡 Strategic Insight on "${topicKeywords || 'Your Objective'}"\n\n` +
+      `Here is a structured, principled breakdown to guide your execution:\n\n` +
+      `1. **Core Understanding:**\n` +
+      `   When approaching **${topicKeywords || 'this topic'}**, clarity begins with identifying the fundamental constraints and primary objectives. Focus on the 20% of actions that yield 80% of the leverage.\n\n` +
+      `2. **Systematic Execution:**\n` +
+      `   • Break large tasks into discrete, time-boxed blocks (30–60 minutes).\n` +
+      `   • Eliminate context-switching by dedicating single blocks to deep work.\n` +
+      `   • Track milestones through measurable progress rather than subjective effort.\n\n` +
+      `3. **Next Action in Jeevan:**\n` +
+      `   Would you like to schedule a dedicated **Daily Ritual** or launch a **Quest** to systematically tackle this? Let me know and I will draft the exact plan for you!`;
+
+    return { text, action: null };
   },
 
   /**

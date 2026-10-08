@@ -162,9 +162,9 @@ export function QuestCard({ quest, onEdit }) {
       transition={shouldReduceMotion ? { duration: 0 } : spring.snappy}
       className={clsx(
         'relative rounded-3xl p-4 sm:p-5 select-none transition-all duration-200 flex flex-col gap-3.5',
-        'bg-white dark:bg-obsidian-900/80 backdrop-blur-2xl border',
-        'border-slate-200/90 dark:border-white/10 shadow-[0_4px_24px_rgba(0,0,0,0.03)] hover:shadow-md dark:shadow-[0_8px_32px_rgba(0,0,0,0.35)]',
-        isCompleted && 'opacity-70 bg-slate-50 dark:bg-obsidian-950/60'
+        'bg-white dark:bg-obsidian-900/50 backdrop-blur-2xl border',
+        'border-slate-200/90 dark:border-white/10 shadow-[0_4px_24px_rgba(0,0,0,0.03)] hover:shadow-md dark:shadow-[0_8px_32px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.1)]',
+        isCompleted && 'opacity-70 bg-slate-50 dark:bg-obsidian-950/45'
       )}
     >
       {/* ── 1. Top Badges & Context Row ── */}

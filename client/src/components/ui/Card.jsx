@@ -60,7 +60,7 @@ export const Card = forwardRef(function Card(
     // Depth Level 3: Highlighted surface with soft accent tint
     highlighted: clsx(
       'bg-white/95 border border-indigo-200 text-slate-950',
-      'dark:bg-obsidian-900/85 dark:border-indigo-500/30 dark:text-ink',
+      'dark:bg-obsidian-900/55 dark:border-indigo-500/30 dark:text-ink',
       'backdrop-blur-3xl rounded-3xl',
       'shadow-[0_12px_36px_rgba(99,102,241,0.08),inset_0_1px_1px_rgba(255,255,255,0.8)]',
       'dark:shadow-[0_12px_40px_rgba(99,102,241,0.25),inset_0_1px_1px_rgba(255,255,255,0.2)]'
@@ -68,7 +68,7 @@ export const Card = forwardRef(function Card(
     // Depth Level 3: Feature showcase card with gradient border sheen
     feature: clsx(
       'bg-white/95 border border-slate-300/80 text-slate-900',
-      'dark:bg-obsidian-900/90 dark:border-white/[0.18] dark:text-ink',
+      'dark:bg-obsidian-900/60 dark:border-white/[0.15] dark:text-ink',
       'backdrop-blur-3xl rounded-3xl',
       'shadow-[0_16px_48px_rgba(0,0,0,0.08),inset_0_1px_1px_rgba(255,255,255,0.9)]',
       'dark:shadow-[0_20px_56px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.22)]'
@@ -76,13 +76,13 @@ export const Card = forwardRef(function Card(
     // Depth Level 1: Compact list row with tight padding
     compact: clsx(
       'bg-white/80 border border-slate-200/70 text-slate-800 p-2.5 sm:p-3',
-      'dark:bg-obsidian-900/50 dark:border-white/[0.08] dark:text-ink',
+      'dark:bg-obsidian-900/40 dark:border-white/[0.08] dark:text-ink',
       'backdrop-blur-xl rounded-2xl shadow-xs'
     ),
     // Depth Level 2: Persistent HUD cockpit style
     hud: clsx(
       'bg-white/95 border border-slate-300/80 text-slate-800',
-      'dark:bg-obsidian-900/80 dark:border-white/[0.16] dark:text-ink',
+      'dark:bg-obsidian-900/55 dark:border-white/[0.14] dark:text-ink',
       'backdrop-blur-3xl rounded-3xl',
       'shadow-[0_12px_40px_rgba(0,0,0,0.06),0_2px_4px_rgba(0,0,0,0.03)]',
       'dark:shadow-[0_12px_40px_rgba(0,0,0,0.45),inset_0_1px_1px_rgba(255,255,255,0.2)]'

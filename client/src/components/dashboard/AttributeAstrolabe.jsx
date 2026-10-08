@@ -84,7 +84,7 @@ export function AttributeAstrolabe({ character = {} }) {
   const unallocatedPoints = character?.unallocatedPoints || 0;
 
   return (
-    <section className="relative rounded-3xl p-5 sm:p-6 bg-gradient-to-br from-white via-slate-50/70 to-indigo-50/30 dark:from-obsidian-900/90 dark:via-obsidian-900/60 dark:to-obsidian-800/80 border border-slate-200/80 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.15)] backdrop-blur-2xl overflow-hidden">
+    <section className="relative rounded-3xl p-5 sm:p-6 bg-white/45 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/12 shadow-[0_8px_32px_rgba(0,0,0,0.03),inset_0_1px_1px_rgba(255,255,255,0.8)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-2xl overflow-hidden">
       {/* Astrolabe Header */}
       <div className="flex items-center justify-between pb-3.5 mb-4 border-b border-slate-200/70 dark:border-white/10">
         <div className="flex items-center gap-2.5">

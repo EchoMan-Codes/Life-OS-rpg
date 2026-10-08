@@ -387,7 +387,7 @@ export function JeevanAiModal({ isOpen, onClose, initialPrompt = '' }) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-slate-950/70 backdrop-blur-2xl transition-opacity"
+          className="fixed inset-0 bg-slate-950/40 backdrop-blur-md transition-opacity"
         />
 
         {/* Ambient Diffused Glow Behind Dialog */}

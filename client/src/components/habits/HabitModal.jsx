@@ -224,7 +224,7 @@ export function HabitModal({ isOpen, onClose, habitToEdit = null }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-obsidian-950/75 backdrop-blur-md"
+            className="fixed inset-0 bg-slate-950/40 backdrop-blur-md"
           />
 
           {/* Modal Card */}
@@ -233,7 +233,7 @@ export function HabitModal({ isOpen, onClose, habitToEdit = null }) {
             initial="initial"
             animate="animate"
             exit="exit"
-            className="relative w-full max-w-lg p-6 sm:p-7 rounded-3xl bg-obsidian-900/90 border border-white/15 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.65),inset_0_1px_1px_rgba(255,255,255,0.2)] text-ink z-10 my-8"
+            className="relative w-full max-w-lg p-6 sm:p-7 rounded-3xl bg-white/85 dark:bg-[#0B0D14]/75 border border-white/70 dark:border-white/18 backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.65),inset_0_1px_1px_rgba(255,255,255,0.2)] text-ink z-10 my-8"
           >
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-white/10">

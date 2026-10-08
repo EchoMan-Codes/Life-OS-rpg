@@ -597,7 +597,7 @@ export default function ProfilePage() {
       </WavyHeroScenery>
 
       {/* ── 5. Segmented Tab Switcher (Overview, Stats, Achievements, Settings) ── */}
-      <div className="p-1 rounded-2xl bg-slate-100/90 dark:bg-obsidian-900/80 border border-slate-200/80 dark:border-white/10 shadow-inner grid grid-cols-4 gap-1 backdrop-blur-md">
+      <div className="p-1 rounded-2xl bg-white/40 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/10 shadow-inner grid grid-cols-4 gap-1 backdrop-blur-xl">
         {[
           { id: 'overview', label: 'Overview' },
           { id: 'stats', label: 'Stats' },

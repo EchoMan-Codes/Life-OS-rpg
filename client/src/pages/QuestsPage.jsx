@@ -151,7 +151,7 @@ export default function QuestsPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-20">
       {/* ── 1. Glassy Cockpit Header (Astral Violet Theme) ── */}
-      <section className="relative rounded-3xl p-5 sm:p-7 bg-gradient-to-br from-white via-violet-50/40 to-slate-50 border border-slate-200/80 shadow-[0_10px_35px_rgba(0,0,0,0.05)] dark:from-obsidian-900/85 dark:via-obsidian-900/65 dark:to-obsidian-800/75 dark:border-white/15 dark:shadow-[0_16px_48px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-2xl overflow-hidden">
+      <section className="relative rounded-3xl p-5 sm:p-7 bg-white/45 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/12 shadow-[0_10px_35px_rgba(0,0,0,0.03),inset_0_1px_1px_rgba(255,255,255,0.8)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.35),inset_0_1px_1px_rgba(255,255,255,0.18)] backdrop-blur-2xl overflow-hidden">
         {/* Ambient violet & indigo glow */}
         <div className="absolute -top-24 -left-20 w-80 h-80 bg-violet-500/15 rounded-full blur-[100px] pointer-events-none" />
         <div className="absolute top-1/2 -right-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
@@ -225,7 +225,7 @@ export default function QuestsPage() {
       {/* ── 3. iOS Frosted Segmented Controls Bar ── */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {/* Status Filter Capsule */}
-        <div className="p-1 rounded-full bg-slate-100/90 dark:bg-obsidian-900/80 border border-slate-200/90 dark:border-white/10 shadow-inner backdrop-blur-md flex items-center gap-1 self-start">
+        <div className="p-1 rounded-full bg-white/40 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/10 shadow-inner backdrop-blur-xl flex items-center gap-1 self-start">
           {STATUS_FILTERS.map((f) => {
             const isActive = statusFilter === f.id;
             return (
@@ -247,7 +247,7 @@ export default function QuestsPage() {
         </div>
 
         {/* View Mode Toggle Capsule (Board vs List) */}
-        <div className="p-1 rounded-full bg-slate-100/90 dark:bg-obsidian-900/80 border border-slate-200/90 dark:border-white/10 shadow-inner backdrop-blur-md flex items-center gap-1 self-end sm:self-auto">
+        <div className="p-1 rounded-full bg-white/40 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/10 shadow-inner backdrop-blur-xl flex items-center gap-1 self-end sm:self-auto">
           <button
             type="button"
             onClick={() => setViewMode('board')}

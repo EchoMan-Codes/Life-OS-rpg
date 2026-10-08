@@ -80,9 +80,10 @@ export function AppShell({ children }) {
       <div className="min-h-screen bg-obsidian relative overflow-x-hidden">
         {/* iOS Atmospheric Ambient Mesh Gradients (diffuses through translucent glass panels) */}
         <div aria-hidden="true" className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent blur-3xl opacity-75" />
-          <div className="absolute top-1/3 -left-40 w-[550px] h-[550px] rounded-full bg-gradient-to-tr from-indigo-600/12 via-purple-600/6 to-transparent blur-3xl opacity-65" />
-          <div className="absolute bottom-10 right-1/4 w-[480px] h-[480px] rounded-full bg-gradient-to-tl from-emerald-500/10 via-teal-500/5 to-transparent blur-3xl opacity-50" />
+          <div className="absolute -top-32 -right-32 w-[650px] h-[650px] rounded-full bg-gradient-to-br from-amber-500/22 via-orange-500/12 to-transparent blur-3xl opacity-80" />
+          <div className="absolute top-1/4 -left-32 w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-indigo-600/25 via-purple-600/15 to-transparent blur-3xl opacity-75" />
+          <div className="absolute bottom-12 right-1/4 w-[520px] h-[520px] rounded-full bg-gradient-to-tl from-emerald-500/20 via-teal-500/10 to-transparent blur-3xl opacity-60" />
+          <div className="absolute top-2/3 -right-20 w-[450px] h-[450px] rounded-full bg-gradient-to-b from-rose-500/15 via-purple-500/8 to-transparent blur-3xl opacity-50" />
         </div>
         {/* Desktop: Sidebar */}
         {isDesktop && (

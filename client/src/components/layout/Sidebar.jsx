@@ -72,9 +72,9 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth, onOpenCommand }) {
       className={clsx(
         'group/sidebar fixed top-0 left-0 h-screen z-40',
         'hidden md:flex flex-col',
-        'bg-white/80 dark:bg-obsidian-950/80 backdrop-blur-2xl',
-        'border-r border-slate-200/80 dark:border-glass-border',
-        'shadow-[4px_0_24px_rgba(0,0,0,0.03)] dark:shadow-[4px_0_32px_rgba(0,0,0,0.45)]',
+        'bg-white/45 dark:bg-[#07080C]/40 backdrop-blur-2xl',
+        'border-r border-slate-200/60 dark:border-white/10',
+        'shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-[4px_0_32px_rgba(0,0,0,0.35)]',
         'transition-all duration-200 overflow-hidden select-none'
       )}
       animate={{ width: collapsed ? 80 : 256 }}

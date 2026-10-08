@@ -90,7 +90,7 @@ export function TelemetryHorizonRibbon({
   ];
 
   return (
-    <section className="relative rounded-3xl p-4 sm:p-5 bg-gradient-to-r from-white via-slate-50/80 to-white dark:from-obsidian-900/90 dark:via-obsidian-900/60 dark:to-obsidian-800/80 border border-slate-200/80 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.15)] backdrop-blur-2xl overflow-hidden">
+    <section className="relative rounded-3xl p-4 sm:p-5 bg-white/45 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/12 shadow-[0_8px_32px_rgba(0,0,0,0.03),inset_0_1px_1px_rgba(255,255,255,0.8)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-2xl overflow-hidden">
       {/* Dynamic Background Energy Beam */}
       <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 via-amber-500 via-violet-500 to-sky-500 opacity-60 dark:opacity-75" />
 

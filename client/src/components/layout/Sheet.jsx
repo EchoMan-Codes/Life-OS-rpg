@@ -54,7 +54,7 @@ export function Sheet({ isOpen, onClose, className, children }) {
         <div className="fixed inset-0 z-50">
           {/* Backdrop */}
           <motion.div
-            className="absolute inset-0 bg-obsidian/70"
+            className="absolute inset-0 bg-slate-950/40 backdrop-blur-md"
             onClick={onClose}
             {...backdropVariants}
           />
@@ -70,7 +70,8 @@ export function Sheet({ isOpen, onClose, className, children }) {
             }}
             className={clsx(
               'absolute inset-x-0',
-              'bg-obsidian-900 border-t border-glass-border',
+              'bg-white/85 dark:bg-[#0B0D14]/75 backdrop-blur-3xl border-t border-white/60 dark:border-white/18',
+              'shadow-[0_-12px_40px_rgba(0,0,0,0.5)]',
               'rounded-t-panel',
               'max-h-[calc(85vh-var(--keyboard-inset-bottom,0px))] overflow-y-auto transition-[bottom,max-height] duration-200',
               className

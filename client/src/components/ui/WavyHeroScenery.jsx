@@ -22,8 +22,8 @@ export function WavyHeroScenery({
       className={clsx(
         'relative rounded-3xl overflow-hidden transition-all duration-500',
         isDark
-          ? 'bg-[#0C0F1D]/80 backdrop-blur-2xl text-white border border-white/12 shadow-[0_16px_48px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.15)]'
-          : 'bg-gradient-to-b from-[#F0F7FF] via-[#F8FAFC] to-[#EFF4FA] text-slate-900 border border-indigo-200/70 shadow-[0_16px_44px_rgba(99,102,241,0.08),inset_0_1px_1px_rgba(255,255,255,0.8)]',
+          ? 'bg-transparent text-white border border-white/15 shadow-[0_16px_48px_rgba(0,0,0,0.35),inset_0_1px_1px_rgba(255,255,255,0.2)]'
+          : 'bg-transparent text-slate-900 border border-indigo-200/70 shadow-[0_16px_44px_rgba(99,102,241,0.08),inset_0_1px_1px_rgba(255,255,255,0.8)]',
         className
       )}
     >

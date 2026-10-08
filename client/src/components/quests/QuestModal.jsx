@@ -461,7 +461,7 @@ export function QuestModal({ isOpen, onClose, questToEdit }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 bg-obsidian-950/75 backdrop-blur-md"
+            className="fixed inset-0 bg-slate-950/40 backdrop-blur-md"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -470,7 +470,7 @@ export function QuestModal({ isOpen, onClose, questToEdit }) {
 
           {/* Modal Panel */}
           <motion.div
-            className="relative w-full max-w-lg rounded-3xl p-6 sm:p-7 bg-obsidian-900/90 border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.65),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-2xl z-10 max-h-[90vh] overflow-y-auto"
+            className="relative w-full max-w-lg rounded-3xl p-6 sm:p-7 bg-white/85 dark:bg-[#0B0D14]/75 border border-white/70 dark:border-white/18 shadow-[0_20px_60px_rgba(0,0,0,0.65),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-3xl z-10 max-h-[90vh] overflow-y-auto"
             variants={shouldReduceMotion ? {} : modalPanel}
             initial="hidden"
             animate="visible"

@@ -461,7 +461,7 @@ export function DailyModal({ isOpen, onClose, dailyToEdit }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-slate-950/70 backdrop-blur-md"
+            className="fixed inset-0 bg-slate-950/40 backdrop-blur-md"
           />
 
           <motion.div
@@ -472,7 +472,7 @@ export function DailyModal({ isOpen, onClose, dailyToEdit }) {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="relative w-full max-w-md p-5 sm:p-6 rounded-3xl bg-white dark:bg-obsidian-900 border border-slate-200 dark:border-white/10 shadow-2xl z-10"
+            className="relative w-full max-w-md p-5 sm:p-6 rounded-3xl bg-white/85 dark:bg-[#0B0D14]/75 backdrop-blur-3xl border border-white/70 dark:border-white/18 shadow-[0_20px_60px_rgba(0,0,0,0.65),inset_0_1px_1px_rgba(255,255,255,0.2)] z-10"
           >
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/10">
               <div className="flex items-center gap-2.5">

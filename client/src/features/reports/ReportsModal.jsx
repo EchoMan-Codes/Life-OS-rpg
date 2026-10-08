@@ -267,14 +267,14 @@ export function ReportsModal({ isOpen, onClose }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-slate-950/70 backdrop-blur-md"
+            className="fixed inset-0 bg-slate-950/40 backdrop-blur-md"
           />
 
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 12 }}
-            className="relative w-full max-w-md flex flex-col rounded-3xl bg-white dark:bg-obsidian-900 border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden z-10 p-5 sm:p-6 space-y-4"
+            className="relative w-full max-w-md flex flex-col rounded-3xl bg-white/85 dark:bg-[#0B0D14]/75 backdrop-blur-3xl border border-white/70 dark:border-white/18 shadow-[0_20px_60px_rgba(0,0,0,0.65),inset_0_1px_1px_rgba(255,255,255,0.2)] overflow-hidden z-10 p-5 sm:p-6 space-y-4"
           >
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/10">

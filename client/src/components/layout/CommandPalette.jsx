@@ -159,7 +159,7 @@ export function CommandPalette({ isOpen, onClose, onOpenAi }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-slate-950/70 backdrop-blur-md"
+            className="fixed inset-0 bg-slate-950/40 backdrop-blur-md"
           />
 
           {/* Palette Dialog */}
@@ -170,7 +170,7 @@ export function CommandPalette({ isOpen, onClose, onOpenAi }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: -10 }}
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-            className="relative z-10 w-full max-w-xl rounded-3xl bg-slate-950/90 border border-white/15 shadow-[0_25px_70px_rgba(0,0,0,0.8),inset_0_1px_1px_rgba(255,255,255,0.15)] backdrop-blur-3xl overflow-hidden text-white"
+            className="relative z-10 w-full max-w-xl rounded-3xl bg-slate-950/45 border border-white/20 shadow-[0_25px_70px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-3xl overflow-hidden text-white"
           >
             {/* Search Input Bar */}
             <div className="flex items-center px-4 py-3.5 border-b border-white/10 gap-3">

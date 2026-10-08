@@ -115,8 +115,8 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false, onOpenB
           }}
           className={clsx(
             'fixed top-0 right-0 z-40 h-14 transition-[left] duration-200',
-            'bg-white/90 dark:bg-obsidian-950/85 backdrop-blur-2xl border-b border-slate-200/80 dark:border-white/10',
-            'shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)]',
+            'bg-white/45 dark:bg-[#07080C]/40 backdrop-blur-2xl border-b border-slate-200/60 dark:border-white/10',
+            'shadow-[0_2px_12px_rgba(0,0,0,0.02)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.25)]',
             isDesktop
               ? sidebarCollapsed
                 ? 'left-20'
@@ -231,8 +231,8 @@ export function PlayerHud({ sidebarCollapsed = false, isDesktop = false, onOpenB
         <header
           className={clsx(
             'fixed top-0 right-0 z-40 transition-[left] duration-200',
-            'bg-white/90 dark:bg-obsidian-950/85 backdrop-blur-2xl border-b border-slate-200/80 dark:border-white/10',
-            'shadow-[0_4px_20px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.35)]',
+            'bg-white/45 dark:bg-[#07080C]/40 backdrop-blur-2xl border-b border-slate-200/60 dark:border-white/10',
+            'shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.25)]',
             isDesktop
               ? sidebarCollapsed
                 ? 'left-20 h-16'

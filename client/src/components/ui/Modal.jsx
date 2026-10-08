@@ -66,7 +66,7 @@ export function Modal({ isOpen, onClose, className, children }) {
         >
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 bg-slate-900/40 dark:bg-obsidian-950/75 backdrop-blur-md"
+            className="fixed inset-0 bg-slate-950/40 backdrop-blur-md"
             onClick={onClose}
             {...backdropMotion}
           />
@@ -80,8 +80,8 @@ export function Modal({ isOpen, onClose, className, children }) {
             className={clsx(
               'relative z-10 w-full max-w-lg',
               'max-h-[calc(100dvh-var(--keyboard-inset-bottom,0px)-2.5rem)] overflow-y-auto scrollbar-thin',
-              'bg-white/95 text-slate-800 border border-slate-200/90 shadow-2xl',
-              'dark:bg-obsidian-950/70 dark:text-ink dark:border-white/20 dark:shadow-[0_20px_60px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.22)]',
+              'bg-white/85 text-slate-800 border border-white/70 shadow-2xl',
+              'dark:bg-[#0B0D14]/75 dark:text-ink dark:border-white/18 dark:shadow-[0_20px_60px_rgba(0,0,0,0.65),inset_0_1px_1px_rgba(255,255,255,0.2)]',
               'backdrop-blur-3xl rounded-3xl',
               'p-5 sm:p-7',
               'focus:outline-none transition-[max-height] duration-200',

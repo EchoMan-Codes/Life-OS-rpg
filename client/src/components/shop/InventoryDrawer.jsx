@@ -71,7 +71,7 @@ export function InventoryDrawer({ isOpen, onClose }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2 }}
-            className="fixed inset-0 bg-slate-900/40 dark:bg-black/70 backdrop-blur-sm"
+            className="fixed inset-0 bg-slate-950/40 backdrop-blur-md"
             onClick={onClose}
           />
 
@@ -88,7 +88,7 @@ export function InventoryDrawer({ isOpen, onClose }) {
               }
               className={clsx(
                 'w-screen max-w-md',
-                'bg-white dark:bg-obsidian-900 border-l border-slate-200 dark:border-glass-border',
+                'bg-white/85 dark:bg-[#0B0D14]/75 backdrop-blur-3xl border-l border-white/70 dark:border-white/18',
                 'flex flex-col shadow-2xl overflow-hidden'
               )}
             >

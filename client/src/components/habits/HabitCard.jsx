@@ -260,12 +260,12 @@ export function HabitCard({ habit, onEdit }) {
         transition={shouldReduceMotion ? { duration: 0 } : spring.snappy}
         className={clsx(
           'relative flex items-center justify-between gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-3xl',
-          'bg-white/90 hover:bg-white dark:bg-obsidian-900/50 dark:hover:bg-obsidian-900/65',
+          'bg-white/50 hover:bg-white/65 dark:bg-white/[0.045] dark:hover:bg-white/[0.08]',
           'border transition-all duration-200 backdrop-blur-2xl',
-          'shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-md dark:shadow-[0_8px_32px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.1)]',
+          'shadow-[0_8px_30px_rgba(0,0,0,0.03)] hover:shadow-md dark:shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.12)]',
           flashBorder === 'positive' && 'border-emerald-500 ring-2 ring-emerald-500/40',
           flashBorder === 'negative' && 'border-rose-500 ring-2 ring-rose-500/40',
-          !flashBorder && 'border-slate-200/85 hover:border-slate-300 dark:border-white/10 dark:hover:border-white/20'
+          !flashBorder && 'border-slate-200/80 hover:border-slate-300 dark:border-white/12 dark:hover:border-white/22'
         )}
       >
         {/* Left: Thematic Artwork Thumbnail */}

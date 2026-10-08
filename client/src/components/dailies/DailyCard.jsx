@@ -110,9 +110,10 @@ export function DailyCard({ daily, onEdit }) {
       <div
         className={clsx(
           'relative flex items-center gap-3.5 p-4 rounded-3xl',
-          'bg-obsidian-900/60 backdrop-blur-2xl border border-white/10',
-          'transition-all duration-200 shadow-[0_8px_32px_rgba(0,0,0,0.37),inset_0_1px_0_rgba(255,255,255,0.1)] hover:border-white/20',
-          isCompleteToday && 'opacity-70 bg-obsidian-900/40'
+          'bg-white/50 hover:bg-white/65 dark:bg-white/[0.045] dark:hover:bg-white/[0.08] backdrop-blur-2xl',
+          'border border-slate-200/80 hover:border-slate-300 dark:border-white/12 dark:hover:border-white/22',
+          'transition-all duration-200 shadow-[0_8px_30px_rgba(0,0,0,0.03)] hover:shadow-md dark:shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.12)]',
+          isCompleteToday && 'opacity-65 dark:bg-white/[0.02]'
         )}
       >
         {/* ── Checkbox with Circular Streak Progress Ring ── */}

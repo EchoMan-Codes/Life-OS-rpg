@@ -515,10 +515,10 @@ export default function DashboardPage() {
           {/* ── B. Today's Command Center ── */}
           <div
             className={clsx(
-              'p-3.5 sm:p-5 rounded-3xl border transition-all duration-300 backdrop-blur-xl relative overflow-hidden space-y-3',
+              'p-3.5 sm:p-5 rounded-3xl border transition-all duration-300 backdrop-blur-2xl relative overflow-hidden space-y-3',
               isDark
-                ? 'bg-black/60 border-white/15 shadow-[0_8px_24px_rgba(0,0,0,0.4)]'
-                : 'bg-white/85 border-amber-200/80 shadow-[0_4px_20px_rgba(245,158,11,0.08)]'
+                ? 'bg-white/[0.05] border-white/15 shadow-[0_8px_32px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.15)]'
+                : 'bg-white/50 border-white/70 shadow-[0_8px_32px_rgba(99,102,241,0.06),inset_0_1px_0_rgba(255,255,255,0.9)]'
             )}
           >
             {/* Greeting & Date Header */}
@@ -554,7 +554,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Today's Priority Card */}
-            <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-100/90 dark:bg-black/50 border border-slate-200 dark:border-amber-500/30">
+            <div className="p-3 sm:p-3.5 rounded-2xl bg-white/40 dark:bg-white/[0.05] border border-slate-200/60 dark:border-amber-500/30 backdrop-blur-xl shadow-xs">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1">
                   <Target size={12} className="text-amber-500" />
@@ -598,34 +598,34 @@ export default function DashboardPage() {
           {/* ── C. Core Stats (5 Most Useful Statistics Only) ── */}
           <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
             {/* 1. XP */}
-            <div className="p-2 sm:p-2.5 rounded-2xl bg-white/90 dark:bg-black/50 border border-slate-200 dark:border-amber-500/30 text-center shadow-xs backdrop-blur-md">
+            <div className="p-2 sm:p-2.5 rounded-2xl bg-white/40 dark:bg-white/[0.06] border border-slate-200/60 dark:border-white/12 text-center shadow-xs backdrop-blur-xl">
               <span className="text-[10px] font-mono text-amber-600 dark:text-amber-400 font-bold block truncate">XP</span>
               <span className="text-xs sm:text-sm font-black font-display text-slate-900 dark:text-white mt-0.5 block truncate">{xp}</span>
             </div>
             {/* 2. Coins */}
-            <div className="p-2 sm:p-2.5 rounded-2xl bg-white/90 dark:bg-black/50 border border-slate-200 dark:border-amber-500/30 text-center shadow-xs backdrop-blur-md">
+            <div className="p-2 sm:p-2.5 rounded-2xl bg-white/40 dark:bg-white/[0.06] border border-slate-200/60 dark:border-white/12 text-center shadow-xs backdrop-blur-xl">
               <span className="text-[10px] font-mono text-amber-600 dark:text-amber-400 font-bold block truncate">Coins</span>
               <span className="text-xs sm:text-sm font-black font-display text-amber-600 dark:text-amber-300 mt-0.5 block truncate">{gold}</span>
             </div>
             {/* 3. Streak */}
-            <div className="p-2 sm:p-2.5 rounded-2xl bg-white/90 dark:bg-black/50 border border-slate-200 dark:border-orange-500/30 text-center shadow-xs backdrop-blur-md">
+            <div className="p-2 sm:p-2.5 rounded-2xl bg-white/40 dark:bg-white/[0.06] border border-slate-200/60 dark:border-white/12 text-center shadow-xs backdrop-blur-xl">
               <span className="text-[10px] font-mono text-orange-600 dark:text-orange-400 font-bold block truncate">Streak</span>
               <span className="text-xs sm:text-sm font-black font-display text-orange-600 dark:text-orange-300 mt-0.5 block truncate">{bestStreak}d</span>
             </div>
             {/* 4. Dailies */}
-            <div className="p-2 sm:p-2.5 rounded-2xl bg-white/90 dark:bg-black/50 border border-slate-200 dark:border-emerald-500/30 text-center shadow-xs backdrop-blur-md">
+            <div className="p-2 sm:p-2.5 rounded-2xl bg-white/40 dark:bg-white/[0.06] border border-slate-200/60 dark:border-white/12 text-center shadow-xs backdrop-blur-xl">
               <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold block truncate">Dailies</span>
               <span className="text-xs sm:text-sm font-black font-display text-emerald-600 dark:text-emerald-300 mt-0.5 block truncate">{completedTodayCount}/{activeDailies.length}</span>
             </div>
             {/* 5. Focus */}
-            <div className="p-2 sm:p-2.5 rounded-2xl bg-white/90 dark:bg-black/50 border border-slate-200 dark:border-sky-500/30 text-center shadow-xs backdrop-blur-md">
+            <div className="p-2 sm:p-2.5 rounded-2xl bg-white/40 dark:bg-white/[0.06] border border-slate-200/60 dark:border-white/12 text-center shadow-xs backdrop-blur-xl">
               <span className="text-[10px] font-mono text-sky-600 dark:text-sky-400 font-bold block truncate">Focus</span>
               <span className="text-xs sm:text-sm font-black font-display text-sky-600 dark:text-sky-300 mt-0.5 block truncate">{totalFocusMinutes}m</span>
             </div>
           </div>
 
           {/* XP Progress Bar Capsule */}
-          <div className="p-2.5 rounded-2xl bg-white/80 dark:bg-black/45 border border-slate-200/80 dark:border-white/10 backdrop-blur-md">
+          <div className="p-2.5 rounded-2xl bg-white/40 dark:bg-white/[0.05] border border-slate-200/60 dark:border-white/10 backdrop-blur-xl">
             <div className="flex items-center justify-between text-[11px] font-mono leading-tight mb-1">
               <span className="text-amber-600 dark:text-amber-300 font-bold flex items-center gap-1">
                 <Sparkles size={12} className="text-amber-500" /> XP Progress
@@ -634,7 +634,7 @@ export default function DashboardPage() {
                 {xp} / {xpForNextLevel} ({xpPct}%)
               </span>
             </div>
-            <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
+            <div className="w-full h-2 rounded-full bg-slate-200/70 dark:bg-white/10 overflow-hidden">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-300 transition-all duration-300 shadow-[0_0_12px_rgba(245,158,11,0.6)]"
                 style={{ width: `${xpPct}%` }}
@@ -647,10 +647,10 @@ export default function DashboardPage() {
             <Link
               to="/focus"
               className={clsx(
-                'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 text-center backdrop-blur-md',
+                'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 text-center backdrop-blur-xl',
                 isDark
-                  ? 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30 hover:bg-emerald-500/25'
-                  : 'text-emerald-700 bg-emerald-50 border-emerald-300/80 hover:bg-emerald-100 shadow-xs'
+                  ? 'text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/25'
+                  : 'text-emerald-700 bg-white/50 border-emerald-200/70 hover:bg-white/80 shadow-xs'
               )}
               title="Focus Chamber"
             >
@@ -665,10 +665,10 @@ export default function DashboardPage() {
             <Link
               to="/habits"
               className={clsx(
-                'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 text-center backdrop-blur-md',
+                'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 text-center backdrop-blur-xl',
                 isDark
-                  ? 'text-amber-400 bg-amber-500/15 border-amber-500/30 hover:bg-amber-500/25'
-                  : 'text-amber-700 bg-amber-50 border-amber-300/80 hover:bg-amber-100 shadow-xs'
+                  ? 'text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/25'
+                  : 'text-amber-700 bg-white/50 border-amber-200/70 hover:bg-white/80 shadow-xs'
               )}
               title="Habit Momentum"
             >
@@ -683,10 +683,10 @@ export default function DashboardPage() {
             <Link
               to="/quests"
               className={clsx(
-                'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 text-center backdrop-blur-md',
+                'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 text-center backdrop-blur-xl',
                 isDark
-                  ? 'text-purple-300 bg-purple-500/15 border-purple-500/30 hover:bg-purple-500/25'
-                  : 'text-purple-700 bg-purple-50 border-purple-300/80 hover:bg-purple-100 shadow-xs'
+                  ? 'text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 border-purple-500/25'
+                  : 'text-purple-700 bg-white/50 border-purple-200/70 hover:bg-white/80 shadow-xs'
               )}
               title="Quests"
             >
@@ -702,10 +702,10 @@ export default function DashboardPage() {
               type="button"
               onClick={() => handleOpenAi()}
               className={clsx(
-                'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 text-center backdrop-blur-md cursor-pointer',
+                'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 text-center backdrop-blur-xl cursor-pointer',
                 isDark
-                  ? 'text-indigo-300 bg-indigo-500/15 border-indigo-500/30 hover:bg-indigo-500/25'
-                  : 'text-indigo-700 bg-indigo-50 border-indigo-300/80 hover:bg-indigo-100 shadow-xs'
+                  ? 'text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border-indigo-500/25'
+                  : 'text-indigo-700 bg-white/50 border-indigo-200/70 hover:bg-white/80 shadow-xs'
               )}
               title="Jeevan AI Assistant"
             >
@@ -721,10 +721,10 @@ export default function DashboardPage() {
               type="button"
               onClick={() => setShowReportsModal(true)}
               className={clsx(
-                'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 text-center backdrop-blur-md cursor-pointer',
+                'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 text-center backdrop-blur-xl cursor-pointer',
                 isDark
-                  ? 'text-sky-300 bg-sky-500/15 border-sky-500/30 hover:bg-sky-500/25'
-                  : 'text-sky-700 bg-sky-50 border-sky-300/80 hover:bg-sky-100 shadow-xs'
+                  ? 'text-sky-300 bg-sky-500/10 hover:bg-sky-500/20 border-sky-500/25'
+                  : 'text-sky-700 bg-white/50 border-sky-200/70 hover:bg-white/80 shadow-xs'
               )}
               title="Productivity Reports"
             >
@@ -773,8 +773,8 @@ export default function DashboardPage() {
       />
 
       {/* ── 3. Dedicated Mobile Segmented Switcher (iOS Frosted Glass Capsule) ── */}
-      <div className="md:hidden sticky top-0 z-30 -mx-3 px-3 py-2 bg-white/90 dark:bg-obsidian-950/80 backdrop-blur-2xl border-y border-slate-200/80 dark:border-white/10">
-        <div className="grid grid-cols-4 gap-1 p-1 rounded-full bg-slate-100/90 dark:bg-obsidian-900/80 border border-slate-200 dark:border-white/10 shadow-inner backdrop-blur-md">
+      <div className="md:hidden sticky top-0 z-30 -mx-3 px-3 py-2 bg-white/45 dark:bg-[#07080C]/40 backdrop-blur-2xl border-y border-slate-200/60 dark:border-white/10">
+        <div className="grid grid-cols-4 gap-1 p-1 rounded-full bg-white/40 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/10 shadow-inner backdrop-blur-xl">
           {[
             { id: 'actions', label: 'Actions', icon: Zap },
             { id: 'analytics', label: 'Analytics', icon: TrendingUp },
@@ -1072,7 +1072,7 @@ export default function DashboardPage() {
               </Card>
 
               {/* Active Quest Spotlight */}
-              <Card className="p-4 sm:p-5 bg-gradient-to-br from-violet-50/80 to-indigo-50/60 border-violet-200/80 dark:from-obsidian-800 dark:to-obsidian-900 dark:border-glass-border">
+              <Card className="p-4 sm:p-5 bg-gradient-to-br from-violet-50/50 to-indigo-50/40 border-violet-200/70 dark:from-white/[0.05] dark:to-white/[0.02] dark:border-white/12">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center text-violet-600 dark:text-attr-perception">
@@ -1440,7 +1440,7 @@ export default function DashboardPage() {
               {character ? (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {/* Vital Statistics */}
-                  <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-obsidian-900/60 border border-slate-200/80 dark:border-glass-border space-y-3 shadow-xs">
+                  <div className="p-3.5 rounded-2xl bg-white/45 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/12 backdrop-blur-xl space-y-3 shadow-xs">
                     <div className="text-xs font-bold text-slate-900 dark:text-ink uppercase tracking-wider">Vitals</div>
                     <div>
                       <div className="flex justify-between text-xs mb-1">
@@ -1449,7 +1449,7 @@ export default function DashboardPage() {
                         </span>
                         <span className="text-slate-900 dark:text-ink font-mono font-bold">{character.hp} / {character.maxHp}</span>
                       </div>
-                      <div className="h-2 bg-slate-200 dark:bg-obsidian-700 rounded-full overflow-hidden">
+                      <div className="h-2 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-rose-500 dark:bg-hp rounded-full"
                           style={{ width: `${Math.min(100, (character.hp / character.maxHp) * 100)}%` }}
@@ -1464,7 +1464,7 @@ export default function DashboardPage() {
                         </span>
                         <span className="text-slate-900 dark:text-ink font-mono font-bold">{character.mana} / {character.maxMana}</span>
                       </div>
-                      <div className="h-2 bg-slate-200 dark:bg-obsidian-700 rounded-full overflow-hidden">
+                      <div className="h-2 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-sky-500 dark:bg-mana rounded-full"
                           style={{ width: `${Math.min(100, (character.mana / character.maxMana) * 100)}%` }}
@@ -1479,7 +1479,7 @@ export default function DashboardPage() {
                         </span>
                         <span className="text-slate-900 dark:text-ink font-mono font-bold">{character.xp} / {character.xpForNextLevel}</span>
                       </div>
-                      <div className="h-2 bg-slate-200 dark:bg-obsidian-700 rounded-full overflow-hidden">
+                      <div className="h-2 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-gradient-to-r from-amber-500 to-amber-400 dark:from-xp dark:to-gold rounded-full"
                           style={{ width: `${Math.min(100, (character.xp / character.xpForNextLevel) * 100)}%` }}
@@ -1489,27 +1489,27 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Attributes Matrix */}
-                  <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-obsidian-900/60 border border-slate-200/80 dark:border-glass-border space-y-2 shadow-xs">
+                  <div className="p-3.5 rounded-2xl bg-white/45 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/12 backdrop-blur-xl space-y-2 shadow-xs">
                     <div className="text-xs font-bold text-slate-900 dark:text-ink uppercase tracking-wider mb-2">5 Attributes</div>
                     {character.attributes && (
                       <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div className="p-2 rounded-xl bg-slate-50 dark:bg-obsidian-800/80 border border-slate-200/70 dark:border-glass-border flex justify-between">
+                        <div className="p-2 rounded-xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/10 flex justify-between">
                           <span className="text-slate-500 dark:text-ink-muted">Strength:</span>
                           <strong className="text-rose-600 dark:text-hp font-mono">{character.attributes.strength || 5}</strong>
                         </div>
-                        <div className="p-2 rounded-xl bg-slate-50 dark:bg-obsidian-800/80 border border-slate-200/70 dark:border-glass-border flex justify-between">
+                        <div className="p-2 rounded-xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/10 flex justify-between">
                           <span className="text-slate-500 dark:text-ink-muted">Vitality:</span>
                           <strong className="text-emerald-600 dark:text-emerald-400 font-mono">{character.attributes.vitality || 5}</strong>
                         </div>
-                        <div className="p-2 rounded-xl bg-slate-50 dark:bg-obsidian-800/80 border border-slate-200/70 dark:border-glass-border flex justify-between">
+                        <div className="p-2 rounded-xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/10 flex justify-between">
                           <span className="text-slate-500 dark:text-ink-muted">Intelligence:</span>
                           <strong className="text-sky-600 dark:text-attr-intelligence font-mono">{character.attributes.intelligence || 5}</strong>
                         </div>
-                        <div className="p-2 rounded-xl bg-slate-50 dark:bg-obsidian-800/80 border border-slate-200/70 dark:border-glass-border flex justify-between">
+                        <div className="p-2 rounded-xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/10 flex justify-between">
                           <span className="text-slate-500 dark:text-ink-muted">Willpower:</span>
                           <strong className="text-violet-600 dark:text-attr-willpower font-mono">{character.attributes.willpower || 5}</strong>
                         </div>
-                        <div className="p-2 rounded-xl bg-slate-50 dark:bg-obsidian-800/80 border border-slate-200/70 dark:border-glass-border flex justify-between col-span-2">
+                        <div className="p-2 rounded-xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/10 flex justify-between col-span-2">
                           <span className="text-slate-500 dark:text-ink-muted">Perception:</span>
                           <strong className="text-amber-600 dark:text-gold font-mono">{character.attributes.perception || 5}</strong>
                         </div>
@@ -1518,7 +1518,7 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Vault & Rewards */}
-                  <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-obsidian-900/60 border border-slate-200/80 dark:border-glass-border flex flex-col justify-between shadow-xs">
+                  <div className="p-3.5 rounded-2xl bg-white/45 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/12 backdrop-blur-xl flex flex-col justify-between shadow-xs">
                     <div>
                       <div className="text-xs font-bold text-slate-900 dark:text-ink uppercase tracking-wider mb-3">Treasury</div>
                       <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between mb-3">

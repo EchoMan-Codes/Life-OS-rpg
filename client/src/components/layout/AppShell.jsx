@@ -14,10 +14,12 @@ import { LIFEOS_OPEN_BATTLE_LOG_EVENT } from '@/features/celebration/celebration
 import { ThemeRippleOverlay, JeevanLoader } from '@/components/ui';
 import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
+import { CommandPalette } from './CommandPalette';
+import { JeevanAiModal } from '@/features/ai/components/JeevanAiModal';
 
 /**
  * App shell — desktop sidebar + mobile bottom nav + persistent top player HUD.
- * Mounts global celebration modals and battle drawer listeners.
+ * Mounts global celebration modals, command palette, and battle drawer listeners.
  *
  * @param {object} props
  * @param {React.ReactNode} props.children - Main content area
@@ -29,38 +31,34 @@ export function AppShell({ children }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [battleDrawerOpen, setBattleDrawerOpen] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isDashboard = location.pathname === '/';
   const isProfile = location.pathname === '/profile';
 
-  const [hasLaunched, setHasLaunched] = useState(false);
-
-  const handleLaunchComplete = () => {
-    setHasLaunched(true);
-  };
-
-  // Listen for global open battle log events
+  // Listen for global open battle log events and Cmd+K / Ctrl+K
   useEffect(() => {
     const handleOpenBattleLog = () => setBattleDrawerOpen(true);
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setCommandPaletteOpen((prev) => !prev);
+      }
+    };
+
     window.addEventListener(LIFEOS_OPEN_BATTLE_LOG_EVENT, handleOpenBattleLog);
-    return () => window.removeEventListener(LIFEOS_OPEN_BATTLE_LOG_EVENT, handleOpenBattleLog);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener(LIFEOS_OPEN_BATTLE_LOG_EVENT, handleOpenBattleLog);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   if (isOnboardingPage) {
     return (
       <ToastProvider>
         <ThemeRippleOverlay />
-        <AnimatePresence>
-          {!hasLaunched && (
-            <JeevanLoader
-              variant="full"
-              message="Launching Jeevan OS..."
-              submessage="Live. Track. Grow."
-              duration={2500}
-              onComplete={handleLaunchComplete}
-            />
-          )}
-        </AnimatePresence>
         <div
           style={{
             paddingTop: 'env(safe-area-inset-top, 0px)',
@@ -79,24 +77,20 @@ export function AppShell({ children }) {
   return (
     <ToastProvider>
       <ThemeRippleOverlay />
-      <AnimatePresence>
-        {!hasLaunched && (
-          <JeevanLoader
-            variant="full"
-            message="Launching Jeevan OS..."
-            submessage="Live. Track. Grow."
-            duration={2500}
-            onComplete={handleLaunchComplete}
-          />
-        )}
-      </AnimatePresence>
-      <div className="min-h-screen bg-obsidian">
+      <div className="min-h-screen bg-obsidian relative overflow-x-hidden">
+        {/* iOS Atmospheric Ambient Mesh Gradients (diffuses through translucent glass panels) */}
+        <div aria-hidden="true" className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent blur-3xl opacity-75" />
+          <div className="absolute top-1/3 -left-40 w-[550px] h-[550px] rounded-full bg-gradient-to-tr from-indigo-600/12 via-purple-600/6 to-transparent blur-3xl opacity-65" />
+          <div className="absolute bottom-10 right-1/4 w-[480px] h-[480px] rounded-full bg-gradient-to-tl from-emerald-500/10 via-teal-500/5 to-transparent blur-3xl opacity-50" />
+        </div>
         {/* Desktop: Sidebar */}
         {isDesktop && (
           <Sidebar
             collapsed={sidebarCollapsed}
             onToggle={() => setSidebarCollapsed((prev) => !prev)}
             onOpenAuth={() => setAuthModalOpen(true)}
+            onOpenCommand={() => setCommandPaletteOpen(true)}
           />
         )}
 
@@ -137,6 +131,19 @@ export function AppShell({ children }) {
 
         {/* Mobile: Bottom nav with Hub drawer */}
         {!isDesktop && <BottomNav onOpenAuth={() => setAuthModalOpen(true)} />}
+
+        {/* Desktop Command Palette (Cmd+K / Ctrl+K) */}
+        <CommandPalette
+          isOpen={commandPaletteOpen}
+          onClose={() => setCommandPaletteOpen(false)}
+          onOpenAi={() => setAiModalOpen(true)}
+        />
+
+        {/* Global Jeevan AI Strategist Modal */}
+        <JeevanAiModal
+          isOpen={aiModalOpen}
+          onClose={() => setAiModalOpen(false)}
+        />
 
         {/* Battle Chronicles Slide-over Drawer */}
         <BattleActivityDrawer

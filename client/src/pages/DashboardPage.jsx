@@ -45,7 +45,7 @@ import {
 import clsx from 'clsx';
 
 import { Card, ColorCard, WavyHeroScenery, ModeButton } from '@/components/ui';
-import { TelemetryHorizonRibbon, RitualSpineDeck, AttributeAstrolabe } from '@/components/dashboard';
+import { TelemetryHorizonRibbon, RitualSpineDeck, AttributeAstrolabe, DesktopAiWidget } from '@/components/dashboard';
 import { useTheme } from '@/lib/theme';
 import { NotificationCenterModal } from '@/features/notifications/components/NotificationCenterModal';
 import { useNotifications } from '@/features/notifications/hooks';
@@ -151,7 +151,14 @@ export default function DashboardPage() {
   // Modals
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [showAiModal, setShowAiModal] = useState(false);
+  const [aiInitialPrompt, setAiInitialPrompt] = useState('');
   const [showReportsModal, setShowReportsModal] = useState(false);
+
+  const handleOpenAi = (promptText = '') => {
+    setAiInitialPrompt(typeof promptText === 'string' ? promptText : '');
+    setShowAiModal(true);
+  };
+
   const { data: notifications = [] } = useNotifications();
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
@@ -426,8 +433,8 @@ export default function DashboardPage() {
       {/* ── 1. Wavy Atmospheric RPG Hero Cockpit (Natural Scrolling, Zero Clipping) ── */}
       <WavyHeroScenery variant="dashboard" className="p-3.5 sm:p-5 md:p-6">
         <div className="flex flex-col gap-3.5 sm:gap-4">
-          {/* Top Bar: Player Avatar & Top Navigation Controls */}
-          <div className="flex items-center justify-between gap-3">
+          {/* Top Bar: Player Avatar & Top Navigation Controls (Mobile only, desktop has persistent PlayerHud) */}
+          <div className="flex md:hidden items-center justify-between gap-3">
             {/* Left: Avatar + Identity */}
             <Link
               to="/profile"
@@ -579,7 +586,7 @@ export default function DashboardPage() {
               </Link>
               <button
                 type="button"
-                onClick={() => setShowAiModal(true)}
+                onClick={() => handleOpenAi()}
                 className="py-2.5 px-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-98 transition-transform cursor-pointer"
               >
                 <Sparkles size={14} />
@@ -693,7 +700,7 @@ export default function DashboardPage() {
 
             <button
               type="button"
-              onClick={() => setShowAiModal(true)}
+              onClick={() => handleOpenAi()}
               className={clsx(
                 'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 text-center backdrop-blur-md cursor-pointer',
                 isDark
@@ -1025,8 +1032,11 @@ export default function DashboardPage() {
               />
             </div>
 
-            {/* Quick Habits & Active Quest Spotlight (5 cols) */}
+            {/* Quick Habits & Active Quest Spotlight & Desktop AI Widget (5 cols) */}
             <div className="lg:col-span-5 space-y-4">
+              {/* Integrated Desktop Jeevan AI Strategist Panel */}
+              <DesktopAiWidget onOpenAi={handleOpenAi} />
+
               {/* Quick Habits Card */}
               <Card className="p-4 sm:p-5">
                 <div className="flex items-center justify-between mb-3 border-b border-slate-200/80 dark:border-glass-border pb-2.5">
@@ -1543,6 +1553,7 @@ export default function DashboardPage() {
       <JeevanAiModal
         isOpen={showAiModal}
         onClose={() => setShowAiModal(false)}
+        initialPrompt={aiInitialPrompt}
       />
       <ReportsModal
         isOpen={showReportsModal}

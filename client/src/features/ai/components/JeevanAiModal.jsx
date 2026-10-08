@@ -45,7 +45,7 @@ function formatTimestamp(ts) {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-export function JeevanAiModal({ isOpen, onClose }) {
+export function JeevanAiModal({ isOpen, onClose, initialPrompt = '' }) {
   const shouldReduceMotion = useReducedMotion();
   const { isAuthenticated } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -58,6 +58,12 @@ export function JeevanAiModal({ isOpen, onClose }) {
 
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
+
+  useEffect(() => {
+    if (isOpen && initialPrompt) {
+      setInputValue(initialPrompt);
+    }
+  }, [isOpen, initialPrompt]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamError, setStreamError] = useState(null);
   const [appliedActionIds, setAppliedActionIds] = useState(new Set());
@@ -369,11 +375,11 @@ export function JeevanAiModal({ isOpen, onClose }) {
       <div
         style={{
           paddingTop: 'max(0.75rem, env(safe-area-inset-top, 0px))',
-          paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))',
+          paddingBottom: 'max(0.75rem, calc(var(--keyboard-inset-bottom, 0px) + env(safe-area-inset-bottom, 0px)))',
           paddingLeft: 'max(0.75rem, env(safe-area-inset-left, 0px))',
           paddingRight: 'max(0.75rem, env(safe-area-inset-right, 0px))',
         }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4"
+        className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 transition-[padding] duration-200"
       >
         {/* Absolute Glassy Backdrop */}
         <motion.div
@@ -393,7 +399,7 @@ export function JeevanAiModal({ isOpen, onClose }) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ type: 'spring', stiffness: 360, damping: 28 }}
-          className="relative w-full max-w-2xl h-[92vh] sm:h-[86vh] flex flex-col rounded-3xl bg-slate-950/60 border border-white/20 shadow-[0_25px_80px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-3xl overflow-hidden z-10"
+          className="relative w-full max-w-2xl h-[calc(92dvh-var(--keyboard-inset-bottom,0px))] sm:h-[86vh] flex flex-col rounded-3xl bg-slate-950/60 border border-white/20 shadow-[0_25px_80px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-3xl overflow-hidden z-10 transition-[height] duration-200"
         >
           {/* Header */}
           <div className="relative z-10 flex items-center justify-between p-3.5 sm:p-4 border-b border-white/10 bg-white/[0.04] backdrop-blur-xl">

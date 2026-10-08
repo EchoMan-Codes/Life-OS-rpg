@@ -2,13 +2,31 @@
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, [data-theme="dim"], [data-theme="dim"] *, .dark, .dark *));
 
-/* ── Mobile & Native Safe Area Insets ── */
+/* ── Mobile & Native Safe Area Insets & Dynamic Keyboard Insets ── */
 :root {
   --sat: env(safe-area-inset-top, 0px);
   --sar: env(safe-area-inset-right, 0px);
   --sab: env(safe-area-inset-bottom, 0px);
   --sal: env(safe-area-inset-left, 0px);
+  --keyboard-height: 0px;
+  --keyboard-inset-bottom: 0px;
+  --is-keyboard-visible: 0;
 }
+
+/* Ensure body and app shell remain stable during keyboard appearances */
+body.keyboard-open {
+  overscroll-behavior-y: none;
+}
+
+.keyboard-safe-bottom {
+  padding-bottom: max(var(--keyboard-inset-bottom), env(safe-area-inset-bottom, 0px));
+}
+
+.keyboard-avoid {
+  transform: translateY(calc(-1 * var(--keyboard-inset-bottom)));
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 
 .pt-safe {
   padding-top: max(env(safe-area-inset-top, 0px), 0.75rem);
@@ -506,11 +524,11 @@ body {
   -webkit-backdrop-filter: blur(24px) saturate(160%);
 }
 [data-theme="dark"] .floating-glass-bar, [data-theme="dim"] .floating-glass-bar, .dark .floating-glass-bar {
-  background: linear-gradient(180deg, rgba(14, 16, 24, 0.88) 0%, rgba(8, 10, 16, 0.82) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.22);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  background: linear-gradient(180deg, rgba(14, 16, 24, 0.72) 0%, rgba(8, 10, 16, 0.65) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
 }
 
 /* ── Fallback for devices without backdrop-filter ── */

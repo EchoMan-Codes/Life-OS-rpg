@@ -22,9 +22,9 @@
 			"overlaysWebView": false
 		},
 		"Keyboard": {
-			"resize": "body",
+			"resize": "none",
 			"style": "DARK",
-			"resizeOnFullScreen": true
+			"resizeOnFullScreen": false
 		}
 	}
 }

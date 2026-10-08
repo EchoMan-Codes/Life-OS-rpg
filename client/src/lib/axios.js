@@ -2,6 +2,7 @@ import axios from 'axios';
 import { Capacitor } from '@capacitor/core';
 
 let inMemoryAccessToken = typeof window !== 'undefined' ? localStorage.getItem('jeevan_access_token') : null;
+let inMemoryRefreshToken = typeof window !== 'undefined' ? localStorage.getItem('jeevan_refresh_token') : null;
 let activeRefreshPromise = null;
 
 export function setAccessToken(token) {
@@ -33,6 +34,68 @@ export function getAccessToken() {
     } catch {}
   }
   return null;
+}
+
+export function setRefreshToken(token) {
+  inMemoryRefreshToken = token;
+  if (typeof window !== 'undefined') {
+    if (token) {
+      try {
+        localStorage.setItem('jeevan_refresh_token', token);
+      } catch {}
+    } else {
+      try {
+        localStorage.removeItem('jeevan_refresh_token');
+      } catch {}
+    }
+  }
+}
+
+export function getRefreshToken() {
+  if (inMemoryRefreshToken) {
+    return inMemoryRefreshToken;
+  }
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('jeevan_refresh_token');
+      if (stored) {
+        inMemoryRefreshToken = stored;
+        return stored;
+      }
+    } catch {}
+  }
+  return null;
+}
+
+/**
+ * Saves form drafts locally so expired sessions never destroy user input.
+ */
+export function saveFormDraft(key, data) {
+  if (typeof window === 'undefined' || !key) return;
+  try {
+    const drafts = JSON.parse(localStorage.getItem('lifeos_form_drafts') || '{}');
+    drafts[key] = { data, savedAt: Date.now() };
+    localStorage.setItem('lifeos_form_drafts', JSON.stringify(drafts));
+  } catch {}
+}
+
+export function getFormDraft(key) {
+  if (typeof window === 'undefined' || !key) return null;
+  try {
+    const drafts = JSON.parse(localStorage.getItem('lifeos_form_drafts') || '{}');
+    return drafts[key]?.data || null;
+  } catch {
+    return null;
+  }
+}
+
+export function clearFormDraft(key) {
+  if (typeof window === 'undefined' || !key) return;
+  try {
+    const drafts = JSON.parse(localStorage.getItem('lifeos_form_drafts') || '{}');
+    delete drafts[key];
+    localStorage.setItem('lifeos_form_drafts', JSON.stringify(drafts));
+  } catch {}
 }
 
 export const PRODUCTION_API_URL = 'https://lifeos-api-08o8.onrender.com/api/v1';
@@ -106,22 +169,38 @@ export async function refreshAccessToken() {
 
   activeRefreshPromise = (async () => {
     try {
+      const headers = {};
+      const storedRefreshToken = getRefreshToken();
+      if (storedRefreshToken) {
+        headers['x-refresh-token'] = storedRefreshToken;
+      }
+
       // Use raw axios call to bypass interceptors
       const response = await axios.post(
         `${api.defaults.baseURL}/auth/refresh`,
-        {},
-        { withCredentials: true }
+        storedRefreshToken ? { refreshToken: storedRefreshToken } : {},
+        { withCredentials: true, headers }
       );
-      const { accessToken, user } = response.data.data;
+      const { accessToken, user, refreshToken: newRefreshToken } = response.data.data;
       setAccessToken(accessToken);
+      if (newRefreshToken) {
+        setRefreshToken(newRefreshToken);
+      }
       return { accessToken, user };
     } catch (err) {
       setAccessToken(null);
-      // Dispatch session-expired only if a previously valid token was rejected (not if cookie was simply missing)
+      setRefreshToken(null);
+      // Dispatch session-expired only if a previously valid token was rejected (not if cookie/token was simply absent)
       const errCode = err.response?.data?.error?.code;
       if (err.response?.status === 401 && errCode && errCode !== 'MISSING_REFRESH_TOKEN') {
         if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('lifeos:session-expired'));
+          window.dispatchEvent(
+            new CustomEvent('lifeos:session-expired', {
+              detail: {
+                message: 'Your session has expired. We preserved your form drafts. Please sign in to resume.',
+              },
+            })
+          );
         }
       }
       throw err;

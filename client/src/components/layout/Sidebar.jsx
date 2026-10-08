@@ -15,6 +15,7 @@ import {
   ChevronRight,
   LogIn,
   LogOut,
+  Search,
 } from 'lucide-react';
 
 import { spring, pressable } from '@/lib/motionVariants';
@@ -39,7 +40,7 @@ const navItems = [
  * Desktop sidebar — fixed left, w-64 expanded / w-20 collapsed.
  * Hidden below md breakpoint.
  */
-export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
+export function Sidebar({ collapsed, onToggle, onOpenAuth, onOpenCommand }) {
   const shouldReduceMotion = useReducedMotion();
   const { user, isAuthenticated, logout, isLoggingOut } = useAuth();
   const asideRef = useRef(null);
@@ -74,7 +75,7 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
         'bg-white/80 dark:bg-obsidian-950/80 backdrop-blur-2xl',
         'border-r border-slate-200/80 dark:border-glass-border',
         'shadow-[4px_0_24px_rgba(0,0,0,0.03)] dark:shadow-[4px_0_32px_rgba(0,0,0,0.45)]',
-        'transition-all duration-200 relative overflow-hidden select-none'
+        'transition-all duration-200 overflow-hidden select-none'
       )}
       animate={{ width: collapsed ? 80 : 256 }}
       transition={shouldReduceMotion ? { duration: 0 } : spring.snappy}
@@ -113,8 +114,34 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth }) {
         )}
       </div>
 
+      {/* Desktop Command Palette Quick Search Button */}
+      <div className="px-3 pt-3 pb-1 relative z-10">
+        <button
+          type="button"
+          onClick={onOpenCommand}
+          className={clsx(
+            'w-full flex items-center gap-2.5 p-2 rounded-2xl border transition-all text-left cursor-pointer min-h-[40px]',
+            'bg-slate-100/90 hover:bg-slate-200/90 border-slate-200/90 text-slate-700',
+            'dark:bg-white/[0.04] dark:hover:bg-white/[0.08] dark:border-white/10 dark:text-ink-muted dark:hover:text-ink',
+            collapsed ? 'justify-center' : 'justify-between'
+          )}
+          title="Command Palette (Cmd+K / Ctrl+K)"
+          aria-label="Command Palette (Cmd+K / Ctrl+K)"
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <Search size={16} className="text-amber-500 shrink-0" />
+            {!collapsed && <span className="text-xs truncate font-medium">Quick Search...</span>}
+          </div>
+          {!collapsed && (
+            <kbd className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white dark:bg-white/10 text-slate-500 dark:text-white/60 border border-slate-200 dark:border-white/10 shadow-2xs">
+              ⌘K
+            </kbd>
+          )}
+        </button>
+      </div>
+
       {/* Nav items */}
-      <nav className="flex-1 py-4 px-3 space-y-1.5 overflow-y-auto relative z-10" aria-label="Desktop Navigation">
+      <nav className="flex-1 py-2 px-3 space-y-1.5 overflow-y-auto relative z-10" aria-label="Desktop Navigation">
         {navItems.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}

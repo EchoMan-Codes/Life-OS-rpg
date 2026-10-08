@@ -58,7 +58,7 @@ export function StepAuth({
   const [newPassword, setNewPassword] = useState('');
   const [isSendingReset, setIsSendingReset] = useState(false);
 
-  const { login, register, isLoggingIn, isRegistering } = useAuth();
+  const { login, register, isLoggingIn, isRegistering, sessionExpired, sessionExpiredMessage } = useAuth();
   const { triggerTransition } = useJeevanTransition();
   const isSubmitting = isLoggingIn || isRegistering || isSendingReset;
 
@@ -123,6 +123,9 @@ export function StepAuth({
       }
       try {
         await register({ email, password, displayName: displayName.trim() });
+        try {
+          localStorage.setItem('lifeos_onboarding_completed', 'true');
+        } catch {}
         await triggerTransition({
           variant: 'full',
           message: 'Welcome to Jeevan',
@@ -152,6 +155,9 @@ export function StepAuth({
     // Login mode
     try {
       await login({ email, password });
+      try {
+        localStorage.setItem('lifeos_onboarding_completed', 'true');
+      } catch {}
       if (rememberMe) {
         localStorage.setItem('lifeos_remember_me', 'true');
         localStorage.setItem('lifeos_saved_email', email);
@@ -277,6 +283,17 @@ export function StepAuth({
           OR
         </span>
       </div>
+
+      {/* Friendly Session Expired Notice */}
+      {sessionExpired && (
+        <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200 flex items-start gap-2.5 shadow-sm">
+          <AlertCircle size={15} className="shrink-0 mt-0.5 text-amber-400" />
+          <span className="leading-snug">
+            {sessionExpiredMessage ||
+              'Your session expired. We saved your draft inputs. Please sign in to continue.'}
+          </span>
+        </div>
+      )}
 
       {/* ── 3. Email & Password Credentials Form ── */}
       <form onSubmit={handleSubmit} className="space-y-3">

@@ -32,7 +32,7 @@ export const Card = forwardRef(function Card(
     // Depth Level 1: Standard quiet glass surface
     default: clsx(
       'bg-white/90 border border-slate-200/80 text-slate-800',
-      'dark:bg-obsidian-900/65 dark:border-white/[0.10] dark:text-ink',
+      'dark:bg-obsidian-900/50 dark:border-white/[0.09] dark:text-ink',
       'backdrop-blur-2xl rounded-3xl',
       'shadow-[0_8px_30px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.02)]',
       'dark:shadow-[0_8px_32px_rgba(0,0,0,0.37),inset_0_1px_0_rgba(255,255,255,0.12)]'
@@ -40,20 +40,20 @@ export const Card = forwardRef(function Card(
     // Depth Level 2: Elevated card with top-edge hairline highlight & deeper ambient shadow
     elevated: clsx(
       'bg-white/95 border border-slate-200/90 text-slate-900',
-      'dark:bg-obsidian-900/80 dark:border-white/[0.14] dark:text-ink',
+      'dark:bg-obsidian-900/65 dark:border-white/[0.12] dark:text-ink',
       'backdrop-blur-2xl rounded-3xl',
       'shadow-[0_12px_36px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.8)]',
-      'dark:shadow-[0_14px_40px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.16)]'
+      'dark:shadow-[0_14px_40px_rgba(0,0,0,0.45),inset_0_1px_1px_rgba(255,255,255,0.16)]'
     ),
     // Depth Level 2-3: Interactive surface with hover lift & shadow bloom
     interactive: clsx(
       'bg-white/92 border border-slate-200/90 text-slate-900',
-      'dark:bg-obsidian-900/70 dark:border-white/[0.12] dark:text-ink',
+      'dark:bg-obsidian-900/55 dark:border-white/[0.10] dark:text-ink',
       'backdrop-blur-2xl rounded-3xl',
       'shadow-[0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.35)]',
       'hover:shadow-[0_16px_40px_rgba(0,0,0,0.08),inset_0_1px_1px_rgba(255,255,255,0.9)]',
       'dark:hover:shadow-[0_16px_48px_rgba(0,0,0,0.55),inset_0_1px_1px_rgba(255,255,255,0.22)]',
-      'hover:border-slate-300 dark:hover:border-white/25',
+      'hover:border-slate-300 dark:hover:border-white/25 dark:hover:bg-obsidian-900/70',
       'hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985]',
       'transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1) cursor-pointer'
     ),

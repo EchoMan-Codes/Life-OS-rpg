@@ -19,6 +19,7 @@ import {
   User as UserIcon,
 } from 'lucide-react';
 
+import { useKeyboard } from '@/hooks/useKeyboard';
 import { useAuth } from '@/features/auth/hooks';
 import { useAutoHideNav } from '@/hooks/useAutoHideNav';
 import { openBattleLogDrawer, openAttributesDrawer } from '@/features/celebration/celebrationEvents';
@@ -70,15 +71,17 @@ const moreNavItems = [
 
 /**
  * Mobile iOS-inspired floating rounded glassy navbar.
- * Features intelligent auto-hide on intentional scroll-down, spring return on scroll-up/idle,
- * sliding glass active tab pill, and haptic feedback.
+ * Features intelligent auto-hide on intentional scroll-down and keyboard visibility,
+ * spring return on scroll-up/idle, sliding glass active tab pill, and haptic feedback.
  */
 export function BottomNav({ onOpenAuth }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const location = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
+  const { isKeyboardVisible } = useKeyboard();
 
-  const isNavVisible = useAutoHideNav({ disabled: moreOpen });
+  const isScrollNavVisible = useAutoHideNav({ disabled: moreOpen });
+  const isNavVisible = isScrollNavVisible && !isKeyboardVisible;
   const isMoreActive = ['/profile', '/focus', '/reflection', '/shop'].includes(location.pathname);
 
   const triggerHaptic = useCallback(() => {

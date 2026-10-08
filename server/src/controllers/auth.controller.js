@@ -23,6 +23,7 @@ export class AuthController {
         data: {
           user: result.user,
           accessToken: result.accessToken,
+          refreshToken: result.rawRefreshToken,
         },
       });
     } catch (err) {
@@ -47,6 +48,7 @@ export class AuthController {
         data: {
           user: result.user,
           accessToken: result.accessToken,
+          refreshToken: result.rawRefreshToken,
         },
       });
     } catch (err) {
@@ -55,7 +57,11 @@ export class AuthController {
   }
 
   async refresh(req, res, next) {
-    const rawRefreshToken = req.cookies[REFRESH_COOKIE_NAME];
+    const rawRefreshToken =
+      req.cookies[REFRESH_COOKIE_NAME] ||
+      req.headers['x-refresh-token'] ||
+      req.body?.refreshToken;
+
     if (!rawRefreshToken) {
       return res.status(401).json({
         error: {
@@ -81,6 +87,7 @@ export class AuthController {
         data: {
           user: result.user,
           accessToken: result.accessToken,
+          refreshToken: result.rawRefreshToken,
         },
       });
     } catch (err) {
@@ -92,7 +99,11 @@ export class AuthController {
 
   async logout(req, res, next) {
     try {
-      const rawRefreshToken = req.cookies[REFRESH_COOKIE_NAME];
+      const rawRefreshToken =
+        req.cookies[REFRESH_COOKIE_NAME] ||
+        req.headers['x-refresh-token'] ||
+        req.body?.refreshToken;
+
       if (rawRefreshToken) {
         await authService.logout({ rawRefreshToken });
       }

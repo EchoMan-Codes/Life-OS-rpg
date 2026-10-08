@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { setAccessToken, getAccessToken } from '@/lib/axios';
+import { setAccessToken, getAccessToken, setRefreshToken } from '@/lib/axios';
 import {
   loginUser,
   registerUser,
@@ -32,6 +32,12 @@ export function useMe() {
         try {
           const refreshed = await refreshToken();
           setAccessToken(refreshed.accessToken);
+          if (refreshed.refreshToken) {
+            setRefreshToken(refreshed.refreshToken);
+          }
+          try {
+            localStorage.setItem('lifeos_onboarding_completed', 'true');
+          } catch {}
           queryClient.invalidateQueries({ queryKey: ['character'] });
           queryClient.invalidateQueries({ queryKey: ['habits'] });
           queryClient.invalidateQueries({ queryKey: ['dailies'] });
@@ -59,6 +65,12 @@ export function useLogin() {
     mutationFn: loginUser,
     onSuccess: (data) => {
       setAccessToken(data.accessToken);
+      if (data.refreshToken) {
+        setRefreshToken(data.refreshToken);
+      }
+      try {
+        localStorage.setItem('lifeos_onboarding_completed', 'true');
+      } catch {}
       queryClient.setQueryData(ME_QUERY_KEY, data.user);
       queryClient.invalidateQueries({ queryKey: ['character'] });
       queryClient.invalidateQueries({ queryKey: ['habits'] });
@@ -80,6 +92,12 @@ export function useRegister() {
     mutationFn: registerUser,
     onSuccess: (data) => {
       setAccessToken(data.accessToken);
+      if (data.refreshToken) {
+        setRefreshToken(data.refreshToken);
+      }
+      try {
+        localStorage.setItem('lifeos_onboarding_completed', 'true');
+      } catch {}
       queryClient.setQueryData(ME_QUERY_KEY, data.user);
       queryClient.invalidateQueries({ queryKey: ['character'] });
       queryClient.invalidateQueries({ queryKey: ['habits'] });
@@ -200,12 +218,14 @@ export function useLogout() {
     mutationFn: logoutUser,
     onSuccess: () => {
       setAccessToken(null);
+      setRefreshToken(null);
       queryClient.setQueryData(ME_QUERY_KEY, null);
       queryClient.clear();
     },
     onError: () => {
       // Even if network fails, clear local credentials
       setAccessToken(null);
+      setRefreshToken(null);
       queryClient.setQueryData(ME_QUERY_KEY, null);
     },
   });
@@ -225,12 +245,18 @@ export function useAuth() {
   const resetSectionMutation = useResetSection();
   const deleteAccountMutation = useDeleteAccount();
   const [sessionExpired, setSessionExpired] = useState(false);
+  const [sessionExpiredMessage, setSessionExpiredMessage] = useState('');
 
   useEffect(() => {
-    const handleSessionExpired = () => {
+    const handleSessionExpired = (e) => {
       setAccessToken(null);
+      setRefreshToken(null);
       queryClient.setQueryData(ME_QUERY_KEY, null);
       setSessionExpired(true);
+      setSessionExpiredMessage(
+        e.detail?.message ||
+        'Your session has expired. We preserved your form drafts. Please sign in to resume.'
+      );
     };
 
     window.addEventListener('lifeos:session-expired', handleSessionExpired);
@@ -245,7 +271,11 @@ export function useAuth() {
     isLoading,
     error,
     sessionExpired,
-    resetSessionExpired: () => setSessionExpired(false),
+    sessionExpiredMessage,
+    resetSessionExpired: () => {
+      setSessionExpired(false);
+      setSessionExpiredMessage('');
+    },
     login: loginMutation.mutateAsync,
     isLoggingIn: loginMutation.isPending,
     loginError: loginMutation.error,

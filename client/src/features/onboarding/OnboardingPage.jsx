@@ -287,7 +287,7 @@ export default function OnboardingPage({ defaultMode = 'onboarding' }) {
   }
 
   return (
-    <div className="relative min-h-[100dvh] w-full bg-[#07080C] text-ink overflow-x-hidden flex flex-col justify-between selection:bg-purple-600 selection:text-white">
+    <div className="relative min-h-screen w-full bg-[#07080C] text-ink overflow-x-hidden flex flex-col justify-between selection:bg-purple-600 selection:text-white">
       {/* ── Background Atmospheric Accents ── */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[140px]" />

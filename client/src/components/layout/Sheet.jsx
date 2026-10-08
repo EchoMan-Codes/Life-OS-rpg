@@ -64,11 +64,15 @@ export function Sheet({ isOpen, onClose, className, children }) {
             ref={sheetRef}
             role="dialog"
             aria-modal="true"
+            style={{
+              bottom: 'var(--keyboard-inset-bottom, 0px)',
+              paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom, 0px))',
+            }}
             className={clsx(
-              'absolute bottom-0 inset-x-0',
+              'absolute inset-x-0',
               'bg-obsidian-900 border-t border-glass-border',
               'rounded-t-panel',
-              'max-h-[85vh] overflow-y-auto',
+              'max-h-[calc(85vh-var(--keyboard-inset-bottom,0px))] overflow-y-auto transition-[bottom,max-height] duration-200',
               className
             )}
             drag="y"

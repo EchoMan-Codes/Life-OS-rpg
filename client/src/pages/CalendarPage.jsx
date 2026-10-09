@@ -25,6 +25,7 @@ import {
   useDeleteCalendarEvent,
 } from '@/features/calendar/hooks';
 import { useTasks } from '@/features/tasks/hooks';
+import { SelectDropdown } from '@/components/ui';
 import { spring } from '@/lib/motionVariants';
 
 const VIEWS = ['day', 'week', 'month'];
@@ -681,19 +682,17 @@ function ScheduleModal({ isOpen, onClose, initialSlot, backlogTasks }) {
                   No active tasks found in your backlog. Switch to Event mode or create a task first!
                 </div>
               ) : (
-                <select
+                <SelectDropdown
+                  label="SELECT TASK FROM BACKLOG"
                   value={selectedTaskId}
-                  onChange={(e) => setSelectedTaskId(e.target.value)}
-                  required
-                  className="w-full p-2.5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-800 dark:text-ink"
-                >
-                  <option value="">-- Choose Task --</option>
-                  {backlogTasks.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      [{t.projectName}] {t.title}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setSelectedTaskId}
+                  options={backlogTasks.map((t) => ({
+                    value: t.id,
+                    label: t.title,
+                    badge: t.projectName || 'Task',
+                  }))}
+                  placeholder="-- Choose Task --"
+                />
               )}
             </div>
           ) : (
@@ -727,56 +726,50 @@ function ScheduleModal({ isOpen, onClose, initialSlot, backlogTasks }) {
             </div>
 
             <div>
-              <label className="text-[11px] font-mono text-slate-500 dark:text-ink-muted block mb-1">
-                DURATION
-              </label>
-              <select
+              <SelectDropdown
+                label="DURATION"
                 value={durationMinutes}
-                onChange={(e) => setDurationMinutes(e.target.value)}
-                className="w-full p-2 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-mono text-slate-800 dark:text-ink"
-              >
-                <option value={15}>15 mins</option>
-                <option value={30}>30 mins</option>
-                <option value={45}>45 mins</option>
-                <option value={60}>60 mins</option>
-                <option value={90}>90 mins</option>
-                <option value={120}>120 mins</option>
-              </select>
+                onChange={(val) => setDurationMinutes(val)}
+                options={[
+                  { value: 15, label: '15 mins' },
+                  { value: 30, label: '30 mins' },
+                  { value: 45, label: '45 mins' },
+                  { value: 60, label: '60 mins' },
+                  { value: 90, label: '90 mins' },
+                  { value: 120, label: '120 mins' },
+                ]}
+              />
             </div>
           </div>
 
           {mode === 'event' && (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-[11px] font-mono text-slate-500 dark:text-ink-muted block mb-1">
-                  CATEGORY
-                </label>
-                <select
+                <SelectDropdown
+                  label="CATEGORY"
                   value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full p-2 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs text-slate-800 dark:text-ink capitalize"
-                >
-                  <option value="deep_work">Deep Work</option>
-                  <option value="meeting">Meeting</option>
-                  <option value="general">General</option>
-                  <option value="health">Health</option>
-                </select>
+                  onChange={setCategory}
+                  options={[
+                    { value: 'deep_work', label: 'Deep Work', color: '#8B5CF6' },
+                    { value: 'meeting', label: 'Meeting', color: '#3B82F6' },
+                    { value: 'general', label: 'General', color: '#6366F1' },
+                    { value: 'health', label: 'Health', color: '#EC4899' },
+                  ]}
+                />
               </div>
 
               <div>
-                <label className="text-[11px] font-mono text-slate-500 dark:text-ink-muted block mb-1">
-                  RECURRENCE
-                </label>
-                <select
+                <SelectDropdown
+                  label="RECURRENCE"
                   value={recurrence}
-                  onChange={(e) => setRecurrence(e.target.value)}
-                  className="w-full p-2 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs text-slate-800 dark:text-ink capitalize"
-                >
-                  <option value="none">Does not repeat</option>
-                  <option value="daily">Daily</option>
-                  <option value="weekdays">Every Weekday (M-F)</option>
-                  <option value="weekly">Weekly</option>
-                </select>
+                  onChange={setRecurrence}
+                  options={[
+                    { value: 'none', label: 'Does not repeat' },
+                    { value: 'daily', label: 'Daily' },
+                    { value: 'weekdays', label: 'Every Weekday (M-F)' },
+                    { value: 'weekly', label: 'Weekly' },
+                  ]}
+                />
               </div>
             </div>
           )}

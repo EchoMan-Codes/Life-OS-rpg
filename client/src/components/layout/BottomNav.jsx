@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 import {
@@ -30,78 +30,104 @@ import { openBattleLogDrawer, openAttributesDrawer } from '@/features/celebratio
 import { spring, pressableMobileNav } from '@/lib/motionVariants';
 import { ModeButton } from '@/components/ui/ModeButton';
 import { JeevanLogo } from '@/components/ui/JeevanLogo';
+import { FeatureCardCarousel } from '@/components/ui/FeatureCardCarousel';
 
 const primaryNavItems = [
-  { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/', icon: LayoutDashboard, label: 'Home' },
   { to: '/calendar', icon: CalendarDays, label: 'Calendar' },
   { to: '/tasks', icon: CheckSquare, label: 'Tasks' },
   { to: '/focus', icon: Clock, label: 'Focus' },
+  { to: '/insights', icon: TrendingUp, label: 'Insights' },
 ];
 
-const moreNavItems = [
+const featureCarouselItems = [
   {
-    to: '/ai',
-    icon: Sparkles,
-    label: 'Jeevan AI',
-    desc: 'Action-oriented personal AI strategist',
-    color: 'text-amber-500 dark:text-amber-400',
-    bg: 'bg-amber-500/15 border-amber-500/30',
-  },
-  {
-    to: '/insights',
-    icon: TrendingUp,
-    label: 'Weekly Insights',
-    desc: 'Deep work trends, completion rates & reviews',
-    color: 'text-indigo-600 dark:text-indigo-400',
-    bg: 'bg-indigo-500/15 border-indigo-500/30',
-  },
-  {
-    to: '/habits',
-    icon: Flame,
-    label: 'Habits',
-    desc: 'Positive momentum & streak building',
-    color: 'text-orange-500 dark:text-orange-400',
-    bg: 'bg-orange-500/15 border-orange-500/30',
-  },
-  {
-    to: '/dailies',
-    icon: CalendarCheck,
-    label: 'Dailies',
-    desc: 'Non-negotiable daily recurring commitments',
-    color: 'text-emerald-500 dark:text-emerald-400',
-    bg: 'bg-emerald-500/15 border-emerald-500/30',
-  },
-  {
-    to: '/quests',
-    icon: Scroll,
-    label: 'Quests',
-    desc: 'Milestone roadmaps & long-term goals',
-    color: 'text-purple-500 dark:text-purple-400',
-    bg: 'bg-purple-500/15 border-purple-500/30',
-  },
-  {
-    to: '/profile',
-    icon: UserIcon,
-    label: 'Character Profile',
-    desc: '5 attributes, level progression & radar',
-    color: 'text-sky-500 dark:text-sky-400',
-    bg: 'bg-sky-500/15 border-sky-500/30',
-  },
-  {
-    to: '/reflection',
+    id: 'theme',
+    category: 'DISPLAY',
+    badge: 'Crystal Light',
     icon: Moon,
-    label: 'Evening Reflection',
-    desc: 'Mindful decompression & 30d heatmap',
-    color: 'text-teal-400',
-    bg: 'bg-teal-500/15 border-teal-500/30',
+    iconBg: 'bg-indigo-600 text-white dark:bg-white dark:text-slate-900',
+    title: 'Appearance & Theme',
+    description: 'Customize light, dark & glassmorphism visuals across your OS.',
+    path: '/profile',
+    actionLabel: 'Active Section',
   },
   {
-    to: '/shop',
+    id: 'ai',
+    category: 'INTELLIGENCE',
+    badge: 'Adaptive AI',
+    icon: Sparkles,
+    iconBg: 'bg-amber-500 text-slate-950',
+    title: 'Jeevan AI Strategist',
+    description: 'Conversational reasoning, schedule optimization, and auto task actions.',
+    path: '/ai',
+    actionLabel: 'Consult AI',
+  },
+  {
+    id: 'dailies',
+    category: 'RITUALS',
+    badge: 'Recurring',
+    icon: CalendarCheck,
+    iconBg: 'bg-emerald-500 text-white',
+    title: 'Daily Rituals',
+    description: 'Conquer non-negotiable daily recurring commitments and protect streaks.',
+    path: '/dailies',
+    actionLabel: 'Conquer Dailies',
+  },
+  {
+    id: 'habits',
+    category: 'DISCIPLINES',
+    badge: 'Momentum',
+    icon: Flame,
+    iconBg: 'bg-orange-500 text-white',
+    title: 'Habit Momentum',
+    description: 'Score positive and negative disciplines, building compounding momentum.',
+    path: '/habits',
+    actionLabel: 'Build Streaks',
+  },
+  {
+    id: 'quests',
+    category: 'ROADMAPS',
+    badge: 'Milestones',
+    icon: Scroll,
+    iconBg: 'bg-purple-500 text-white',
+    title: 'Campaign Quests',
+    description: 'Break down major life milestones into multi-step RPG campaign roadmaps.',
+    path: '/quests',
+    actionLabel: 'View Quests',
+  },
+  {
+    id: 'reflection',
+    category: 'WELLNESS',
+    badge: '30d Heatmap',
+    icon: Moon,
+    iconBg: 'bg-teal-500 text-white',
+    title: 'Evening Reflection',
+    description: 'Mindful daily decompression, mood tracking, and 30-day cognitive heatmap.',
+    path: '/reflection',
+    actionLabel: 'Begin Reflection',
+  },
+  {
+    id: 'shop',
+    category: 'ECONOMY',
+    badge: 'Gold Vault',
     icon: ShoppingBag,
-    label: 'Reward Shop',
-    desc: 'Spend hard-earned gold on custom rewards',
-    color: 'text-gold',
-    bg: 'bg-gold/15 border-gold/30',
+    iconBg: 'bg-yellow-500 text-slate-950',
+    title: 'Reward Shop',
+    description: 'Spend hard-earned gold coins on custom real-life rewards and gear.',
+    path: '/shop',
+    actionLabel: 'Explore Loot',
+  },
+  {
+    id: 'profile',
+    category: 'HERO',
+    badge: 'Radar Astrolabe',
+    icon: UserIcon,
+    iconBg: 'bg-sky-500 text-white',
+    title: 'Character Profile',
+    description: 'Inspect 5 attributes, level progression tiers, and battle history.',
+    path: '/profile',
+    actionLabel: 'View Profile',
   },
 ];
 
@@ -113,6 +139,7 @@ const moreNavItems = [
 export function BottomNav({ onOpenAuth }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
   const { isKeyboardVisible } = useKeyboard();
 
@@ -308,32 +335,15 @@ export function BottomNav({ onOpenAuth }) {
                 </div>
               </div>
 
-              {/* Navigation Grid (Adaptive Frosted Glass Tiles) */}
-              <div className="space-y-2.5 pt-1">
-                {moreNavItems.map(({ to, icon: Icon, label, desc, color, bg }) => (
-                  <NavLink
-                    key={to}
-                    to={to}
-                    onClick={() => setMoreOpen(false)}
-                    className={({ isActive }) =>
-                      clsx(
-                        'flex items-center gap-3.5 p-3.5 rounded-2xl border transition-all duration-200 min-h-[58px]',
-                        'backdrop-blur-md shadow-xs active:scale-[0.98]',
-                        isActive
-                          ? 'bg-indigo-50/90 border-indigo-200/80 text-indigo-950 dark:bg-white/[0.10] dark:border-white/25 dark:text-ink'
-                          : 'bg-white/80 border-slate-200/80 hover:bg-slate-50 text-slate-700 hover:text-slate-900 dark:bg-white/[0.04] dark:border-white/10 dark:hover:bg-white/[0.08] dark:text-ink-muted dark:hover:text-ink'
-                      )
-                    }
-                  >
-                    <div className={clsx('w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 shadow-inner', bg, color)}>
-                      <Icon size={19} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-xs font-bold text-slate-900 dark:text-ink leading-tight">{label}</div>
-                      <div className="text-[11px] text-slate-500 dark:text-ink-muted leading-tight mt-0.5 truncate">{desc}</div>
-                    </div>
-                  </NavLink>
-                ))}
+              {/* Feature Scrolling Cards (Horizontal Deck matching design) */}
+              <div className="pt-1">
+                <FeatureCardCarousel
+                  items={featureCarouselItems}
+                  onSelect={(item) => {
+                    setMoreOpen(false);
+                    navigate(item.path);
+                  }}
+                />
               </div>
 
               {/* RPG Quick Utilities */}

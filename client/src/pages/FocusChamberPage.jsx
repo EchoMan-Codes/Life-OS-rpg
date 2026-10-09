@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import {
@@ -16,6 +16,9 @@ import {
   Clock,
   Layers,
   BarChart3,
+  Plus,
+  Target,
+  CheckSquare,
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -29,7 +32,8 @@ import {
   useFocusSummary,
   useFocusTimer,
 } from '@/features/focus/hooks';
-import { useTasks } from '@/features/tasks/hooks';
+import { useTasks, useCreateTask } from '@/features/tasks/hooks';
+import { SelectDropdown } from '@/components/ui';
 import { ambientSound } from '@/lib/ambientSound';
 import { playSound } from '@/lib/sound';
 import { spring } from '@/lib/motionVariants';
@@ -55,6 +59,8 @@ export default function FocusChamberPage() {
   const [selectedDuration, setSelectedDuration] = useState(1500);
   const [selectedAmbient, setSelectedAmbient] = useState('silence');
   const [selectedTaskId, setSelectedTaskId] = useState('');
+  const [isAddingQuickTask, setIsAddingQuickTask] = useState(false);
+  const [quickTaskTitle, setQuickTaskTitle] = useState('');
   const [showAbandonConfirm, setShowAbandonConfirm] = useState(false);
   const [completedResult, setCompletedResult] = useState(null);
 
@@ -68,6 +74,59 @@ export default function FocusChamberPage() {
   const resumeMutation = useResumeFocusSession();
   const completeMutation = useCompleteFocusSession();
   const abandonMutation = useAbandonFocusSession();
+  const createTaskMutation = useCreateTask();
+
+  // Rich task options for link to task
+  const taskOptions = useMemo(() => {
+    const list = [
+      {
+        value: '',
+        label: '✨ Free Flow Sprint (No Task Linked)',
+        description: 'Unlinked deep work sprint without associating a backlog item',
+        color: '#818CF8',
+      },
+    ];
+
+    activeTasks.forEach((t) => {
+      const pColor =
+        t.priority === 'critical'
+          ? '#EF4444'
+          : t.priority === 'high'
+          ? '#F59E0B'
+          : t.priority === 'medium'
+          ? '#3B82F6'
+          : '#94A3B8';
+
+      list.push({
+        value: t.id,
+        label: t.title,
+        description: `[${t.projectName || 'General'}] • ${t.priority || 'medium'} priority`,
+        color: pColor,
+        badge: t.estimatedDurationMinutes ? `${t.estimatedDurationMinutes}m est` : (t.projectName || 'Task'),
+      });
+    });
+
+    return list;
+  }, [activeTasks]);
+
+  const handleCreateAndLinkTask = async (e) => {
+    e.preventDefault();
+    if (!quickTaskTitle.trim()) return;
+    try {
+      const created = await createTaskMutation.mutateAsync({
+        title: quickTaskTitle.trim(),
+        priority: 'high',
+        projectName: 'Focus Sprints',
+      });
+      if (created?.id) {
+        setSelectedTaskId(created.id);
+      }
+      setQuickTaskTitle('');
+      setIsAddingQuickTask(false);
+    } catch (err) {
+      console.error('Failed to create quick task:', err);
+    }
+  };
 
   // Active timer
   const timer = useFocusTimer(currentSession);
@@ -380,23 +439,88 @@ export default function FocusChamberPage() {
               </p>
             </div>
 
-            {/* Optional Task Link Selector */}
-            <div className="w-full text-left space-y-1.5">
-              <label className="text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-ink-muted block pl-1">
-                Link to Task (Optional)
-              </label>
-              <select
+            {/* Optional Task Link Selector with Rich Options & Quick Creation */}
+            <div className="w-full text-left space-y-2">
+              <div className="flex items-center justify-between pl-1">
+                <label className="text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-ink-muted flex items-center gap-1.5">
+                  <Target size={13} className="text-indigo-400" />
+                  <span>Link to Task (Optional)</span>
+                </label>
+
+                <button
+                  type="button"
+                  onClick={() => setIsAddingQuickTask((prev) => !prev)}
+                  className="text-[11px] font-semibold text-indigo-500 hover:text-indigo-400 flex items-center gap-1 transition-colors"
+                >
+                  <Plus size={13} />
+                  <span>{isAddingQuickTask ? 'Cancel' : '+ New Task'}</span>
+                </button>
+              </div>
+
+              {/* Inline Quick Task Creation Form */}
+              {isAddingQuickTask && (
+                <form
+                  onSubmit={handleCreateAndLinkTask}
+                  className="flex items-center gap-2 p-2 rounded-2xl bg-indigo-50/50 dark:bg-indigo-500/10 border border-indigo-200/80 dark:border-indigo-500/30"
+                >
+                  <input
+                    type="text"
+                    value={quickTaskTitle}
+                    onChange={(e) => setQuickTaskTitle(e.target.value)}
+                    placeholder="Enter task title to focus on..."
+                    autoFocus
+                    className="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-black/30 border border-slate-200 dark:border-white/10 text-xs font-medium text-slate-900 dark:text-ink placeholder:text-slate-400 focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    disabled={createTaskMutation.isPending || !quickTaskTitle.trim()}
+                    className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition-colors shrink-0 disabled:opacity-50"
+                  >
+                    Create & Link
+                  </button>
+                </form>
+              )}
+
+              {/* Dropdown with Rich Options */}
+              <SelectDropdown
                 value={selectedTaskId}
-                onChange={(e) => setSelectedTaskId(e.target.value)}
-                className="w-full p-3 rounded-2xl bg-white/80 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-800 dark:text-ink backdrop-blur-md"
-              >
-                <option value="">-- Unlinked Sprint --</option>
-                {activeTasks.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    [{t.projectName}] {t.title}
-                  </option>
-                ))}
-              </select>
+                onChange={setSelectedTaskId}
+                options={taskOptions}
+                placeholder="Choose a task backlog item to link..."
+              />
+
+              {/* Selected Task Highlight Card */}
+              {activeTasks.find((t) => t.id === selectedTaskId) && (
+                <div className="flex items-center justify-between p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 backdrop-blur-md">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+                      <CheckSquare size={16} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-slate-900 dark:text-ink truncate">
+                        {activeTasks.find((t) => t.id === selectedTaskId)?.title}
+                      </div>
+                      <div className="text-[10px] text-slate-500 dark:text-ink-muted flex items-center gap-2 mt-0.5">
+                        <span className="font-mono text-indigo-400 font-semibold">
+                          [{activeTasks.find((t) => t.id === selectedTaskId)?.projectName || 'General'}]
+                        </span>
+                        <span>•</span>
+                        <span className="capitalize">{activeTasks.find((t) => t.id === selectedTaskId)?.priority} Priority</span>
+                        <span>•</span>
+                        <span>+25 XP upon finish</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTaskId('')}
+                    className="p-1 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                    title="Unlink Task"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Duration Preset Cards */}

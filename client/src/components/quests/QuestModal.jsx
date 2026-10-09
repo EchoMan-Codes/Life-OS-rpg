@@ -7,6 +7,7 @@ import clsx from 'clsx';
 import { modalPanel } from '@/lib/motionVariants';
 import { useCreateQuest, useUpdateQuest } from '@/features/quests/hooks';
 import { JeevanLoader } from '@/components/ui/JeevanLoader';
+import { SelectDropdown } from '@/components/ui/SelectDropdown';
 import { useJeevanTransition } from '@/context/JeevanTransitionContext';
 import { notificationService } from '@/lib/notifications';
 import { computeNextFireTimes } from '@/lib/scheduler';
@@ -307,19 +308,19 @@ function QuestForm({ questToEdit, onClose }) {
 
               {/* Days Before if selected */}
               {reminderFrequency === 'days_before' && (
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 min-w-[140px]">
                   <label className="text-[11px] font-semibold text-ink-muted">Days Prior</label>
-                  <select
+                  <SelectDropdown
                     value={reminderDaysBefore}
-                    onChange={(e) => setReminderDaysBefore(Number(e.target.value))}
-                    className="px-3 py-1.5 rounded-xl bg-slate-900 border border-white/10 text-ink text-xs focus:outline-none focus:border-white/30"
-                  >
-                    <option value={1}>1 day before</option>
-                    <option value={2}>2 days before</option>
-                    <option value={3}>3 days before</option>
-                    <option value={5}>5 days before</option>
-                    <option value={7}>1 week before</option>
-                  </select>
+                    onChange={(val) => setReminderDaysBefore(Number(val))}
+                    options={[
+                      { value: 1, label: '1 day before' },
+                      { value: 2, label: '2 days before' },
+                      { value: 3, label: '3 days before' },
+                      { value: 5, label: '5 days before' },
+                      { value: 7, label: '1 week before' },
+                    ]}
+                  />
                 </div>
               )}
             </div>

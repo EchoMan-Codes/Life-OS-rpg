@@ -13,6 +13,7 @@ import clsx from 'clsx';
 
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { SelectDropdown } from '@/components/ui/SelectDropdown';
 import { ShopItemIcon } from './shopIcons';
 import { useBuyItem } from '@/features/shop/hooks';
 import { useDailies } from '@/features/dailies/hooks';
@@ -185,21 +186,20 @@ export function ItemInspectionModal({
                 <span>You have no active dailies. Create a daily ritual first!</span>
               </div>
             ) : (
-              <select
+              <SelectDropdown
                 value={selectedDailyId}
-                onChange={(e) => setSelectedDailyId(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-obsidian-800 border border-glass-border text-ink text-xs focus:border-attr-intelligence focus:outline-none"
-              >
-                {dailies.map((daily) => {
+                onChange={(val) => setSelectedDailyId(val)}
+                options={dailies.map((daily) => {
                   const charges = daily.streak_shield_charges || 0;
                   const isMaxed = charges >= 3;
-                  return (
-                    <option key={daily.id} value={daily.id} disabled={isMaxed}>
-                      {daily.title} — {charges}/3 Charges {isMaxed ? '(MAX)' : ''}
-                    </option>
-                  );
+                  return {
+                    value: daily.id,
+                    label: `${daily.title} (${charges}/3 Charges)${isMaxed ? ' [MAX]' : ''}`,
+                    disabled: isMaxed,
+                  };
                 })}
-              </select>
+                className="w-full"
+              />
             )}
 
             {targetDaily && (

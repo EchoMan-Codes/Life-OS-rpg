@@ -7,6 +7,7 @@ import clsx from 'clsx';
 import { modalPanel } from '@/lib/motionVariants';
 import { useCreateDaily, useUpdateDaily } from '@/features/dailies/hooks';
 import { JeevanLoader } from '@/components/ui/JeevanLoader';
+import { SelectDropdown } from '@/components/ui/SelectDropdown';
 import { useJeevanTransition } from '@/context/JeevanTransitionContext';
 import { notificationService } from '@/lib/notifications';
 import { computeNextFireTimes } from '@/lib/scheduler';
@@ -208,17 +209,15 @@ function DailyForm({ dailyToEdit, onClose }) {
           <label className="block text-[11px] font-semibold text-slate-700 dark:text-ink-muted mb-1">
             Duration
           </label>
-          <select
+          <SelectDropdown
             value={durationMinutes}
-            onChange={(e) => setDurationMinutes(Number(e.target.value))}
-            className="w-full px-3 py-2 rounded-xl bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/10 text-xs text-slate-900 dark:text-ink focus:outline-none focus:ring-1 focus:ring-indigo-500"
-          >
-            {DURATIONS.map((mins) => (
-              <option key={mins} value={mins} className="bg-slate-900 text-white">
-                {mins} minutes
-              </option>
-            ))}
-          </select>
+            onChange={(val) => setDurationMinutes(Number(val))}
+            options={DURATIONS.map((mins) => ({
+              value: mins,
+              label: `${mins} minutes`,
+            }))}
+            className="w-full"
+          />
         </div>
       </div>
 

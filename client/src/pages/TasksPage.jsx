@@ -32,6 +32,7 @@ import {
   useUncompleteTask,
   useDeleteTask,
 } from '@/features/tasks/hooks';
+import { SelectDropdown } from '@/components/ui';
 import { spring } from '@/lib/motionVariants';
 
 const TABS = [
@@ -49,6 +50,13 @@ const PRIORITY_BADGES = {
   high: { bg: 'bg-amber-500/10 text-amber-400 border-amber-500/20', label: 'High' },
   critical: { bg: 'bg-rose-500/10 text-rose-400 border-rose-500/20', label: 'Critical' },
 };
+
+const PRIORITY_OPTIONS = [
+  { value: 'low', label: 'Low', color: '#94A3B8' },
+  { value: 'medium', label: 'Medium', color: '#3B82F6' },
+  { value: 'high', label: 'High', color: '#F59E0B' },
+  { value: 'critical', label: 'Critical', color: '#EF4444' },
+];
 
 export default function TasksPage() {
   const [activeTab, setActiveTab] = useState('all');
@@ -162,16 +170,14 @@ export default function TasksPage() {
 
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end px-2">
           {/* Priority selector */}
-          <select
-            value={quickPriority}
-            onChange={(e) => setQuickPriority(e.target.value)}
-            className="p-1.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-mono text-slate-700 dark:text-ink capitalize"
-          >
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-            <option value="critical">Critical</option>
-          </select>
+          <div className="min-w-[130px] shrink-0">
+            <SelectDropdown
+              size="sm"
+              value={quickPriority}
+              onChange={setQuickPriority}
+              options={PRIORITY_OPTIONS}
+            />
+          </div>
 
           {/* Project selector */}
           <input
@@ -179,7 +185,7 @@ export default function TasksPage() {
             value={quickProject}
             onChange={(e) => setQuickProject(e.target.value)}
             placeholder="Project"
-            className="w-24 p-1.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs text-slate-700 dark:text-ink"
+            className="w-24 px-3 py-1.5 rounded-2xl bg-white/70 dark:bg-white/5 border border-slate-200/90 dark:border-white/10 text-xs text-slate-700 dark:text-ink focus:outline-none focus:ring-1 focus:ring-indigo-400"
           />
 
           <button
@@ -230,18 +236,21 @@ export default function TasksPage() {
             />
           </div>
 
-          <select
-            value={selectedProject}
-            onChange={(e) => setSelectedProject(e.target.value)}
-            className="p-1.5 rounded-xl bg-white/70 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-700 dark:text-ink"
-          >
-            <option value="all">All Projects</option>
-            {(summary.projects || []).map((p) => (
-              <option key={p.name} value={p.name}>
-                {p.name} ({p.count})
-              </option>
-            ))}
-          </select>
+          <div className="w-36 shrink-0">
+            <SelectDropdown
+              size="sm"
+              value={selectedProject}
+              onChange={setSelectedProject}
+              options={[
+                { value: 'all', label: 'All Projects' },
+                ...(summary.projects || []).map((p) => ({
+                  value: p.name,
+                  label: p.name,
+                  badge: `${p.count}`,
+                })),
+              ]}
+            />
+          </div>
         </div>
       </div>
 

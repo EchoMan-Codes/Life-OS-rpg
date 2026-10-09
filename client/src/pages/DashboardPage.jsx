@@ -46,7 +46,7 @@ import {
 } from 'recharts';
 import clsx from 'clsx';
 
-import { Card, ColorCard, WavyHeroScenery, ModeButton } from '@/components/ui';
+import { Card, ColorCard, WavyHeroScenery, ModeButton, FeatureCardCarousel } from '@/components/ui';
 import { TelemetryHorizonRibbon, RitualSpineDeck, AttributeAstrolabe, DesktopAiWidget } from '@/components/dashboard';
 import { useTheme } from '@/lib/theme';
 import { NotificationCenterModal } from '@/features/notifications/components/NotificationCenterModal';
@@ -771,6 +771,22 @@ export default function DashboardPage() {
         totalFocusMinutes={totalFocusMinutes}
         activeFocus={activeFocus}
       />
+
+      {/* ── Feature Discovery Deck (Scrolling Card Carousel matching design) ── */}
+      <div className="space-y-2 pt-1">
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold uppercase tracking-wider font-display text-slate-900 dark:text-ink">
+              System Chambers & Arsenal
+            </span>
+            <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+              Interactive Deck
+            </span>
+          </div>
+          <span className="text-[11px] text-slate-500 dark:text-ink-muted">Swipe cards</span>
+        </div>
+        <FeatureCardCarousel />
+      </div>
 
       {/* ── 3. Dedicated Mobile Segmented Switcher (iOS Frosted Glass Capsule) ── */}
       <div className="md:hidden sticky top-0 z-30 -mx-3 px-3 py-2 bg-white/45 dark:bg-[#07080C]/40 backdrop-blur-2xl border-y border-slate-200/60 dark:border-white/10">

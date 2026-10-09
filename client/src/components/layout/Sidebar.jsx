@@ -25,31 +25,42 @@ import {
 import { spring, pressable } from '@/lib/motionVariants';
 import { useAuth } from '@/features/auth/hooks';
 import { JeevanLogo } from '@/components/ui/JeevanLogo';
+import { openCalendarQuickAccess } from '@/components/calendar';
 
 /**
- * Grouped Navigation items for Command Center and RPG features.
+ * Priority-organized navigation groups for desktop Cupertino Light workspace.
+ * Highest frequency daily-action features appear first.
  */
 const navGroups = [
   {
-    title: 'Command Center',
+    title: 'Daily Actions',
     items: [
       { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-      { to: '/calendar', icon: CalendarDays, label: 'Calendar' },
+      { to: '/habits', icon: Flame, label: 'Habits' },
+      { to: '/dailies', icon: CalendarCheck, label: 'Dailies' },
       { to: '/tasks', icon: CheckSquare, label: 'Tasks' },
-      { to: '/focus', icon: Clock, label: 'Focus Chamber' },
-      { to: '/insights', icon: TrendingUp, label: 'Insights' },
-      { to: '/ai', icon: Sparkles, label: 'Jeevan AI' },
     ],
   },
   {
-    title: 'RPG System',
+    title: 'Campaign & Focus',
     items: [
-      { to: '/habits', icon: Flame, label: 'Habits' },
-      { to: '/dailies', icon: CalendarCheck, label: 'Dailies' },
       { to: '/quests', icon: Scroll, label: 'Quests' },
+      { to: '/focus', icon: Clock, label: 'Focus Chamber' },
+    ],
+  },
+  {
+    title: 'Arsenal & Profile',
+    items: [
       { to: '/shop', icon: ShoppingBag, label: 'Reward Shop' },
+      { to: '/profile', icon: User, label: 'Hero Profile' },
+    ],
+  },
+  {
+    title: 'Intelligence & Insights',
+    items: [
+      { to: '/ai', icon: Sparkles, label: 'Jeevan AI' },
+      { to: '/insights', icon: TrendingUp, label: 'Insights' },
       { to: '/reflection', icon: Moon, label: 'Reflection' },
-      { to: '/profile', icon: User, label: 'Profile' },
     ],
   },
 ];
@@ -133,7 +144,7 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth, onOpenCommand }) {
       </div>
 
       {/* Desktop Command Palette Quick Search Button */}
-      <div className="px-3 pt-3 pb-1 relative z-10">
+      <div className="px-3 pt-3 pb-1.5 relative z-10 space-y-1.5">
         <button
           type="button"
           onClick={onOpenCommand}
@@ -156,6 +167,30 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth, onOpenCommand }) {
             </kbd>
           )}
         </button>
+
+        {/* Global Quick Calendar Trigger */}
+        <button
+          type="button"
+          onClick={openCalendarQuickAccess}
+          className={clsx(
+            'w-full flex items-center gap-2.5 p-2 rounded-2xl border transition-all text-left cursor-pointer min-h-[40px]',
+            'bg-indigo-50/70 hover:bg-indigo-100/80 border-indigo-200/70 text-indigo-700',
+            'dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 dark:border-indigo-500/25 dark:text-indigo-300',
+            collapsed ? 'justify-center' : 'justify-between'
+          )}
+          title="Quick Calendar & Agenda"
+          aria-label="Quick Calendar & Agenda"
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <CalendarDays size={16} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
+            {!collapsed && <span className="text-xs truncate font-semibold">Quick Calendar</span>}
+          </div>
+          {!collapsed && (
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/90 dark:bg-white/10 text-indigo-700 dark:text-indigo-300 font-bold border border-indigo-200 dark:border-indigo-500/20 shadow-2xs">
+              Agenda
+            </span>
+          )}
+        </button>
       </div>
 
       {/* Nav items */}
@@ -163,7 +198,7 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth, onOpenCommand }) {
         {navGroups.map((group, groupIdx) => (
           <div key={group.title} className="space-y-1">
             {!collapsed ? (
-              <div className="px-3 pt-1 pb-1 text-[10px] font-semibold tracking-wider uppercase text-slate-400 dark:text-ink-muted/50">
+              <div className="px-3 pt-1 pb-1 text-[10px] font-bold tracking-wider uppercase text-slate-400 dark:text-ink-muted/50 font-display">
                 {group.title}
               </div>
             ) : groupIdx > 0 ? (
@@ -176,33 +211,33 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth, onOpenCommand }) {
                 className={({ isActive }) =>
                   clsx(
                     'group/item relative flex items-center gap-3 px-3 py-2 rounded-2xl',
-                    'text-xs font-medium transition-colors duration-150',
+                    'text-xs font-semibold transition-colors duration-150',
                     'min-h-[40px]',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-obsidian-950',
                     isActive
-                      ? 'text-indigo-600 dark:text-ink font-semibold'
-                      : 'text-slate-600 dark:text-ink-muted hover:text-slate-900 dark:hover:text-ink hover:bg-slate-100/60 dark:hover:bg-white/[0.04]'
+                      ? 'text-white dark:text-slate-950 font-bold'
+                      : 'text-slate-600 dark:text-ink-muted hover:text-slate-900 dark:hover:text-ink hover:bg-slate-100/70 dark:hover:bg-white/[0.04]'
                   )
                 }
               >
                 {({ isActive }) => (
                   <>
-                    {/* Active pill sliding indicator */}
+                    {/* Active pill sliding indicator — Cupertino solid contrast pill */}
                     {isActive && (
                       <motion.div
                         layoutId="desktop-active-nav-pill"
-                        className="absolute inset-0 rounded-2xl bg-indigo-500/10 dark:bg-indigo-500/20 border border-indigo-500/25 dark:border-indigo-400/30 shadow-xs pointer-events-none"
+                        className="absolute inset-0 rounded-2xl bg-slate-900 dark:bg-white shadow-xs pointer-events-none"
                         transition={shouldReduceMotion ? { duration: 0 } : spring.navbar}
                       />
                     )}
 
                     <Icon
-                      size={18}
+                      size={17}
                       className={clsx(
                         'shrink-0 relative z-10 transition-transform duration-150',
                         isActive
-                          ? 'text-indigo-600 dark:text-indigo-400 scale-105'
-                          : 'text-slate-500 dark:text-ink-muted group-hover/item:scale-105'
+                          ? 'text-white dark:text-slate-950 scale-105'
+                          : 'text-slate-500 dark:text-ink-muted group-hover/item:scale-105 group-hover/item:text-slate-900 dark:group-hover/item:text-ink'
                       )}
                     />
                     {!collapsed && <span className="truncate relative z-10">{label}</span>}

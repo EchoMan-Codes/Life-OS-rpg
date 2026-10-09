@@ -16,6 +16,7 @@ import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
 import { CommandPalette } from './CommandPalette';
 import { JeevanAiModal } from '@/features/ai/components/JeevanAiModal';
+import { GlobalCalendarWidget } from '@/components/calendar';
 
 /**
  * App shell — desktop sidebar + mobile bottom nav + persistent top player HUD.
@@ -163,6 +164,9 @@ export function AppShell({ children }) {
           isOpen={authModalOpen}
           onClose={() => setAuthModalOpen(false)}
         />
+
+        {/* Global Persistent Calendar Control & Quick-Access Agenda */}
+        <GlobalCalendarWidget />
       </div>
     </ToastProvider>
   );

@@ -54,4 +54,13 @@ export const calendarController = {
       next(err);
     }
   },
+
+  async toggleComplete(req, res, next) {
+    try {
+      const result = await calendarService.toggleComplete(req.user.id, req.params.id);
+      return res.status(200).json({ data: result });
+    } catch (err) {
+      next(err);
+    }
+  },
 };

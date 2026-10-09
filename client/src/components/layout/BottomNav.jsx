@@ -27,6 +27,7 @@ import { useKeyboard } from '@/hooks/useKeyboard';
 import { useAuth } from '@/features/auth/hooks';
 import { useAutoHideNav } from '@/hooks/useAutoHideNav';
 import { openBattleLogDrawer, openAttributesDrawer } from '@/features/celebration/celebrationEvents';
+import { openCalendarQuickAccess } from '@/components/calendar';
 import { spring, pressableMobileNav } from '@/lib/motionVariants';
 import { ModeButton } from '@/components/ui/ModeButton';
 import { JeevanLogo } from '@/components/ui/JeevanLogo';
@@ -34,23 +35,44 @@ import { FeatureCardCarousel } from '@/components/ui/FeatureCardCarousel';
 
 const primaryNavItems = [
   { to: '/', icon: LayoutDashboard, label: 'Home' },
-  { to: '/calendar', icon: CalendarDays, label: 'Calendar' },
+  { to: '/habits', icon: Flame, label: 'Habits' },
+  { to: '/dailies', icon: CalendarCheck, label: 'Dailies' },
   { to: '/tasks', icon: CheckSquare, label: 'Tasks' },
-  { to: '/focus', icon: Clock, label: 'Focus' },
-  { to: '/insights', icon: TrendingUp, label: 'Insights' },
 ];
 
 const featureCarouselItems = [
   {
-    id: 'theme',
-    category: 'DISPLAY',
-    badge: 'Crystal Light',
-    icon: Moon,
-    iconBg: 'bg-indigo-600 text-white dark:bg-white dark:text-slate-900',
-    title: 'Appearance & Theme',
-    description: 'Customize light, dark & glassmorphism visuals across your OS.',
-    path: '/profile',
-    actionLabel: 'Active Section',
+    id: 'quests',
+    category: 'ROADMAPS',
+    badge: 'Milestones',
+    icon: Scroll,
+    iconBg: 'bg-purple-600 text-white',
+    title: 'Campaign Quests',
+    description: 'Break down major life milestones into multi-step RPG campaign roadmaps.',
+    path: '/quests',
+    actionLabel: 'View Quests',
+  },
+  {
+    id: 'focus',
+    category: 'EXECUTION',
+    badge: 'Deep Work',
+    icon: Clock,
+    iconBg: 'bg-sky-500 text-white',
+    title: 'Focus Chamber',
+    description: 'Pomodoro timer, ambient soundscapes, and focused sprint tracking.',
+    path: '/focus',
+    actionLabel: 'Enter Chamber',
+  },
+  {
+    id: 'shop',
+    category: 'ECONOMY',
+    badge: 'Gold Vault',
+    icon: ShoppingBag,
+    iconBg: 'bg-yellow-500 text-slate-950',
+    title: 'Reward Shop',
+    description: 'Spend hard-earned gold coins on custom real-life rewards and gear.',
+    path: '/shop',
+    actionLabel: 'Explore Loot',
   },
   {
     id: 'ai',
@@ -64,37 +86,15 @@ const featureCarouselItems = [
     actionLabel: 'Consult AI',
   },
   {
-    id: 'dailies',
-    category: 'RITUALS',
-    badge: 'Recurring',
-    icon: CalendarCheck,
-    iconBg: 'bg-emerald-500 text-white',
-    title: 'Daily Rituals',
-    description: 'Conquer non-negotiable daily recurring commitments and protect streaks.',
-    path: '/dailies',
-    actionLabel: 'Conquer Dailies',
-  },
-  {
-    id: 'habits',
-    category: 'DISCIPLINES',
-    badge: 'Momentum',
-    icon: Flame,
-    iconBg: 'bg-orange-500 text-white',
-    title: 'Habit Momentum',
-    description: 'Score positive and negative disciplines, building compounding momentum.',
-    path: '/habits',
-    actionLabel: 'Build Streaks',
-  },
-  {
-    id: 'quests',
-    category: 'ROADMAPS',
-    badge: 'Milestones',
-    icon: Scroll,
-    iconBg: 'bg-purple-500 text-white',
-    title: 'Campaign Quests',
-    description: 'Break down major life milestones into multi-step RPG campaign roadmaps.',
-    path: '/quests',
-    actionLabel: 'View Quests',
+    id: 'insights',
+    category: 'TELEMETRY',
+    badge: 'Review',
+    icon: TrendingUp,
+    iconBg: 'bg-indigo-600 text-white',
+    title: 'Weekly Insights',
+    description: 'Review weekly completion trends, velocity graphs, and attribute growth.',
+    path: '/insights',
+    actionLabel: 'Review Insights',
   },
   {
     id: 'reflection',
@@ -108,15 +108,26 @@ const featureCarouselItems = [
     actionLabel: 'Begin Reflection',
   },
   {
-    id: 'shop',
-    category: 'ECONOMY',
-    badge: 'Gold Vault',
-    icon: ShoppingBag,
-    iconBg: 'bg-yellow-500 text-slate-950',
-    title: 'Reward Shop',
-    description: 'Spend hard-earned gold coins on custom real-life rewards and gear.',
-    path: '/shop',
-    actionLabel: 'Explore Loot',
+    id: 'calendar',
+    category: 'SCHEDULE',
+    badge: 'Time Blocking',
+    icon: CalendarDays,
+    iconBg: 'bg-blue-600 text-white',
+    title: 'Calendar & Agenda',
+    description: 'Centralized schedule, task time blocks, and synchronized deadlines.',
+    path: '/calendar',
+    actionLabel: 'Open Calendar',
+  },
+  {
+    id: 'theme',
+    category: 'DISPLAY',
+    badge: 'Crystal Light',
+    icon: Moon,
+    iconBg: 'bg-indigo-600 text-white dark:bg-white dark:text-slate-900',
+    title: 'Appearance & Theme',
+    description: 'Customize light, dark & glassmorphism visuals across your OS.',
+    path: '/profile',
+    actionLabel: 'Active Section',
   },
   {
     id: 'profile',
@@ -148,9 +159,9 @@ export function BottomNav({ onOpenAuth }) {
   const isMoreActive = [
     '/ai',
     '/insights',
-    '/habits',
-    '/dailies',
     '/quests',
+    '/focus',
+    '/calendar',
     '/profile',
     '/reflection',
     '/shop',
@@ -347,17 +358,17 @@ export function BottomNav({ onOpenAuth }) {
               </div>
 
               {/* RPG Quick Utilities */}
-              <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-200/80 dark:border-white/10">
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200/80 dark:border-white/10">
                 <button
                   type="button"
                   onClick={() => {
                     setMoreOpen(false);
                     openAttributesDrawer();
                   }}
-                  className="flex items-center gap-2.5 p-3 rounded-2xl bg-slate-50/80 hover:bg-slate-100 border border-slate-200/90 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] active:scale-[0.98] dark:border-white/10 text-xs font-medium text-slate-800 dark:text-ink transition-all min-h-[46px] backdrop-blur-md shadow-xs"
+                  className="flex flex-col items-center justify-center p-2 rounded-2xl bg-slate-50/80 hover:bg-slate-100 border border-slate-200/90 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] active:scale-[0.98] dark:border-white/10 text-[11px] font-semibold text-slate-800 dark:text-ink transition-all min-h-[48px] backdrop-blur-md shadow-xs text-center cursor-pointer"
                 >
-                  <Shield size={16} className="text-blue-600 dark:text-attr-willpower shrink-0" />
-                  <span className="truncate">Attributes Radar</span>
+                  <Shield size={16} className="text-blue-600 dark:text-attr-willpower shrink-0 mb-0.5" />
+                  <span className="truncate max-w-full">Attributes</span>
                 </button>
 
                 <button
@@ -366,10 +377,22 @@ export function BottomNav({ onOpenAuth }) {
                     setMoreOpen(false);
                     openBattleLogDrawer();
                   }}
-                  className="flex items-center gap-2.5 p-3 rounded-2xl bg-slate-50/80 hover:bg-slate-100 border border-slate-200/90 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] active:scale-[0.98] dark:border-white/10 text-xs font-medium text-slate-800 dark:text-ink transition-all min-h-[46px] backdrop-blur-md shadow-xs"
+                  className="flex flex-col items-center justify-center p-2 rounded-2xl bg-slate-50/80 hover:bg-slate-100 border border-slate-200/90 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] active:scale-[0.98] dark:border-white/10 text-[11px] font-semibold text-slate-800 dark:text-ink transition-all min-h-[48px] backdrop-blur-md shadow-xs text-center cursor-pointer"
                 >
-                  <Swords size={16} className="text-amber-600 dark:text-gold shrink-0" />
-                  <span className="truncate">Battle Chronicles</span>
+                  <Swords size={16} className="text-amber-600 dark:text-gold shrink-0 mb-0.5" />
+                  <span className="truncate max-w-full">Battle Log</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMoreOpen(false);
+                    openCalendarQuickAccess();
+                  }}
+                  className="flex flex-col items-center justify-center p-2 rounded-2xl bg-indigo-50/70 hover:bg-indigo-100 border border-indigo-200/80 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 active:scale-[0.98] dark:border-indigo-500/25 text-[11px] font-semibold text-indigo-700 dark:text-indigo-400 transition-all min-h-[48px] backdrop-blur-md shadow-xs text-center cursor-pointer"
+                >
+                  <CalendarDays size={16} className="text-indigo-600 dark:text-indigo-400 shrink-0 mb-0.5" />
+                  <span className="truncate max-w-full">Calendar</span>
                 </button>
               </div>
 

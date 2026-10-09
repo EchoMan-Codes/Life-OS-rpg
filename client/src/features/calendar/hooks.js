@@ -8,6 +8,7 @@ import {
   deleteCalendarEvent,
   checkCalendarConflicts,
   scheduleTaskTimeBlock,
+  toggleCalendarEventComplete,
 } from './api';
 
 export function useCalendarEvents(params = {}) {
@@ -29,6 +30,9 @@ export function useCreateCalendarEvent() {
     mutationFn: createCalendarEvent,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['calendar'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['dailies'] });
+      queryClient.invalidateQueries({ queryKey: ['quests'] });
       showToast({
         title: 'Event Scheduled',
         message: `"${data?.title}" confirmed on your calendar.`,
@@ -53,9 +57,12 @@ export function useUpdateCalendarEvent() {
     mutationFn: ({ id, data }) => updateCalendarEvent(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['calendar'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['dailies'] });
+      queryClient.invalidateQueries({ queryKey: ['quests'] });
       showToast({
         title: 'Schedule Updated',
-        message: 'Event time updated.',
+        message: 'Event schedule synchronized across Jeevan.',
         type: 'success',
       });
     },
@@ -77,9 +84,12 @@ export function useDeleteCalendarEvent() {
     mutationFn: deleteCalendarEvent,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['calendar'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['dailies'] });
+      queryClient.invalidateQueries({ queryKey: ['quests'] });
       showToast({
         title: 'Event Removed',
-        message: 'Event cleared from calendar.',
+        message: 'Event cleared and synchronization updated.',
         type: 'info',
       });
     },
@@ -114,6 +124,34 @@ export function useScheduleTimeBlock() {
       showToast({
         title: 'Failed to schedule block',
         message: err?.response?.data?.error?.message || 'Error creating time block.',
+        type: 'error',
+      });
+    },
+  });
+}
+
+export function useToggleCalendarEventComplete() {
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+
+  return useMutation({
+    mutationFn: (eventId) => toggleCalendarEventComplete(eventId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['dailies'] });
+      queryClient.invalidateQueries({ queryKey: ['quests'] });
+      queryClient.invalidateQueries({ queryKey: ['character'] });
+      showToast({
+        title: 'Status Synchronized ⚔️',
+        message: 'Progression and calendar updated.',
+        type: 'success',
+      });
+    },
+    onError: (err) => {
+      showToast({
+        title: 'Action failed',
+        message: err?.response?.data?.error?.message || 'Could not toggle item completion.',
         type: 'error',
       });
     },

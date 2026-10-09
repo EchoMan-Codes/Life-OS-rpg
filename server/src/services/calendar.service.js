@@ -121,7 +121,7 @@ export class CalendarService {
                   id: `daily-${d.id}-${s.toISOString().slice(0, 10)}`,
                   userId,
                   title: `[Daily] ${d.title}`,
-                  description: d.notes,
+                  description: d.description || d.notes,
                   startTime: s.toISOString(),
                   endTime: e.toISOString(),
                   allDay: false,
@@ -136,6 +136,68 @@ export class CalendarService {
               }
               cur = new Date(cur.getTime() + 24 * 60 * 60 * 1000);
             }
+          }
+        }
+      }
+    }
+
+    // 4. Fetch quest deadlines and reminders for the range
+    if (includeQuests) {
+      const quests = await questService.listQuests(userId, { status: 'all' });
+      for (const q of quests || []) {
+        // Quest Deadline
+        if (q.dueDate) {
+          const questDate = new Date(`${q.dueDate}T10:00:00Z`);
+          if (questDate >= startUtc && questDate <= endUtc) {
+            const hasExplicitEvent = expandedEvents.some((e) => e.taskId === q.id && e.taskType === 'quest');
+            if (!hasExplicitEvent) {
+              const endBlock = new Date(questDate.getTime() + 60 * 60 * 1000);
+              expandedEvents.push({
+                id: `quest-${q.id}`,
+                userId,
+                title: `[Quest Deadline] ${q.title}`,
+                description: q.description,
+                startTime: questDate.toISOString(),
+                endTime: endBlock.toISOString(),
+                allDay: true,
+                category: 'quest',
+                color: '#8B5CF6', // Purple for quests
+                location: null,
+                taskId: q.id,
+                taskType: 'quest',
+                status: q.status,
+                isQuestBlock: true,
+                isDeadline: true,
+              });
+            }
+          }
+        }
+
+        // Quest Reminder
+        if (q.reminderEnabled && q.reminderDate) {
+          const reminderDateStr = q.reminderDate;
+          const timeStr = q.reminderTime || '09:00';
+          const [rh, rm] = timeStr.split(':').map((v) => parseInt(v, 10));
+          const remStart = new Date(`${reminderDateStr}T${String(rh || 9).padStart(2, '0')}:${String(rm || 0).padStart(2, '0')}:00Z`);
+          if (remStart >= startUtc && remStart <= endUtc) {
+            const remEnd = new Date(remStart.getTime() + 30 * 60 * 1000);
+            expandedEvents.push({
+              id: `quest-reminder-${q.id}`,
+              userId,
+              title: `[Reminder] ${q.title}`,
+              description: `Quest deadline reminder`,
+              startTime: remStart.toISOString(),
+              endTime: remEnd.toISOString(),
+              allDay: false,
+              category: 'reminder',
+              color: '#EC4899',
+              location: null,
+              taskId: q.id,
+              taskType: 'quest',
+              status: q.status,
+              isQuestBlock: true,
+              isReminder: true,
+            });
           }
         }
       }
@@ -289,9 +351,83 @@ export class CalendarService {
   }
 
   /**
-   * Update calendar event (supports rescheduling / resizing)
+   * Update calendar event (supports rescheduling / resizing across native and virtual events)
    */
   async updateEvent(userId, eventId, data) {
+    // 1. Handle Virtual Task Block
+    if (eventId.startsWith('task-block-')) {
+      const taskId = eventId.replace('task-block-', '');
+      const startTime = data.startTime ? new Date(data.startTime) : undefined;
+      const endTime = data.endTime ? new Date(data.endTime) : undefined;
+      let durationMins = undefined;
+      if (startTime && endTime) {
+        durationMins = Math.max(15, Math.round((endTime.getTime() - startTime.getTime()) / (60 * 1000)));
+      }
+
+      const updatedTask = await taskService.updateTask(userId, taskId, {
+        startDate: startTime ? startTime.toISOString() : undefined,
+        dueDate: endTime ? endTime.toISOString() : undefined,
+        estimatedDurationMinutes: durationMins,
+        title: data.title ? data.title.replace(/^\[Task\]\s*/, '') : undefined,
+      });
+
+      return {
+        id: eventId,
+        userId,
+        title: `[Task] ${updatedTask.title}`,
+        description: updatedTask.description,
+        startTime: updatedTask.startDate || updatedTask.dueDate,
+        endTime: updatedTask.dueDate || updatedTask.startDate,
+        allDay: false,
+        category: 'task',
+        color: '#10B981',
+        taskId: updatedTask.id,
+        taskType: 'task',
+        status: updatedTask.status,
+        isTaskBlock: true,
+      };
+    }
+
+    // 2. Handle Virtual Daily Block
+    if (eventId.startsWith('daily-')) {
+      const parts = eventId.split('-');
+      // UUID is 5 segments: 8-4-4-4-12
+      const dailyId = parts.slice(1, 6).join('-');
+      if (data.startTime) {
+        const d = new Date(data.startTime);
+        const timeStr = `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
+        await dailyService.updateDaily(userId, dailyId, { scheduledTime: timeStr });
+      }
+
+      return {
+        id: eventId,
+        userId,
+        taskId: dailyId,
+        taskType: 'daily',
+        status: 'confirmed',
+        ...data,
+      };
+    }
+
+    // 3. Handle Virtual Quest Block
+    if (eventId.startsWith('quest-')) {
+      const questId = eventId.replace(/^quest-reminder-/, '').replace(/^quest-/, '');
+      if (data.startTime) {
+        const dueDate = new Date(data.startTime).toISOString().slice(0, 10);
+        await questService.updateQuest(userId, questId, { dueDate });
+      }
+
+      return {
+        id: eventId,
+        userId,
+        taskId: questId,
+        taskType: 'quest',
+        status: 'confirmed',
+        ...data,
+      };
+    }
+
+    // 4. Native calendar_events Table Event
     const existingRes = await query(
       `SELECT * FROM calendar_events WHERE id = $1 AND user_id = $2`,
       [eventId, userId]
@@ -315,6 +451,24 @@ export class CalendarService {
     const location = data.location !== undefined ? data.location : ex.location;
     const recurrenceRule = data.recurrenceRule !== undefined ? data.recurrenceRule : ex.recurrence_rule;
     const status = data.status !== undefined ? data.status : ex.status;
+
+    // Two-way synchronization with originating entity if linked
+    if (ex.task_id) {
+      if (ex.task_type === 'task') {
+        const dur = Math.max(15, Math.round((endTime.getTime() - startTime.getTime()) / (60 * 1000)));
+        await taskService.updateTask(userId, ex.task_id, {
+          startDate: startTime.toISOString(),
+          estimatedDurationMinutes: dur,
+        }).catch(() => null);
+      } else if (ex.task_type === 'daily' && data.startTime) {
+        const d = new Date(startTime);
+        const timeStr = `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
+        await dailyService.updateDaily(userId, ex.task_id, { scheduledTime: timeStr }).catch(() => null);
+      } else if (ex.task_type === 'quest' && data.startTime) {
+        const dueDate = new Date(startTime).toISOString().slice(0, 10);
+        await questService.updateQuest(userId, ex.task_id, { dueDate }).catch(() => null);
+      }
+    }
 
     const res = await query(
       `UPDATE calendar_events
@@ -399,11 +553,30 @@ export class CalendarService {
   }
 
   /**
-   * Delete calendar event
+   * Delete calendar event with two-way sync
    */
   async deleteEvent(userId, eventId) {
+    if (eventId.startsWith('task-block-')) {
+      const taskId = eventId.replace('task-block-', '');
+      await taskService.updateTask(userId, taskId, { startDate: null, scheduledTime: null }).catch(() => null);
+      return { success: true, id: eventId };
+    }
+
+    if (eventId.startsWith('daily-')) {
+      const parts = eventId.split('-');
+      const dailyId = parts.slice(1, 6).join('-');
+      await dailyService.updateDaily(userId, dailyId, { scheduledTime: null }).catch(() => null);
+      return { success: true, id: eventId };
+    }
+
+    if (eventId.startsWith('quest-')) {
+      const questId = eventId.replace(/^quest-reminder-/, '').replace(/^quest-/, '');
+      await questService.updateQuest(userId, questId, { dueDate: null, reminderEnabled: false }).catch(() => null);
+      return { success: true, id: eventId };
+    }
+
     const res = await query(
-      `DELETE FROM calendar_events WHERE id = $1 AND user_id = $2 RETURNING id`,
+      `DELETE FROM calendar_events WHERE id = $1 AND user_id = $2 RETURNING id, task_id as "taskId", task_type as "taskType"`,
       [eventId, userId]
     );
 
@@ -414,7 +587,69 @@ export class CalendarService {
       throw err;
     }
 
+    const deleted = res.rows[0];
+    if (deleted.taskId && deleted.taskType === 'task') {
+      await taskService.updateTask(userId, deleted.taskId, { startDate: null }).catch(() => null);
+    }
+
     return { success: true, id: eventId };
+  }
+
+  /**
+   * Toggle item completion directly from Calendar
+   */
+  async toggleComplete(userId, eventId) {
+    if (eventId.startsWith('task-block-')) {
+      const taskId = eventId.replace('task-block-', '');
+      const task = await taskService.getTask(userId, taskId);
+      if (task.status === 'completed') {
+        return await taskService.uncompleteTask(userId, taskId);
+      }
+      return await taskService.completeTask(userId, taskId);
+    }
+
+    if (eventId.startsWith('daily-')) {
+      const parts = eventId.split('-');
+      const dailyId = parts.slice(1, 6).join('-');
+      const daily = await dailyService.getDailyById(userId, dailyId);
+      if (daily.isCompleteToday) {
+        return await dailyService.undoDaily(userId, dailyId);
+      }
+      return await dailyService.completeDaily(userId, dailyId);
+    }
+
+    if (eventId.startsWith('quest-')) {
+      const questId = eventId.replace(/^quest-reminder-/, '').replace(/^quest-/, '');
+      return await questService.completeQuest(userId, questId);
+    }
+
+    // Native event
+    const existingRes = await query(
+      `SELECT * FROM calendar_events WHERE id = $1 AND user_id = $2`,
+      [eventId, userId]
+    );
+    if (existingRes.rows.length === 0) {
+      const err = new Error('Calendar event not found');
+      err.status = 404;
+      err.code = 'EVENT_NOT_FOUND';
+      throw err;
+    }
+
+    const ex = existingRes.rows[0];
+    if (ex.task_id && ex.task_type === 'task') {
+      const task = await taskService.getTask(userId, ex.task_id);
+      if (task.status === 'completed') {
+        return await taskService.uncompleteTask(userId, ex.task_id);
+      }
+      return await taskService.completeTask(userId, ex.task_id);
+    }
+
+    const newStatus = ex.status === 'completed' ? 'confirmed' : 'completed';
+    const updated = await query(
+      `UPDATE calendar_events SET status = $1, updated_at = now() WHERE id = $2 AND user_id = $3 RETURNING *`,
+      [newStatus, eventId, userId]
+    );
+    return { success: true, event: updated.rows[0] };
   }
 }
 

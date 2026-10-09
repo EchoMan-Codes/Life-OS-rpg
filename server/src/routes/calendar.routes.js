@@ -9,6 +9,7 @@ router.use(requireAuth);
 router.get('/events', calendarController.getEvents);
 router.post('/events', calendarController.createEvent);
 router.patch('/events/:id', calendarController.updateEvent);
+router.post('/events/:id/toggle-complete', calendarController.toggleComplete);
 router.delete('/events/:id', calendarController.deleteEvent);
 router.get('/conflicts', calendarController.checkConflicts);
 router.post('/time-block', calendarController.scheduleTimeBlock);

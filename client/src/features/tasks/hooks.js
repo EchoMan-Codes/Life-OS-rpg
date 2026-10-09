@@ -53,6 +53,7 @@ export function useCreateTask() {
     mutationFn: createTask,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
       showToast({
         title: 'Task Created',
         message: `"${data?.title}" added to your queue.`,
@@ -97,6 +98,7 @@ export function useCompleteTask() {
     mutationFn: (id) => completeTask(id),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
       queryClient.invalidateQueries({ queryKey: ['character'] });
       queryClient.invalidateQueries({ queryKey: ['insights'] });
 
@@ -131,6 +133,7 @@ export function useUncompleteTask() {
     mutationFn: (id) => uncompleteTask(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
       queryClient.invalidateQueries({ queryKey: ['character'] });
       showToast({ title: 'Task Restored', message: 'Task returned to active status.', type: 'info' });
     },
@@ -145,6 +148,7 @@ export function useDeleteTask() {
     mutationFn: (id) => deleteTask(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
       showToast({ title: 'Task Deleted', message: 'Task removed from your backlog.', type: 'info' });
     },
   });

@@ -60,6 +60,7 @@ export function useCreateQuest() {
     mutationFn: (data) => createQuest(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['quests'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
       showToast({
         title: 'Quest Accepted',
         message: 'New quest added to your quest log.',
@@ -87,6 +88,7 @@ export function useUpdateQuest() {
     mutationFn: ({ questId, data }) => updateQuest(questId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['quests'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
       showToast({
         title: 'Quest Updated',
         type: 'success',
@@ -405,6 +407,7 @@ export function useCompleteQuest() {
     mutationFn: (questId) => completeQuest(questId),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['quests'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
       queryClient.invalidateQueries({ queryKey: ['character'] });
       checkAndTriggerCelebrations(data);
       showToast({

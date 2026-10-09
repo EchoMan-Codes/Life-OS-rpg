@@ -46,6 +46,7 @@ export function useCreateDaily() {
     mutationFn: (data) => createDaily(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dailies'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
       showToast({
         title: 'Daily Ritual Created',
         message: 'Your new daily is ready for today.',
@@ -73,6 +74,7 @@ export function useUpdateDaily() {
     mutationFn: ({ dailyId, data }) => updateDaily(dailyId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dailies'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
       showToast({
         title: 'Daily Updated',
         type: 'success',
@@ -224,6 +226,7 @@ export function useCompleteDaily(dailyId, daily) {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['dailies'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
       queryClient.invalidateQueries({ queryKey: ['character'] });
     },
   });
@@ -281,6 +284,7 @@ export function useUndoDaily(dailyId, daily) {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['dailies'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
       queryClient.invalidateQueries({ queryKey: ['character'] });
     },
   });

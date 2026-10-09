@@ -29,3 +29,8 @@ export async function scheduleTaskTimeBlock(data) {
   const response = await api.post('/calendar/time-block', data);
   return response.data?.data;
 }
+
+export async function toggleCalendarEventComplete(id) {
+  const response = await api.post(`/calendar/events/${id}/toggle-complete`);
+  return response.data?.data;
+}

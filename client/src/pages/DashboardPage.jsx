@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Flame,
   CalendarCheck,
@@ -47,7 +48,13 @@ import {
 import clsx from 'clsx';
 
 import { Card, ColorCard, WavyHeroScenery, ModeButton, FeatureCardCarousel } from '@/components/ui';
-import { TelemetryHorizonRibbon, RitualSpineDeck, AttributeAstrolabe, DesktopAiWidget } from '@/components/dashboard';
+import {
+  TelemetryHorizonRibbon,
+  RitualSpineDeck,
+  AttributeAstrolabe,
+  DesktopAiWidget,
+  CupertinoDesktopDashboard,
+} from '@/components/dashboard';
 import { useTheme } from '@/lib/theme';
 import { NotificationCenterModal } from '@/features/notifications/components/NotificationCenterModal';
 import { useNotifications } from '@/features/notifications/hooks';
@@ -56,14 +63,18 @@ import { ReportsModal } from '@/features/reports/ReportsModal';
 import { useAuth } from '@/features/auth/hooks';
 import { useCharacter } from '@/features/character/hooks';
 import { useHabits, useScoreHabit } from '@/features/habits/hooks';
+import { scoreHabit } from '@/features/habits/api';
 import { useDailies } from '@/features/dailies/hooks';
+import { completeDaily, undoDaily } from '@/features/dailies/api';
 import { useQuests } from '@/features/quests/hooks';
+import { useTasks, useCompleteTask } from '@/features/tasks/hooks';
 import { useReflections, useTodayReflection } from '@/features/reflections/hooks';
 import { useFocusHistory, useCurrentFocus } from '@/features/focus/hooks';
 import { useRestModeStatus } from '@/features/rest-mode/hooks';
 import {
   openBattleLogDrawer,
   openAttributesDrawer,
+  checkAndTriggerCelebrations,
 } from '@/features/celebration/celebrationEvents';
 import { spring } from '@/lib/motionVariants';
 
@@ -149,6 +160,47 @@ export default function DashboardPage() {
   const { data: focusSessions = [] } = useFocusHistory({ limit: 50 });
   const { data: activeFocus } = useCurrentFocus();
   const { data: restStatus } = useRestModeStatus();
+  const { data: tasks = [] } = useTasks();
+  const completeTaskMutation = useCompleteTask();
+  const queryClient = useQueryClient();
+
+  const handleCompleteDaily = async (dailyId) => {
+    try {
+      const res = await completeDaily(dailyId);
+      queryClient.invalidateQueries({ queryKey: ['dailies'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
+      queryClient.invalidateQueries({ queryKey: ['character'] });
+      checkAndTriggerCelebrations(res);
+    } catch (err) {
+      console.error('Failed to complete daily', err);
+    }
+  };
+
+  const handleUndoDaily = async (dailyId) => {
+    try {
+      await undoDaily(dailyId);
+      queryClient.invalidateQueries({ queryKey: ['dailies'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
+      queryClient.invalidateQueries({ queryKey: ['character'] });
+    } catch (err) {
+      console.error('Failed to undo daily', err);
+    }
+  };
+
+  const handleScoreHabit = async (habitId, direction = 'positive') => {
+    try {
+      const res = await scoreHabit(habitId, direction);
+      queryClient.invalidateQueries({ queryKey: ['habits'] });
+      queryClient.invalidateQueries({ queryKey: ['character'] });
+      checkAndTriggerCelebrations(res);
+    } catch (err) {
+      console.error('Failed to score habit', err);
+    }
+  };
+
+  const handleCompleteTask = (taskId) => {
+    completeTaskMutation.mutate(taskId);
+  };
 
   // Modals
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
@@ -432,8 +484,31 @@ export default function DashboardPage() {
       animate={{ opacity: 1, y: 0 }}
       transition={spring.snappy}
     >
-      {/* ── 1. Wavy Atmospheric RPG Hero Cockpit (Natural Scrolling, Zero Clipping) ── */}
-      <WavyHeroScenery variant="dashboard" className="p-3.5 sm:p-5 md:p-6">
+      {/* ── Desktop Experience: Apple Cupertino Light Bento Grid ── */}
+      <div className="hidden md:block">
+        <CupertinoDesktopDashboard
+          user={user}
+          character={character}
+          habits={habits}
+          dailies={dailies}
+          quests={quests}
+          tasks={tasks}
+          focusSessions={focusSessions}
+          activeFocus={activeFocus}
+          onScoreHabit={handleScoreHabit}
+          onCompleteDaily={handleCompleteDaily}
+          onUndoDaily={handleUndoDaily}
+          onCompleteTask={handleCompleteTask}
+          onOpenAi={handleOpenAi}
+          onOpenNotifications={() => setShowNotificationsModal(true)}
+          unreadNotificationsCount={unreadCount}
+        />
+      </div>
+
+      {/* ── Mobile Experience (Preserved completely until visual approval) ── */}
+      <div className="block md:hidden space-y-4 sm:space-y-6">
+        {/* ── 1. Wavy Atmospheric RPG Hero Cockpit (Natural Scrolling, Zero Clipping) ── */}
+        <WavyHeroScenery variant="dashboard" className="p-3.5 sm:p-5 md:p-6">
         <div className="flex flex-col gap-3.5 sm:gap-4">
           {/* Top Bar: Player Avatar & Top Navigation Controls (Mobile only, desktop has persistent PlayerHud) */}
           <div className="flex md:hidden items-center justify-between gap-3">
@@ -1583,6 +1658,7 @@ export default function DashboardPage() {
             </Card>
           </div>
         </div>
+      </div>
       </div>
 
       {/* Modals */}

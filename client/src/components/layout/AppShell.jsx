@@ -112,7 +112,7 @@ export function AppShell({ children }) {
             paddingTop: isDashboard || isProfile
               ? 'max(0.75rem, env(safe-area-inset-top, 0px))'
               : 'calc(3.5rem + max(0.5rem, env(safe-area-inset-top, 0px)))',
-            paddingBottom: 'calc(5.5rem + env(safe-area-inset-bottom, 0px))',
+            paddingBottom: 'calc(7rem + env(safe-area-inset-bottom, 0px))',
             paddingLeft: 'env(safe-area-inset-left, 0px)',
             paddingRight: 'env(safe-area-inset-right, 0px)',
           } : undefined}

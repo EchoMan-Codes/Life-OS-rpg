@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import {
   Flame,
   CalendarCheck,
+  CalendarDays,
+  CheckSquare,
   Scroll,
   TrendingUp,
   Zap,
@@ -642,15 +644,51 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* ── Universal Quick Actions (Finance Removed, AI & Reports Added) ── */}
+          {/* ── Universal Command Center Quick Actions ── */}
           <div className="grid grid-cols-5 gap-1.5 sm:gap-2 pt-0.5">
             <Link
-              to="/focus"
+              to="/calendar"
+              className={clsx(
+                'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 text-center backdrop-blur-xl',
+                isDark
+                  ? 'text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 border-indigo-500/25'
+                  : 'text-indigo-700 bg-white/50 border-indigo-200/70 hover:bg-white/80 shadow-xs'
+              )}
+              title="Smart Calendar & Time Blocking"
+            >
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center">
+                <CalendarDays size={16} />
+              </div>
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-tight mt-0.5 leading-none font-display">
+                Calendar
+              </span>
+            </Link>
+
+            <Link
+              to="/tasks"
               className={clsx(
                 'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 text-center backdrop-blur-xl',
                 isDark
                   ? 'text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/25'
                   : 'text-emerald-700 bg-white/50 border-emerald-200/70 hover:bg-white/80 shadow-xs'
+              )}
+              title="Tasks & Deadlines"
+            >
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center">
+                <CheckSquare size={16} />
+              </div>
+              <span className="text-[10px] sm:text-[11px] font-bold tracking-tight mt-0.5 leading-none font-display">
+                Tasks
+              </span>
+            </Link>
+
+            <Link
+              to="/focus"
+              className={clsx(
+                'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 text-center backdrop-blur-xl',
+                isDark
+                  ? 'text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 border-sky-500/25'
+                  : 'text-sky-700 bg-white/50 border-sky-200/70 hover:bg-white/80 shadow-xs'
               )}
               title="Focus Chamber"
             >
@@ -663,51 +701,32 @@ export default function DashboardPage() {
             </Link>
 
             <Link
-              to="/habits"
-              className={clsx(
-                'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 text-center backdrop-blur-xl',
-                isDark
-                  ? 'text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/25'
-                  : 'text-amber-700 bg-white/50 border-amber-200/70 hover:bg-white/80 shadow-xs'
-              )}
-              title="Habit Momentum"
-            >
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center">
-                <Flame size={16} />
-              </div>
-              <span className="text-[10px] sm:text-[11px] font-bold tracking-tight mt-0.5 leading-none font-display">
-                Habits
-              </span>
-            </Link>
-
-            <Link
-              to="/quests"
+              to="/insights"
               className={clsx(
                 'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 text-center backdrop-blur-xl',
                 isDark
                   ? 'text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 border-purple-500/25'
                   : 'text-purple-700 bg-white/50 border-purple-200/70 hover:bg-white/80 shadow-xs'
               )}
-              title="Quests"
+              title="Weekly Review & Insights"
             >
               <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center">
-                <Scroll size={16} />
+                <TrendingUp size={16} />
               </div>
               <span className="text-[10px] sm:text-[11px] font-bold tracking-tight mt-0.5 leading-none font-display">
-                Quests
+                Insights
               </span>
             </Link>
 
-            <button
-              type="button"
-              onClick={() => handleOpenAi()}
+            <Link
+              to="/ai"
               className={clsx(
                 'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 text-center backdrop-blur-xl cursor-pointer',
                 isDark
-                  ? 'text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border-indigo-500/25'
-                  : 'text-indigo-700 bg-white/50 border-indigo-200/70 hover:bg-white/80 shadow-xs'
+                  ? 'text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/25'
+                  : 'text-amber-700 bg-white/50 border-amber-200/70 hover:bg-white/80 shadow-xs'
               )}
-              title="Jeevan AI Assistant"
+              title="Action-Oriented Jeevan AI"
             >
               <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center">
                 <Sparkles size={16} />
@@ -715,26 +734,7 @@ export default function DashboardPage() {
               <span className="text-[10px] sm:text-[11px] font-bold tracking-tight mt-0.5 leading-none font-display">
                 Jeevan AI
               </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowReportsModal(true)}
-              className={clsx(
-                'flex flex-col items-center justify-center py-2 px-1 rounded-2xl border transition-all duration-150 active:scale-95 text-center backdrop-blur-xl cursor-pointer',
-                isDark
-                  ? 'text-sky-300 bg-sky-500/10 hover:bg-sky-500/20 border-sky-500/25'
-                  : 'text-sky-700 bg-white/50 border-sky-200/70 hover:bg-white/80 shadow-xs'
-              )}
-              title="Productivity Reports"
-            >
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center">
-                <FileText size={16} />
-              </div>
-              <span className="text-[10px] sm:text-[11px] font-bold tracking-tight mt-0.5 leading-none font-display">
-                Reports
-              </span>
-            </button>
+            </Link>
           </div>
 
           {/* ── E. Smart Insight Card (Based on Real User Data) ── */}
@@ -966,6 +966,30 @@ export default function DashboardPage() {
                       width: `${Math.min(100, Math.round((totalFocusMinutes / 60) * 100))}%`,
                     }}
                   />
+                </div>
+              </div>
+
+              {/* 5. Tasks & Deadlines */}
+              <div className="p-3 rounded-2xl bg-indigo-500/5 border border-indigo-500/20 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                      <CheckSquare size={14} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-ink">Tasks & Deadlines</h4>
+                      <p className="text-[10px] text-slate-500 dark:text-ink-muted">
+                        Unified backlog, milestones & priority scheduling
+                      </p>
+                    </div>
+                  </div>
+                  <Link
+                    to="/tasks"
+                    className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-0.5"
+                  >
+                    <span>Manage</span>
+                    <ChevronRight size={13} />
+                  </Link>
                 </div>
               </div>
             </div>

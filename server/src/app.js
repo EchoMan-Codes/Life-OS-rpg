@@ -21,6 +21,9 @@ import notificationRoutes from './routes/notification.routes.js';
 import aiRoutes from './routes/ai.routes.js';
 import reportRoutes from './routes/report.routes.js';
 import feedbackRoutes from './routes/feedback.routes.js';
+import taskRoutes from './routes/task.routes.js';
+import calendarRoutes from './routes/calendar.routes.js';
+import insightsRoutes from './routes/insights.routes.js';
 
 const app = express();
 
@@ -127,6 +130,12 @@ app.use('/api/v1/reports', reportRoutes);
 app.use('/reports', reportRoutes);
 app.use('/api/v1/feedback', feedbackRoutes);
 app.use('/feedback', feedbackRoutes);
+app.use('/api/v1/tasks', taskRoutes);
+app.use('/tasks', taskRoutes);
+app.use('/api/v1/calendar', calendarRoutes);
+app.use('/calendar', calendarRoutes);
+app.use('/api/v1/insights', insightsRoutes);
+app.use('/insights', insightsRoutes);
 
 // 404 handler for undefined routes
 app.use((req, res) => {

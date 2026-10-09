@@ -9,20 +9,27 @@ import {
   ArrowLeft,
   X,
   Play,
+  Pause,
   CheckCircle2,
   Zap,
   Timer,
   Clock,
+  Layers,
+  BarChart3,
 } from 'lucide-react';
 import clsx from 'clsx';
 
 import {
   useCurrentFocusSession,
   useStartFocusSession,
+  usePauseFocusSession,
+  useResumeFocusSession,
   useCompleteFocusSession,
   useAbandonFocusSession,
+  useFocusSummary,
   useFocusTimer,
 } from '@/features/focus/hooks';
+import { useTasks } from '@/features/tasks/hooks';
 import { ambientSound } from '@/lib/ambientSound';
 import { playSound } from '@/lib/sound';
 import { spring } from '@/lib/motionVariants';
@@ -31,6 +38,7 @@ const DURATION_PRESETS = [
   { seconds: 900, label: '15m', title: 'Quick Sprint', mana: 22 },
   { seconds: 1500, label: '25m', title: 'Pomodoro', mana: 38 },
   { seconds: 3000, label: '50m', title: 'Extended Flow', mana: 75 },
+  { seconds: 5400, label: '90m', title: 'Deep Immersion', mana: 135 },
 ];
 
 const AMBIENT_TRACKS = [
@@ -46,12 +54,18 @@ export default function FocusChamberPage() {
   // Setup state
   const [selectedDuration, setSelectedDuration] = useState(1500);
   const [selectedAmbient, setSelectedAmbient] = useState('silence');
+  const [selectedTaskId, setSelectedTaskId] = useState('');
   const [showAbandonConfirm, setShowAbandonConfirm] = useState(false);
   const [completedResult, setCompletedResult] = useState(null);
 
   // Queries & Mutations
   const { data: currentSession } = useCurrentFocusSession();
+  const { data: summary = {} } = useFocusSummary();
+  const { data: activeTasks = [] } = useTasks({ status: 'active' });
+
   const startMutation = useStartFocusSession();
+  const pauseMutation = usePauseFocusSession();
+  const resumeMutation = useResumeFocusSession();
   const completeMutation = useCompleteFocusSession();
   const abandonMutation = useAbandonFocusSession();
 
@@ -60,7 +74,7 @@ export default function FocusChamberPage() {
 
   // Ambient sound management
   useEffect(() => {
-    if (currentSession && !completedResult) {
+    if (currentSession && !completedResult && !timer.isPaused) {
       ambientSound.setTrack(currentSession.ambientSound || selectedAmbient);
     } else {
       ambientSound.setTrack('silence');
@@ -69,15 +83,18 @@ export default function FocusChamberPage() {
     return () => {
       ambientSound.setTrack('silence');
     };
-  }, [currentSession, selectedAmbient, completedResult]);
+  }, [currentSession, selectedAmbient, completedResult, timer.isPaused]);
 
   // Start focus session
   const handleStart = async () => {
     try {
       setCompletedResult(null);
+      const chosenTask = activeTasks.find((t) => t.id === selectedTaskId);
       await startMutation.mutateAsync({
         plannedDurationSeconds: selectedDuration,
         ambientSound: selectedAmbient,
+        taskId: chosenTask?.id || null,
+        taskTitle: chosenTask?.title || null,
       });
     } catch (err) {
       console.error('Failed to start focus session:', err);
@@ -145,7 +162,9 @@ export default function FocusChamberPage() {
         ) : (
           <div className="text-xs font-mono text-sky-600 dark:text-sky-400 uppercase tracking-widest flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/25 backdrop-blur-md">
             <span className="w-2 h-2 rounded-full bg-sky-500 dark:bg-sky-400 animate-ping" />
-            <span>COGNITIVE FLOW IMMERSION</span>
+            <span>
+              {timer.isPaused ? 'SESSION PAUSED' : 'COGNITIVE FLOW IMMERSION'}
+            </span>
           </div>
         )}
 
@@ -188,7 +207,7 @@ export default function FocusChamberPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.92 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col items-center text-center p-6 sm:p-9 rounded-3xl bg-gradient-to-br from-obsidian-900/90 via-obsidian-900/75 to-obsidian-800/85 border border-sky-400/40 shadow-[0_16px_48px_rgba(56,189,248,0.25),inset_0_1px_1px_rgba(255,255,255,0.2)] backdrop-blur-2xl w-full"
+            className="flex flex-col items-center text-center p-6 sm:p-9 rounded-3xl bg-gradient-to-br from-obsidian-900/90 via-obsidian-900/75 to-obsidian-800/85 border border-sky-400/40 shadow-[0_16px_48px_rgba(56,189,248,0.25)] backdrop-blur-2xl w-full"
           >
             <div className="w-16 h-16 rounded-2xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-400 mb-4 shadow-[0_0_25px_rgba(56,189,248,0.3)]">
               <CheckCircle2 size={32} />
@@ -197,7 +216,7 @@ export default function FocusChamberPage() {
               Flow State Conquered
             </h2>
             <p className="text-xs sm:text-sm text-ink-muted mb-6 max-w-sm">
-              You maintained disciplined focus. Your mind sharpened, and Mana has been infused into your character.
+              Disciplined focus maintained. Your mind sharpened, and Mana has been infused into your hero.
             </p>
 
             <div className="w-full p-4 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-around mb-6 backdrop-blur-md">
@@ -232,6 +251,14 @@ export default function FocusChamberPage() {
         ) : currentSession ? (
           /* ── Active Session Timer Screen ── */
           <div className="flex flex-col items-center gap-6 w-full">
+            {/* Active task badge */}
+            {currentSession.taskTitle && (
+              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold backdrop-blur-md">
+                <Layers size={13} />
+                <span className="truncate max-w-xs">{currentSession.taskTitle}</span>
+              </div>
+            )}
+
             {/* SVG Countdown Ring */}
             <div className="relative w-72 h-72 sm:w-84 sm:h-84 flex items-center justify-center">
               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 300 300">
@@ -265,7 +292,7 @@ export default function FocusChamberPage() {
                   {timer.formattedTime}
                 </span>
                 <span className="text-xs font-semibold uppercase tracking-widest text-sky-400 mt-2 font-mono">
-                  {timer.isFinished ? 'Ready to Complete' : 'Deep Work State'}
+                  {timer.isPaused ? 'Paused' : timer.isFinished ? 'Ready to Complete' : 'Deep Work State'}
                 </span>
                 <span className="text-[11px] text-ink-muted mt-1 font-mono">
                   +{Math.round((currentSession.plannedDurationSeconds / 60) * 1.5)} MP upon finish
@@ -273,23 +300,49 @@ export default function FocusChamberPage() {
               </div>
             </div>
 
-            {/* Complete Button (active when time has elapsed) */}
-            {timer.isFinished && (
-              <motion.button
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleComplete}
-                disabled={completeMutation.isPending}
-                className="w-full max-w-xs py-3.5 px-6 rounded-2xl bg-gradient-to-r from-sky-400 to-mana hover:brightness-110 text-obsidian font-bold shadow-[0_8px_24px_rgba(56,189,248,0.35)] transition-all flex items-center justify-center gap-2 min-h-[48px]"
-              >
-                <Sparkles size={18} />
-                <span>Complete & Restore Mana</span>
-              </motion.button>
-            )}
+            {/* Timer Controls: Pause / Resume / Complete */}
+            <div className="flex items-center gap-3">
+              {!timer.isFinished && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (timer.isPaused) resumeMutation.mutate(currentSession.id);
+                    else pauseMutation.mutate(currentSession.id);
+                  }}
+                  disabled={pauseMutation.isPending || resumeMutation.isPending}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 text-ink text-xs font-bold transition-all min-h-[44px]"
+                >
+                  {timer.isPaused ? (
+                    <>
+                      <Play size={16} className="text-emerald-400 fill-current" />
+                      <span>Resume</span>
+                    </>
+                  ) : (
+                    <>
+                      <Pause size={16} className="text-amber-400" />
+                      <span>Pause</span>
+                    </>
+                  )}
+                </button>
+              )}
 
-            {/* In-Session Ambient Sound Switcher (iOS Segmented Capsule) */}
+              {timer.isFinished && (
+                <motion.button
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleComplete}
+                  disabled={completeMutation.isPending}
+                  className="py-3 px-6 rounded-2xl bg-gradient-to-r from-sky-400 to-mana hover:brightness-110 text-obsidian font-bold shadow-[0_8px_24px_rgba(56,189,248,0.35)] transition-all flex items-center justify-center gap-2 min-h-[44px]"
+                >
+                  <Sparkles size={18} />
+                  <span>Complete & Restore Mana</span>
+                </motion.button>
+              )}
+            </div>
+
+            {/* In-Session Ambient Sound Switcher */}
             <div className="p-1 rounded-full bg-obsidian-900/80 border border-white/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] backdrop-blur-md flex items-center gap-1">
               {AMBIENT_TRACKS.map(({ id, label, icon: Icon }) => {
                 const isActive = (currentSession.ambientSound || selectedAmbient) === id;
@@ -327,12 +380,31 @@ export default function FocusChamberPage() {
               </p>
             </div>
 
-            {/* Duration Preset Cards (Adaptive Cards) */}
+            {/* Optional Task Link Selector */}
+            <div className="w-full text-left space-y-1.5">
+              <label className="text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-ink-muted block pl-1">
+                Link to Task (Optional)
+              </label>
+              <select
+                value={selectedTaskId}
+                onChange={(e) => setSelectedTaskId(e.target.value)}
+                className="w-full p-3 rounded-2xl bg-white/80 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-800 dark:text-ink backdrop-blur-md"
+              >
+                <option value="">-- Unlinked Sprint --</option>
+                {activeTasks.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    [{t.projectName}] {t.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Duration Preset Cards */}
             <div className="w-full space-y-2 text-left">
               <label className="text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-ink-muted block pl-1">
                 Sprint Preset
               </label>
-              <div className="grid grid-cols-3 gap-2.5">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 {DURATION_PRESETS.map((preset) => {
                   const isSelected = selectedDuration === preset.seconds;
                   return (
@@ -344,13 +416,13 @@ export default function FocusChamberPage() {
                       whileTap={{ scale: 0.96 }}
                       transition={spring.snappy}
                       className={clsx(
-                        'flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl border transition-all text-center min-h-[72px] shadow-xs',
+                        'flex flex-col items-center justify-center p-3 rounded-2xl border transition-all text-center min-h-[72px] shadow-xs cursor-pointer',
                         isSelected
                           ? 'bg-sky-50 dark:bg-sky-500/15 border-sky-400 text-sky-950 dark:text-ink shadow-[0_0_20px_rgba(56,189,248,0.2)] ring-2 ring-sky-400/40'
-                          : 'bg-white/80 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-ink-muted hover:border-slate-300 dark:hover:border-white/20 hover:text-slate-900 dark:hover:text-ink'
+                          : 'bg-white/80 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-ink-muted hover:border-slate-300 dark:hover:border-white/20'
                       )}
                     >
-                      <span className="text-base sm:text-lg font-bold font-mono">{preset.label}</span>
+                      <span className="text-base font-bold font-mono">{preset.label}</span>
                       <span className="text-[10px] text-sky-600 dark:text-sky-400 font-mono font-semibold mt-0.5">
                         +{preset.mana} MP
                       </span>
@@ -360,7 +432,7 @@ export default function FocusChamberPage() {
               </div>
             </div>
 
-            {/* Ambient Sound Selector (Adaptive Cards) */}
+            {/* Ambient Sound Selector */}
             <div className="w-full space-y-2 text-left">
               <label className="text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-ink-muted block pl-1">
                 Ambient Soundscape
@@ -377,10 +449,10 @@ export default function FocusChamberPage() {
                       whileTap={{ scale: 0.96 }}
                       transition={spring.snappy}
                       className={clsx(
-                        'flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl border text-center transition-all min-h-[64px] shadow-xs',
+                        'flex flex-col items-center justify-center p-2.5 rounded-2xl border text-center transition-all min-h-[64px] shadow-xs cursor-pointer',
                         isSelected
-                          ? 'bg-sky-50 dark:bg-sky-500/15 border-sky-400 text-sky-700 dark:text-sky-300 shadow-[0_0_20px_rgba(56,189,248,0.15)] ring-2 ring-sky-400/40'
-                          : 'bg-white/80 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-ink-muted hover:border-slate-300 dark:hover:border-white/20 hover:text-slate-900 dark:hover:text-ink'
+                          ? 'bg-sky-50 dark:bg-sky-500/15 border-sky-400 text-sky-700 dark:text-sky-300 ring-2 ring-sky-400/40'
+                          : 'bg-white/80 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-ink-muted hover:border-slate-300 dark:hover:border-white/20'
                       )}
                     >
                       <Icon size={16} className="mb-1" />
@@ -397,7 +469,7 @@ export default function FocusChamberPage() {
               disabled={startMutation.isPending}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-sky-400 to-mana text-obsidian font-extrabold text-sm sm:text-base shadow-[0_8px_30px_rgba(56,189,248,0.35)] hover:brightness-105 transition-all flex items-center justify-center gap-2 min-h-[50px]"
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-sky-400 to-mana text-obsidian font-extrabold text-sm sm:text-base shadow-[0_8px_30px_rgba(56,189,248,0.35)] hover:brightness-105 transition-all flex items-center justify-center gap-2 min-h-[50px] cursor-pointer"
             >
               <Play size={18} className="fill-current" />
               <span>{startMutation.isPending ? 'Igniting Chamber...' : 'Begin Focus Session'}</span>
@@ -406,9 +478,26 @@ export default function FocusChamberPage() {
         )}
       </main>
 
-      {/* Minimal Footer */}
-      <footer className="w-full max-w-4xl text-center text-[11px] font-mono text-ink-muted py-2 border-t border-white/[0.04]">
-        <span>Deep work replenishes Mana. Abandoning mid-way incurs zero HP penalties.</span>
+      {/* ── Focus Analytics Bottom Strip ── */}
+      <footer className="w-full max-w-4xl grid grid-cols-3 gap-3 p-3 rounded-2xl bg-white/60 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 backdrop-blur-md">
+        <div className="text-center">
+          <span className="text-[10px] font-mono uppercase text-slate-400">TODAY'S FOCUS</span>
+          <span className="text-sm font-bold font-mono text-slate-800 dark:text-ink block">
+            {summary.todayMinutes || 0} mins
+          </span>
+        </div>
+        <div className="text-center border-x border-slate-200/60 dark:border-white/10">
+          <span className="text-[10px] font-mono uppercase text-slate-400">WEEKLY TOTAL</span>
+          <span className="text-sm font-bold font-mono text-sky-400 block">
+            {((summary.weekMinutes || 0) / 60).toFixed(1)} hrs
+          </span>
+        </div>
+        <div className="text-center">
+          <span className="text-[10px] font-mono uppercase text-slate-400">COMPLETION RATE</span>
+          <span className="text-sm font-bold font-mono text-emerald-400 block">
+            {summary.completionRate || 100}%
+          </span>
+        </div>
       </footer>
     </div>
   );

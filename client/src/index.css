@@ -521,20 +521,20 @@ body {
   -webkit-backdrop-filter: blur(32px);
 }
 
-/* ── Floating Glass Bottom Navbar ── */
+/* ── Floating Glass Bottom Navbar (Decreased Transparency for Ultimate Legibility) ── */
 .floating-glass-bar {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.70) 0%, rgba(248, 250, 252, 0.50) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 250, 252, 0.98) 100%);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.9), inset 0 1px 1px rgba(255, 255, 255, 1);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
 }
 [data-theme="dark"] .floating-glass-bar, [data-theme="dim"] .floating-glass-bar, .dark .floating-glass-bar {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(10, 15, 28, 0.35) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.22);
-  backdrop-filter: blur(32px) saturate(190%);
-  -webkit-backdrop-filter: blur(32px) saturate(190%);
+  background: linear-gradient(180deg, rgba(16, 18, 26, 0.97) 0%, rgba(9, 10, 15, 0.99) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
 }
 
 /* ── Fallback for devices without backdrop-filter ── */

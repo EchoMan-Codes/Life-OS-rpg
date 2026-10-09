@@ -16,6 +16,10 @@ import ReflectionPage from '@/pages/ReflectionPage';
 import ShopPage from '@/pages/ShopPage';
 import ProfilePage from '@/pages/ProfilePage';
 import DevShowcase from '@/pages/DevShowcase';
+import CalendarPage from '@/pages/CalendarPage';
+import TasksPage from '@/pages/TasksPage';
+import InsightsPage from '@/pages/InsightsPage';
+import JeevanAiPage from '@/pages/JeevanAiPage';
 
 import OnboardingPage from '@/features/onboarding/OnboardingPage';
 
@@ -82,6 +86,10 @@ export default function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/login" element={<OnboardingPage defaultMode="login" />} />
+        <Route path="/calendar" element={<CalendarPage />} />
+        <Route path="/tasks" element={<TasksPage />} />
+        <Route path="/insights" element={<InsightsPage />} />
+        <Route path="/ai" element={<JeevanAiPage />} />
         <Route path="/habits" element={<HabitsPage />} />
         <Route path="/dailies" element={<DailiesPage />} />
         <Route path="/quests" element={<QuestsPage />} />

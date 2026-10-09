@@ -4,6 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 import {
   LayoutDashboard,
+  CalendarDays,
+  CheckSquare,
+  TrendingUp,
+  Sparkles,
   Flame,
   CalendarCheck,
   Scroll,
@@ -29,27 +33,59 @@ import { JeevanLogo } from '@/components/ui/JeevanLogo';
 
 const primaryNavItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/habits', icon: Flame, label: 'Habits' },
-  { to: '/dailies', icon: CalendarCheck, label: 'Dailies' },
-  { to: '/quests', icon: Scroll, label: 'Quests' },
+  { to: '/calendar', icon: CalendarDays, label: 'Calendar' },
+  { to: '/tasks', icon: CheckSquare, label: 'Tasks' },
+  { to: '/focus', icon: Clock, label: 'Focus' },
 ];
 
 const moreNavItems = [
   {
-    to: '/profile',
-    icon: UserIcon,
-    label: 'Character Profile',
-    desc: 'Identity, progress analytics & attributes',
+    to: '/ai',
+    icon: Sparkles,
+    label: 'Jeevan AI',
+    desc: 'Action-oriented personal AI strategist',
+    color: 'text-amber-500 dark:text-amber-400',
+    bg: 'bg-amber-500/15 border-amber-500/30',
+  },
+  {
+    to: '/insights',
+    icon: TrendingUp,
+    label: 'Weekly Insights',
+    desc: 'Deep work trends, completion rates & reviews',
     color: 'text-indigo-600 dark:text-indigo-400',
     bg: 'bg-indigo-500/15 border-indigo-500/30',
   },
   {
-    to: '/focus',
-    icon: Clock,
-    label: 'Focus Chamber',
-    desc: 'Deep work timer & Mana regeneration',
-    color: 'text-mana',
-    bg: 'bg-mana/15 border-mana/30',
+    to: '/habits',
+    icon: Flame,
+    label: 'Habits',
+    desc: 'Positive momentum & streak building',
+    color: 'text-orange-500 dark:text-orange-400',
+    bg: 'bg-orange-500/15 border-orange-500/30',
+  },
+  {
+    to: '/dailies',
+    icon: CalendarCheck,
+    label: 'Dailies',
+    desc: 'Non-negotiable daily recurring commitments',
+    color: 'text-emerald-500 dark:text-emerald-400',
+    bg: 'bg-emerald-500/15 border-emerald-500/30',
+  },
+  {
+    to: '/quests',
+    icon: Scroll,
+    label: 'Quests',
+    desc: 'Milestone roadmaps & long-term goals',
+    color: 'text-purple-500 dark:text-purple-400',
+    bg: 'bg-purple-500/15 border-purple-500/30',
+  },
+  {
+    to: '/profile',
+    icon: UserIcon,
+    label: 'Character Profile',
+    desc: '5 attributes, level progression & radar',
+    color: 'text-sky-500 dark:text-sky-400',
+    bg: 'bg-sky-500/15 border-sky-500/30',
   },
   {
     to: '/reflection',
@@ -63,7 +99,7 @@ const moreNavItems = [
     to: '/shop',
     icon: ShoppingBag,
     label: 'Reward Shop',
-    desc: 'Spend hard-earned gold on loot',
+    desc: 'Spend hard-earned gold on custom rewards',
     color: 'text-gold',
     bg: 'bg-gold/15 border-gold/30',
   },
@@ -82,7 +118,16 @@ export function BottomNav({ onOpenAuth }) {
 
   const isScrollNavVisible = useAutoHideNav({ disabled: moreOpen });
   const isNavVisible = isScrollNavVisible && !isKeyboardVisible;
-  const isMoreActive = ['/profile', '/focus', '/reflection', '/shop'].includes(location.pathname);
+  const isMoreActive = [
+    '/ai',
+    '/insights',
+    '/habits',
+    '/dailies',
+    '/quests',
+    '/profile',
+    '/reflection',
+    '/shop',
+  ].includes(location.pathname);
 
   const triggerHaptic = useCallback(() => {
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
@@ -233,7 +278,7 @@ export function BottomNav({ onOpenAuth }) {
                 paddingLeft: 'max(1.25rem, calc(1rem + env(safe-area-inset-left, 0px)))',
                 paddingRight: 'max(1.25rem, calc(1rem + env(safe-area-inset-right, 0px)))',
               }}
-              className="relative z-10 rounded-t-[36px] bg-white/85 dark:bg-[#0B0D14]/75 backdrop-blur-3xl border-t border-white/60 dark:border-white/18 p-5 shadow-[0_-12px_40px_rgba(0,0,0,0.12)] dark:shadow-[0_-12px_40px_rgba(0,0,0,0.55)] space-y-4 max-h-[85vh] overflow-y-auto"
+              className="relative z-10 rounded-t-[36px] bg-white/96 dark:bg-[#090B10]/98 backdrop-blur-3xl border-t border-slate-200/90 dark:border-white/16 p-5 shadow-[0_-16px_50px_rgba(0,0,0,0.2)] dark:shadow-[0_-16px_50px_rgba(0,0,0,0.85)] space-y-4 max-h-[85vh] overflow-y-auto"
             >
               {/* iOS Grabber Handle & Header */}
               <div className="flex flex-col items-center">

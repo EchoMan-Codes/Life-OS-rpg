@@ -9,6 +9,9 @@ router.use(requireAuth);
 router.post('/start', (req, res, next) => focusController.start(req, res, next));
 router.get('/current', (req, res, next) => focusController.getCurrent(req, res, next));
 router.get('/history', (req, res, next) => focusController.list(req, res, next));
+router.get('/summary', (req, res, next) => focusController.getSummary(req, res, next));
+router.post('/:id/pause', (req, res, next) => focusController.pause(req, res, next));
+router.post('/:id/resume', (req, res, next) => focusController.resume(req, res, next));
 router.post('/:id/complete', (req, res, next) => focusController.complete(req, res, next));
 router.post('/:id/abandon', (req, res, next) => focusController.abandon(req, res, next));
 

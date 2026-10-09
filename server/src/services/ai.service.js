@@ -2,6 +2,8 @@ import { query, pool } from '../db/pool.js';
 import { dailyService } from './daily.service.js';
 import { habitService } from './habit.service.js';
 import { questService } from './quest.service.js';
+import { taskService } from './task.service.js';
+import { calendarService } from './calendar.service.js';
 import { notificationService } from './notification.service.js';
 import { parseTimeString, computeNextFireTimes } from '../utils/scheduler.js';
 import { getUserLocalDate } from './daily-reset.service.js';
@@ -38,6 +40,21 @@ const createQuestSchema = z.object({
   reminderTime: z.string().optional().nullable(),
   reminderDaysBefore: z.coerce.number().int().min(0).max(30).default(1),
   subtasks: z.array(z.string().min(1)).optional().default([]),
+});
+
+const createTaskSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(200),
+  description: z.string().optional().nullable(),
+  status: z.enum(['inbox', 'todo', 'in_progress', 'completed', 'cancelled']).default('todo'),
+  priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
+  difficulty: z.enum(['trivial', 'easy', 'medium', 'hard']).default('easy'),
+  dueDate: z.string().optional().nullable(),
+  startDate: z.string().optional().nullable(),
+  scheduledTime: z.string().optional().nullable(),
+  estimatedDurationMinutes: z.coerce.number().int().min(5).max(480).default(30),
+  projectName: z.string().optional().default('General'),
+  tags: z.array(z.string()).optional().default([]),
+  subtasks: z.array(z.string()).optional().default([]),
 });
 
 export const aiService = {
@@ -515,12 +532,30 @@ If information is ambiguous or critical details are missing, ask one brief clari
     return { success: true };
   },
 
+  async recordActionLog(userId, actionType, payload, result) {
+    try {
+      await pool.query(
+        `INSERT INTO ai_action_logs (user_id, action_type, payload, result)
+         VALUES ($1, $2, $3, $4)`,
+        [userId, actionType, JSON.stringify(payload || {}), JSON.stringify(result || {})]
+      );
+    } catch (e) {
+      console.warn('[AI_ACTION_LOG] Failed to record log:', e.message);
+    }
+  },
+
   /**
    * Strict Natural-Language Action Execution & Verification Pipeline.
    * Executes through existing services and verifies state before returning success.
    */
   async executeAction(userId, { actionType, payload }) {
     if (!actionType) throw new Error('actionType is required');
+    const result = await this._executeActionInternal(userId, { actionType, payload });
+    await this.recordActionLog(userId, actionType, payload, result);
+    return result;
+  },
+
+  async _executeActionInternal(userId, { actionType, payload }) {
 
     // 1. CREATE ITEM
     if (actionType === 'create_item' || actionType === 'create_daily' || actionType === 'create_dailies') {
@@ -627,6 +662,19 @@ If information is ambiguous or critical details are missing, ask one brief clari
           message: `Campaign "${created.title}" launched with ${(validated.subtasks || []).length} milestones!`,
           item: created,
           undoAction: { type: 'delete_item', section: 'quest', id: created.id, title: created.title },
+        };
+      }
+
+      if (section === 'task') {
+        const validated = createTaskSchema.parse(itemData);
+        const created = await taskService.createTask(userId, validated);
+        return {
+          success: true,
+          verified: true,
+          section: 'task',
+          message: `Task "${created.title}" added to your queue!`,
+          item: created,
+          undoAction: { type: 'delete_item', section: 'task', id: created.id, title: created.title },
         };
       }
     }
@@ -822,27 +870,73 @@ If information is ambiguous or critical details are missing, ask one brief clari
 
     // 9. CREATE TASK (Unified alias)
     if (actionType === 'create_task') {
-      const section = payload.section || (payload.type === 'habit' ? 'habit' : payload.type === 'quest' ? 'quest' : 'daily');
-      return await this.executeAction(userId, {
+      const section = payload.section || 'task';
+      const res = await this.executeAction(userId, {
         actionType: 'create_item',
-        payload: { section, item: payload.item || payload },
+        payload: { section, item: payload.item || payload.task || payload },
       });
+      return res;
     }
 
-    // 10. UPDATE TASK (Unified alias)
-    if (actionType === 'update_task') {
-      return await this.executeAction(userId, {
-        actionType: 'update_item',
-        payload,
+    // 10. SCHEDULE TIME BLOCK
+    if (actionType === 'schedule_time_block') {
+      const scheduled = await calendarService.scheduleTimeBlock(userId, {
+        taskId: payload.taskId,
+        taskType: payload.taskType || 'task',
+        startTime: payload.startTime,
+        durationMinutes: payload.durationMinutes || 45,
       });
+
+      return {
+        success: true,
+        verified: true,
+        section: 'calendar',
+        message: `Focus block scheduled for ${new Date(payload.startTime).toLocaleTimeString()}!`,
+        result: scheduled,
+      };
     }
 
-    // 11. CREATE CALENDAR EVENT (Unified alias)
+    // 11. CREATE CALENDAR EVENT
     if (actionType === 'create_calendar_event') {
-      return await this.executeAction(userId, {
-        actionType: 'create_item',
-        payload: { section: 'daily', item: payload.item || payload },
-      });
+      const eventData = payload.event || payload.item || payload;
+      const created = await calendarService.createEvent(userId, eventData);
+      return {
+        success: true,
+        verified: true,
+        section: 'calendar',
+        message: `Calendar event "${created.title}" successfully added!`,
+        event: created,
+      };
+    }
+
+    // 12. BREAK DOWN PROJECT INTO TASKS
+    if (actionType === 'breakdown_project') {
+      const projectName = payload.projectName || 'New Project';
+      const taskList = Array.isArray(payload.tasks) ? payload.tasks : [];
+      const createdTasks = [];
+
+      for (let i = 0; i < taskList.length; i++) {
+        const t = taskList[i];
+        const tTitle = typeof t === 'string' ? t.trim() : (t.title || '').trim();
+        if (tTitle) {
+          const ct = await taskService.createTask(userId, {
+            title: tTitle,
+            projectName,
+            priority: t.priority || 'medium',
+            estimatedDurationMinutes: t.estimatedDurationMinutes || 30,
+            position: i,
+          });
+          createdTasks.push(ct);
+        }
+      }
+
+      return {
+        success: true,
+        verified: true,
+        section: 'tasks',
+        message: `Project "${projectName}" broken down into ${createdTasks.length} actionable tasks!`,
+        tasks: createdTasks,
+      };
     }
 
     throw new Error(`Unsupported action type: ${actionType}`);

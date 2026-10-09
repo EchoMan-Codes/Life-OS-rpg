@@ -4,6 +4,10 @@ import { NavLink } from 'react-router-dom';
 import clsx from 'clsx';
 import {
   LayoutDashboard,
+  CalendarDays,
+  CheckSquare,
+  TrendingUp,
+  Sparkles,
   Flame,
   CalendarCheck,
   Scroll,
@@ -23,17 +27,31 @@ import { useAuth } from '@/features/auth/hooks';
 import { JeevanLogo } from '@/components/ui/JeevanLogo';
 
 /**
- * Navigation items for primary Jeevan features.
+ * Grouped Navigation items for Command Center and RPG features.
  */
-const navItems = [
-  { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/habits', icon: Flame, label: 'Habits' },
-  { to: '/dailies', icon: CalendarCheck, label: 'Dailies' },
-  { to: '/quests', icon: Scroll, label: 'Quests' },
-  { to: '/focus', icon: Clock, label: 'Focus Chamber' },
-  { to: '/reflection', icon: Moon, label: 'Reflection' },
-  { to: '/shop', icon: ShoppingBag, label: 'Shop' },
-  { to: '/profile', icon: User, label: 'Profile' },
+const navGroups = [
+  {
+    title: 'Command Center',
+    items: [
+      { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+      { to: '/calendar', icon: CalendarDays, label: 'Calendar' },
+      { to: '/tasks', icon: CheckSquare, label: 'Tasks' },
+      { to: '/focus', icon: Clock, label: 'Focus Chamber' },
+      { to: '/insights', icon: TrendingUp, label: 'Insights' },
+      { to: '/ai', icon: Sparkles, label: 'Jeevan AI' },
+    ],
+  },
+  {
+    title: 'RPG System',
+    items: [
+      { to: '/habits', icon: Flame, label: 'Habits' },
+      { to: '/dailies', icon: CalendarCheck, label: 'Dailies' },
+      { to: '/quests', icon: Scroll, label: 'Quests' },
+      { to: '/shop', icon: ShoppingBag, label: 'Reward Shop' },
+      { to: '/reflection', icon: Moon, label: 'Reflection' },
+      { to: '/profile', icon: User, label: 'Profile' },
+    ],
+  },
 ];
 
 /**
@@ -72,9 +90,9 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth, onOpenCommand }) {
       className={clsx(
         'group/sidebar fixed top-0 left-0 h-screen z-40',
         'hidden md:flex flex-col',
-        'bg-white/45 dark:bg-[#07080C]/40 backdrop-blur-2xl',
-        'border-r border-slate-200/60 dark:border-white/10',
-        'shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-[4px_0_32px_rgba(0,0,0,0.35)]',
+        'bg-white/80 dark:bg-[#07080C]/85 backdrop-blur-2xl',
+        'border-r border-slate-200/80 dark:border-white/10',
+        'shadow-[4px_0_32px_rgba(0,0,0,0.05)] dark:shadow-[4px_0_40px_rgba(0,0,0,0.5)]',
         'transition-all duration-200 overflow-hidden select-none'
       )}
       animate={{ width: collapsed ? 80 : 256 }}
@@ -141,62 +159,73 @@ export function Sidebar({ collapsed, onToggle, onOpenAuth, onOpenCommand }) {
       </div>
 
       {/* Nav items */}
-      <nav className="flex-1 py-2 px-3 space-y-1.5 overflow-y-auto relative z-10" aria-label="Desktop Navigation">
-        {navItems.map(({ to, icon: Icon, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              clsx(
-                'group/item relative flex items-center gap-3 px-3 py-2.5 rounded-2xl',
-                'text-sm font-medium transition-colors duration-150',
-                'min-h-[44px]',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-obsidian-950',
-                isActive
-                  ? 'text-indigo-600 dark:text-ink font-semibold'
-                  : 'text-slate-600 dark:text-ink-muted hover:text-slate-900 dark:hover:text-ink hover:bg-slate-100/60 dark:hover:bg-white/[0.04]'
-              )
-            }
-          >
-            {({ isActive }) => (
-              <>
-                {/* Active pill sliding indicator */}
-                {isActive && (
-                  <motion.div
-                    layoutId="desktop-active-nav-pill"
-                    className="absolute inset-0 rounded-2xl bg-indigo-500/10 dark:bg-indigo-500/20 border border-indigo-500/25 dark:border-indigo-400/30 shadow-xs pointer-events-none"
-                    transition={shouldReduceMotion ? { duration: 0 } : spring.navbar}
-                  />
-                )}
-
-                <Icon
-                  size={20}
-                  className={clsx(
-                    'shrink-0 relative z-10 transition-transform duration-150',
+      <nav className="flex-1 py-2 px-3 space-y-4 overflow-y-auto relative z-10 custom-scrollbar" aria-label="Desktop Navigation">
+        {navGroups.map((group, groupIdx) => (
+          <div key={group.title} className="space-y-1">
+            {!collapsed ? (
+              <div className="px-3 pt-1 pb-1 text-[10px] font-semibold tracking-wider uppercase text-slate-400 dark:text-ink-muted/50">
+                {group.title}
+              </div>
+            ) : groupIdx > 0 ? (
+              <div className="my-2 border-t border-slate-200/60 dark:border-white/5" />
+            ) : null}
+            {group.items.map(({ to, icon: Icon, label }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  clsx(
+                    'group/item relative flex items-center gap-3 px-3 py-2 rounded-2xl',
+                    'text-xs font-medium transition-colors duration-150',
+                    'min-h-[40px]',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-obsidian-950',
                     isActive
-                      ? 'text-indigo-600 dark:text-indigo-400 scale-105'
-                      : 'text-slate-500 dark:text-ink-muted group-hover/item:scale-105'
-                  )}
-                />
-                {!collapsed && <span className="truncate relative z-10">{label}</span>}
-
-                {/* Collapsed Tooltip reveal with short spring */}
-                {collapsed && (
-                  <span
-                    className={clsx(
-                      'pointer-events-none absolute left-full ml-3 px-3 py-1.5 rounded-xl',
-                      'bg-slate-900/90 dark:bg-obsidian-800 text-white text-xs font-semibold whitespace-nowrap',
-                      'shadow-xl border border-white/10 z-50',
-                      'opacity-0 -translate-x-2 group-hover/item:opacity-100 group-hover/item:translate-x-0',
-                      'transition-all duration-150'
+                      ? 'text-indigo-600 dark:text-ink font-semibold'
+                      : 'text-slate-600 dark:text-ink-muted hover:text-slate-900 dark:hover:text-ink hover:bg-slate-100/60 dark:hover:bg-white/[0.04]'
+                  )
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    {/* Active pill sliding indicator */}
+                    {isActive && (
+                      <motion.div
+                        layoutId="desktop-active-nav-pill"
+                        className="absolute inset-0 rounded-2xl bg-indigo-500/10 dark:bg-indigo-500/20 border border-indigo-500/25 dark:border-indigo-400/30 shadow-xs pointer-events-none"
+                        transition={shouldReduceMotion ? { duration: 0 } : spring.navbar}
+                      />
                     )}
-                  >
-                    {label}
-                  </span>
+
+                    <Icon
+                      size={18}
+                      className={clsx(
+                        'shrink-0 relative z-10 transition-transform duration-150',
+                        isActive
+                          ? 'text-indigo-600 dark:text-indigo-400 scale-105'
+                          : 'text-slate-500 dark:text-ink-muted group-hover/item:scale-105'
+                      )}
+                    />
+                    {!collapsed && <span className="truncate relative z-10">{label}</span>}
+
+                    {/* Collapsed Tooltip reveal with short spring */}
+                    {collapsed && (
+                      <span
+                        className={clsx(
+                          'pointer-events-none absolute left-full ml-3 px-3 py-1.5 rounded-xl',
+                          'bg-slate-900/90 dark:bg-obsidian-800 text-white text-xs font-semibold whitespace-nowrap',
+                          'shadow-xl border border-white/10 z-50',
+                          'opacity-0 -translate-x-2 group-hover/item:opacity-100 group-hover/item:translate-x-0',
+                          'transition-all duration-150'
+                        )}
+                      >
+                        {label}
+                      </span>
+                    )}
+                  </>
                 )}
-              </>
-            )}
-          </NavLink>
+              </NavLink>
+            ))}
+          </div>
         ))}
       </nav>
 

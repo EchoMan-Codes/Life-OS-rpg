@@ -35,6 +35,9 @@ export function useAiExecuteAction() {
       queryClient.invalidateQueries({ queryKey: ['dailies'] });
       queryClient.invalidateQueries({ queryKey: ['habits'] });
       queryClient.invalidateQueries({ queryKey: ['quests'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
+      queryClient.invalidateQueries({ queryKey: ['insights'] });
       queryClient.invalidateQueries({ queryKey: ['character'] });
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },

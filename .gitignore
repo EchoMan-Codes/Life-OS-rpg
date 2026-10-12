@@ -40,3 +40,4 @@ scratch_*.txt
 prompt_*.txt
 task_prompt.txt
 user_prompt_full.txt
+client/scripts/

@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
 import {
   Sparkles,
   CloudRain,
@@ -12,13 +13,19 @@ import {
   Pause,
   CheckCircle2,
   Zap,
-  Timer,
   Clock,
   Layers,
   BarChart3,
   Plus,
   Target,
-  CheckSquare,
+  Shield,
+  Lock,
+  AlertTriangle,
+  AlertOctagon,
+  Sliders,
+  Coins,
+  ChevronRight,
+  RotateCcw,
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -29,20 +36,32 @@ import {
   useResumeFocusSession,
   useCompleteFocusSession,
   useAbandonFocusSession,
-  useFocusSummary,
+  useEarlyExitFocusSession,
+  useEmergencyExitFocusSession,
+  useRecordFocusEvent,
+  useFocusProfiles,
+  useCreateFocusProfile,
+  useFocusCapabilities,
   useFocusTimer,
 } from '@/features/focus/hooks';
-import { useTasks, useCreateTask } from '@/features/tasks/hooks';
-import { SelectDropdown } from '@/components/ui';
+import { useTasks } from '@/features/tasks/hooks';
+import { useQuests } from '@/features/quests/hooks';
 import { ambientSound } from '@/lib/ambientSound';
 import { playSound } from '@/lib/sound';
-import { spring } from '@/lib/motionVariants';
+import { triggerHaptic } from '@/lib/native/nativeHaptics';
+import { distractionShield, PRESET_PROFILES } from '@/features/focus/shield';
+
+import HoldToConfirmButton from '@/components/focus/HoldToConfirmButton';
+import EmergencyExitModal from '@/components/focus/EmergencyExitModal';
+import PreparationModal from '@/components/focus/PreparationModal';
+import ShieldProfileModal from '@/components/focus/ShieldProfileModal';
+import FocusAnalyticsView from '@/components/focus/FocusAnalyticsView';
 
 const DURATION_PRESETS = [
-  { seconds: 900, label: '15m', title: 'Quick Sprint', mana: 22 },
-  { seconds: 1500, label: '25m', title: 'Pomodoro', mana: 38 },
-  { seconds: 3000, label: '50m', title: 'Extended Flow', mana: 75 },
-  { seconds: 5400, label: '90m', title: 'Deep Immersion', mana: 135 },
+  { seconds: 1500, label: '25m', title: 'Classic Pomodoro', desc: 'Standard deep work sprint', multiplierText: '1.0x Base' },
+  { seconds: 2700, label: '45m', title: 'Study Session', desc: 'Focused study & analysis', multiplierText: 'High flow' },
+  { seconds: 3600, label: '60m', title: 'Deep Work', desc: 'Sustained cognitive immersion', multiplierText: 'Deep sprint' },
+  { seconds: 5400, label: '90m', title: 'Extended Immersion', desc: 'Peak cognitive block', multiplierText: 'Ultradian sprint' },
 ];
 
 const AMBIENT_TRACKS = [
@@ -55,81 +74,74 @@ export default function FocusChamberPage() {
   const navigate = useNavigate();
   const shouldReduceMotion = useReducedMotion();
 
-  // Setup state
+  // Tab State: chamber vs analytics
+  const [activeTab, setActiveTab] = useState('chamber');
+
+  // Setup State
   const [selectedDuration, setSelectedDuration] = useState(1500);
+  const [isCustomDuration, setIsCustomDuration] = useState(false);
+  const [customMinutes, setCustomMinutes] = useState(30);
   const [selectedAmbient, setSelectedAmbient] = useState('silence');
+  const [selectedCommitmentLevel, setSelectedCommitmentLevel] = useState(1);
+  const [selectedProfileId, setSelectedProfileId] = useState('');
+
+  // Objective Linking State
+  const [linkedEntityType, setLinkedEntityType] = useState('none');
   const [selectedTaskId, setSelectedTaskId] = useState('');
-  const [isAddingQuickTask, setIsAddingQuickTask] = useState(false);
-  const [quickTaskTitle, setQuickTaskTitle] = useState('');
+  const [selectedQuestId, setSelectedQuestId] = useState('');
+  const [customGoalTitle, setCustomGoalTitle] = useState('');
+
+  // Modals State
+  const [isPrepModalOpen, setIsPrepModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState(false);
   const [showAbandonConfirm, setShowAbandonConfirm] = useState(false);
   const [completedResult, setCompletedResult] = useState(null);
 
-  // Queries & Mutations
-  const { data: currentSession } = useCurrentFocusSession();
-  const { data: summary = {} } = useFocusSummary();
+  // Queries
+  const { data: currentSession, isLoading: isSessionLoading } = useCurrentFocusSession();
+  const { data: profiles = [] } = useFocusProfiles();
+  const { data: capabilities } = useFocusCapabilities();
   const { data: activeTasks = [] } = useTasks({ status: 'active' });
+  const { data: activeQuests = [] } = useQuests({ status: 'active' });
 
+  // Mutations
   const startMutation = useStartFocusSession();
   const pauseMutation = usePauseFocusSession();
   const resumeMutation = useResumeFocusSession();
   const completeMutation = useCompleteFocusSession();
   const abandonMutation = useAbandonFocusSession();
-  const createTaskMutation = useCreateTask();
+  const earlyExitMutation = useEarlyExitFocusSession();
+  const emergencyExitMutation = useEmergencyExitFocusSession();
+  const recordEventMutation = useRecordFocusEvent();
+  const createProfileMutation = useCreateFocusProfile();
 
-  // Rich task options for link to task
-  const taskOptions = useMemo(() => {
-    const list = [
-      {
-        value: '',
-        label: '✨ Free Flow Sprint (No Task Linked)',
-        description: 'Unlinked deep work sprint without associating a backlog item',
-        color: '#818CF8',
-      },
-    ];
-
-    activeTasks.forEach((t) => {
-      const pColor =
-        t.priority === 'critical'
-          ? '#EF4444'
-          : t.priority === 'high'
-          ? '#F59E0B'
-          : t.priority === 'medium'
-          ? '#3B82F6'
-          : '#94A3B8';
-
-      list.push({
-        value: t.id,
-        label: t.title,
-        description: `[${t.projectName || 'General'}] • ${t.priority || 'medium'} priority`,
-        color: pColor,
-        badge: t.estimatedDurationMinutes ? `${t.estimatedDurationMinutes}m est` : (t.projectName || 'Task'),
-      });
-    });
-
-    return list;
-  }, [activeTasks]);
-
-  const handleCreateAndLinkTask = async (e) => {
-    e.preventDefault();
-    if (!quickTaskTitle.trim()) return;
-    try {
-      const created = await createTaskMutation.mutateAsync({
-        title: quickTaskTitle.trim(),
-        priority: 'high',
-        projectName: 'Focus Sprints',
-      });
-      if (created?.id) {
-        setSelectedTaskId(created.id);
-      }
-      setQuickTaskTitle('');
-      setIsAddingQuickTask(false);
-    } catch (err) {
-      console.error('Failed to create quick task:', err);
-    }
-  };
-
-  // Active timer
+  // Active Timer Engine
   const timer = useFocusTimer(currentSession);
+
+  // Selected Shield Profile object
+  const activeProfile = useMemo(() => {
+    if (!selectedProfileId) {
+      return profiles.find((p) => p.isDefault) || profiles[0] || PRESET_PROFILES[0];
+    }
+    return profiles.find((p) => p.id === selectedProfileId) || PRESET_PROFILES[0];
+  }, [selectedProfileId, profiles]);
+
+  // Derived Title for active goal
+  const activeGoalTitle = useMemo(() => {
+    if (linkedEntityType === 'task') {
+      const t = activeTasks.find((task) => task.id === selectedTaskId);
+      return t ? t.title : 'Selected Task';
+    }
+    if (linkedEntityType === 'quest') {
+      const q = activeQuests.find((quest) => quest.id === selectedQuestId);
+      return q ? q.title : 'Selected Quest';
+    }
+    if (linkedEntityType === 'custom') {
+      return customGoalTitle.trim() || 'Custom Focus Goal';
+    }
+    return 'Free Flow Deep Sprint';
+  }, [linkedEntityType, selectedTaskId, selectedQuestId, customGoalTitle, activeTasks, activeQuests]);
 
   // Ambient sound management
   useEffect(() => {
@@ -138,491 +150,726 @@ export default function FocusChamberPage() {
     } else {
       ambientSound.setTrack('silence');
     }
-
     return () => {
       ambientSound.setTrack('silence');
     };
   }, [currentSession, selectedAmbient, completedResult, timer.isPaused]);
 
-  // Start focus session
-  const handleStart = async () => {
+  // Handle Interruption detection and shield activation while session is active
+  useEffect(() => {
+    if (!currentSession || currentSession.endedAt) return;
+
+    distractionShield.startShield(currentSession.id, {
+      restrictedApps: activeProfile?.restrictedApps || [],
+      onInterruption: (eventType, metadata) => {
+        recordEventMutation.mutate({
+          id: currentSession.id,
+          eventType,
+          metadata,
+          clientTimestamp: new Date().toISOString(),
+        });
+      },
+    });
+
+    return () => {
+      distractionShield.stopShield(currentSession.id);
+    };
+  }, [currentSession?.id]);
+
+  // Start Focus Session Handler
+  const handleConfirmStart = async () => {
     try {
       setCompletedResult(null);
-      const chosenTask = activeTasks.find((t) => t.id === selectedTaskId);
+      const plannedSec = isCustomDuration ? customMinutes * 60 : selectedDuration;
+
       await startMutation.mutateAsync({
-        plannedDurationSeconds: selectedDuration,
+        plannedDurationSeconds: plannedSec,
         ambientSound: selectedAmbient,
-        taskId: chosenTask?.id || null,
-        taskTitle: chosenTask?.title || null,
+        commitmentLevel: selectedCommitmentLevel,
+        shieldProfileId: activeProfile?.id || null,
+        goalDescription: activeGoalTitle,
+        linkedEntityType: linkedEntityType === 'custom' ? 'none' : linkedEntityType,
+        linkedEntityId: linkedEntityType === 'task' ? selectedTaskId : linkedEntityType === 'quest' ? selectedQuestId : null,
+        taskTitle: activeGoalTitle,
       });
+
+      setIsPrepModalOpen(false);
+      playSound('focus_start');
+      triggerHaptic('success');
     } catch (err) {
-      console.error('Failed to start focus session:', err);
+      console.error('Failed to start session:', err);
     }
   };
 
-  // Complete focus session
+  // Complete Session Handler
   const handleComplete = async () => {
     if (!currentSession) return;
     try {
       const result = await completeMutation.mutateAsync(currentSession.id);
-      ambientSound.setTrack('silence');
-      try {
-        playSound('mana_refill');
-      } catch {
-        // Audio fallback
+      setCompletedResult(result);
+      playSound('level_up');
+      triggerHaptic('success');
+      if (!shouldReduceMotion) {
+        confetti({
+          particleCount: 80,
+          spread: 70,
+          origin: { y: 0.6 },
+        });
       }
-      setCompletedResult(result || { manaRegenerated: Math.round((currentSession.plannedDurationSeconds / 60) * 1.5) });
     } catch (err) {
-      console.error('Failed to complete focus session:', err);
+      console.error('Completion verification rejected:', err);
     }
   };
 
-  // Abandon focus session
-  const handleAbandon = async () => {
+  // Hold-to-Confirm Early Exit
+  const handleEarlyExit = async () => {
     if (!currentSession) return;
     try {
-      await abandonMutation.mutateAsync(currentSession.id);
-      ambientSound.setTrack('silence');
-      setShowAbandonConfirm(false);
+      await earlyExitMutation.mutateAsync({
+        id: currentSession.id,
+        data: { reason: 'User confirmed hold-to-exit', holdConfirmed: true },
+      });
+      triggerHaptic('medium');
     } catch (err) {
-      console.error('Failed to abandon focus session:', err);
+      console.error('Early exit failed:', err);
     }
   };
 
-  const handleTrackChange = (trackId) => {
-    setSelectedAmbient(trackId);
-    ambientSound.setTrack(trackId);
+  // Emergency Exit
+  const handleEmergencyExit = async () => {
+    if (!currentSession) return;
+    try {
+      await emergencyExitMutation.mutateAsync({
+        id: currentSession.id,
+        data: { reason: 'Emergency exit triggered' },
+      });
+      setIsEmergencyModalOpen(false);
+      triggerHaptic('heavy');
+    } catch (err) {
+      console.error('Emergency exit failed:', err);
+    }
   };
 
-  // SVG circular ring geometry
-  const radius = 130;
+  // SVG Progress Ring calculations
+  const radius = 120;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference * (1 - Math.min(1, Math.max(0, timer.progress)));
 
   return (
-    <div className="relative min-h-[calc(100vh-6rem)] w-full text-ink flex flex-col items-center justify-between p-3 sm:p-6 md:p-8 select-none overflow-x-hidden pb-20">
-      {/* ── Ambient Celestial Aura Glows (Mana Azure) ── */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] sm:w-[650px] h-[400px] sm:h-[650px] bg-sky-500/10 rounded-full blur-[140px]" />
-        <div className="absolute bottom-10 right-1/4 w-[350px] h-[350px] bg-mana/10 rounded-full blur-[120px]" />
-      </div>
+    <div className="w-full text-slate-800 dark:text-slate-100 flex flex-col selection:bg-indigo-500/30">
+      {/* Top Header Navigation */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-200/80 dark:border-white/10">
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="flex items-center space-x-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors p-2 rounded-xl hover:bg-slate-200/50 dark:hover:bg-white/5"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Exit Chamber</span>
+        </button>
 
-      {/* ── Top Bar: Navigation & Action Header ── */}
-      <header className="w-full max-w-4xl flex items-center justify-between mb-4 z-10">
-        {!currentSession ? (
+        {/* View Switcher Tabs */}
+        <div className="flex p-1 rounded-2xl bg-slate-200/60 dark:bg-white/5 border border-slate-300/60 dark:border-white/10 text-xs">
           <button
-            onClick={() => navigate('/')}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-white/80 hover:bg-white border border-slate-200/80 text-slate-700 hover:text-slate-900 dark:bg-white/[0.04] dark:hover:bg-white/[0.08] dark:border-white/10 dark:text-ink-muted dark:hover:text-ink transition-colors min-h-[44px] text-xs font-mono font-medium shadow-xs backdrop-blur-md"
-            title="Return to Dashboard"
+            type="button"
+            onClick={() => setActiveTab('chamber')}
+            className={clsx(
+              'px-3.5 py-1.5 rounded-xl font-semibold transition-all flex items-center space-x-1.5',
+              activeTab === 'chamber'
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            )}
           >
-            <ArrowLeft size={14} />
-            <span>DASHBOARD</span>
+            <Zap className="w-3.5 h-3.5" />
+            <span>Chamber</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('analytics')}
+            className={clsx(
+              'px-3.5 py-1.5 rounded-xl font-semibold transition-all flex items-center space-x-1.5',
+              activeTab === 'analytics'
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            )}
+          >
+            <BarChart3 className="w-3.5 h-3.5" />
+            <span>Analytics & History</span>
+          </button>
+        </div>
+
+        {/* Emergency Exit Shortcut (Always Accessible during active session) */}
+        {currentSession && !completedResult ? (
+          <button
+            type="button"
+            onClick={() => setIsEmergencyModalOpen(true)}
+            className="text-[11px] font-mono text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 transition-all"
+          >
+            <AlertOctagon className="w-3.5 h-3.5" />
+            <span>Emergency Exit</span>
           </button>
         ) : (
-          <div className="text-xs font-mono text-sky-600 dark:text-sky-400 uppercase tracking-widest flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/25 backdrop-blur-md">
-            <span className="w-2 h-2 rounded-full bg-sky-500 dark:bg-sky-400 animate-ping" />
-            <span>
-              {timer.isPaused ? 'SESSION PAUSED' : 'COGNITIVE FLOW IMMERSION'}
-            </span>
-          </div>
+          <div className="w-24" />
         )}
+      </div>
 
-        {currentSession && !completedResult && (
-          <div className="relative">
-            {!showAbandonConfirm ? (
-              <button
-                onClick={() => setShowAbandonConfirm(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-ink-muted hover:text-red-400 hover:bg-red-500/10 transition-colors text-xs font-mono min-h-[44px]"
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-4xl w-full mx-auto p-2 sm:p-4 flex flex-col items-center justify-center">
+        {activeTab === 'analytics' ? (
+          <div className="w-full">
+            <FocusAnalyticsView />
+          </div>
+        ) : currentSession && !completedResult ? (
+          /* ========================================================================= */
+          /* ACTIVE FOCUS CHAMBER (DISTRACTION-FREE RUNNING SCREEN) */
+          /* ========================================================================= */
+          <div className="w-full flex flex-col items-center justify-center space-y-8 animate-fade-in py-6">
+            {/* Status & Commitment Badges */}
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <span
+                className={clsx(
+                  'px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider flex items-center space-x-1.5 border',
+                  timer.isPaused
+                    ? 'bg-amber-500/10 text-amber-500 dark:text-amber-400 border-amber-500/30'
+                    : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 animate-pulse'
+                )}
               >
-                <X size={14} />
-                <span>ABANDON</span>
-              </button>
-            ) : (
-              <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-obsidian-900/90 border border-red-500/30 shadow-2xl backdrop-blur-xl">
-                <span className="text-xs text-red-400 pl-2 font-mono">Cancel flow?</span>
-                <button
-                  onClick={handleAbandon}
-                  disabled={abandonMutation.isPending}
-                  className="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold min-h-[36px]"
-                >
-                  Yes
-                </button>
-                <button
-                  onClick={() => setShowAbandonConfirm(false)}
-                  className="px-3 py-1.5 rounded-xl bg-white/10 text-ink-muted hover:text-ink text-xs min-h-[36px]"
-                >
-                  No
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-      </header>
+                <span className="w-2 h-2 rounded-full bg-current" />
+                <span>{timer.isPaused ? 'Chamber Paused' : 'Focus Flow Active'}</span>
+              </span>
 
-      {/* ── Main Focus Center ── */}
-      <main className="w-full max-w-lg my-auto flex flex-col items-center justify-center z-10 py-4">
-        {completedResult ? (
-          /* ── Completion Celebration Card ── */
-          <motion.div
-            initial={{ opacity: 0, scale: 0.92 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col items-center text-center p-6 sm:p-9 rounded-3xl bg-gradient-to-br from-obsidian-900/90 via-obsidian-900/75 to-obsidian-800/85 border border-sky-400/40 shadow-[0_16px_48px_rgba(56,189,248,0.25)] backdrop-blur-2xl w-full"
-          >
-            <div className="w-16 h-16 rounded-2xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-400 mb-4 shadow-[0_0_25px_rgba(56,189,248,0.3)]">
-              <CheckCircle2 size={32} />
-            </div>
-            <h2 className="text-2xl font-bold font-display text-ink mb-1">
-              Flow State Conquered
-            </h2>
-            <p className="text-xs sm:text-sm text-ink-muted mb-6 max-w-sm">
-              Disciplined focus maintained. Your mind sharpened, and Mana has been infused into your hero.
-            </p>
+              {currentSession.commitmentLevel > 1 && (
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-500/30 flex items-center space-x-1.5">
+                  <Lock className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
+                  <span>
+                    Level {currentSession.commitmentLevel}:{' '}
+                    {currentSession.commitmentLevel === 3 ? 'Max Shield (+25%)' : 'Commitment Lock (+15%)'}
+                  </span>
+                </span>
+              )}
 
-            <div className="w-full p-4 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-around mb-6 backdrop-blur-md">
-              <div className="text-center">
-                <span className="text-[11px] font-mono text-ink-muted uppercase block">Duration</span>
-                <span className="text-xl font-bold font-mono text-ink">
-                  {Math.round((currentSession?.plannedDurationSeconds || selectedDuration) / 60)}m
+              {currentSession.shieldProfileName && (
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-300 border border-sky-500/30 flex items-center space-x-1.5">
+                  <Shield className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400" />
+                  <span>{currentSession.shieldProfileName}</span>
                 </span>
-              </div>
-              <div className="w-[1px] h-8 bg-white/10" />
-              <div className="text-center">
-                <span className="text-[11px] font-mono text-ink-muted uppercase block">Mana Restored</span>
-                <span className="text-xl font-bold font-mono text-sky-400 flex items-center justify-center gap-1">
-                  <Zap size={18} className="fill-current" />
-                  +{completedResult?.manaRegenerated ?? Math.round(((currentSession?.plannedDurationSeconds || selectedDuration) / 60) * 1.5)} MP
-                </span>
-              </div>
+              )}
             </div>
 
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => {
-                setCompletedResult(null);
-                navigate('/');
-              }}
-              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-sky-400 to-mana text-obsidian font-bold text-sm shadow-[0_8px_24px_rgba(56,189,248,0.3)] hover:brightness-105 transition-all min-h-[46px]"
-            >
-              Return to Command Center
-            </motion.button>
-          </motion.div>
-        ) : currentSession ? (
-          /* ── Active Session Timer Screen ── */
-          <div className="flex flex-col items-center gap-6 w-full">
-            {/* Active task badge */}
-            {currentSession.taskTitle && (
-              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold backdrop-blur-md">
-                <Layers size={13} />
-                <span className="truncate max-w-xs">{currentSession.taskTitle}</span>
-              </div>
-            )}
+            {/* Objective Display */}
+            <div className="text-center max-w-md space-y-1">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-mono uppercase tracking-widest">Active Objective</p>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight truncate">
+                {currentSession.taskTitle || currentSession.goalDescription || 'Free Flow Deep Sprint'}
+              </h2>
+            </div>
 
-            {/* SVG Countdown Ring */}
-            <div className="relative w-72 h-72 sm:w-84 sm:h-84 flex items-center justify-center">
-              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 300 300">
+            {/* Animated Circular SVG Countdown Ring */}
+            <div className="relative flex items-center justify-center">
+              <svg width="280" height="280" className="transform -rotate-90">
+                {/* Background Track Circle */}
                 <circle
-                  cx="150"
-                  cy="150"
+                  cx="140"
+                  cy="140"
                   r={radius}
-                  className="stroke-white/[0.05]"
+                  stroke="currentColor"
+                  className="text-slate-200 dark:text-white/10"
                   strokeWidth="8"
-                  fill="none"
+                  fill="transparent"
                 />
-                <circle
-                  cx="150"
-                  cy="150"
+                {/* Animated Progress Circle */}
+                <motion.circle
+                  cx="140"
+                  cy="140"
                   r={radius}
-                  className={clsx(
-                    'stroke-sky-400 drop-shadow-[0_0_16px_rgba(56,189,248,0.6)]',
-                    !shouldReduceMotion && 'transition-[stroke-dashoffset] duration-1000 ease-linear'
-                  )}
+                  stroke={currentSession.commitmentLevel === 3 ? '#0284c7' : '#6366f1'}
                   strokeWidth="8"
                   strokeLinecap="round"
-                  fill="none"
+                  fill="transparent"
                   strokeDasharray={circumference}
                   strokeDashoffset={strokeDashoffset}
+                  transition={{ duration: 0.5, ease: 'easeOut' }}
                 />
               </svg>
 
-              {/* Center digits and status */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
-                <span className="text-5xl sm:text-6xl font-mono font-extrabold text-ink tracking-tight">
+              {/* Inner Digital Countdown */}
+              <div className="absolute flex flex-col items-center justify-center text-center space-y-1">
+                <span className="font-mono text-5xl font-black tracking-tight text-slate-900 dark:text-white drop-shadow-sm">
                   {timer.formattedTime}
                 </span>
-                <span className="text-xs font-semibold uppercase tracking-widest text-sky-400 mt-2 font-mono">
-                  {timer.isPaused ? 'Paused' : timer.isFinished ? 'Ready to Complete' : 'Deep Work State'}
+                <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
+                  {Math.round(timer.progress * 100)}% Elapsed
                 </span>
-                <span className="text-[11px] text-ink-muted mt-1 font-mono">
-                  +{Math.round((currentSession.plannedDurationSeconds / 60) * 1.5)} MP upon finish
-                </span>
+                {currentSession.interruptionCount > 0 && (
+                  <span className="text-[11px] font-mono text-rose-600 dark:text-rose-400 flex items-center space-x-1 pt-1">
+                    <AlertTriangle className="w-3 h-3" />
+                    <span>{currentSession.interruptionCount} interruption{currentSession.interruptionCount > 1 ? 's' : ''}</span>
+                  </span>
+                )}
               </div>
             </div>
 
-            {/* Timer Controls: Pause / Resume / Complete */}
-            <div className="flex items-center gap-3">
-              {!timer.isFinished && (
+            {/* In-Session Controls */}
+            <div className="w-full max-w-md flex flex-col items-center space-y-4 pt-2">
+              {timer.isFinished ? (
+                /* Ready to Complete Button */
                 <button
                   type="button"
-                  onClick={() => {
-                    if (timer.isPaused) resumeMutation.mutate(currentSession.id);
-                    else pauseMutation.mutate(currentSession.id);
-                  }}
-                  disabled={pauseMutation.isPending || resumeMutation.isPending}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 text-ink text-xs font-bold transition-all min-h-[44px]"
-                >
-                  {timer.isPaused ? (
-                    <>
-                      <Play size={16} className="text-emerald-400 fill-current" />
-                      <span>Resume</span>
-                    </>
-                  ) : (
-                    <>
-                      <Pause size={16} className="text-amber-400" />
-                      <span>Pause</span>
-                    </>
-                  )}
-                </button>
-              )}
-
-              {timer.isFinished && (
-                <motion.button
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
                   onClick={handleComplete}
                   disabled={completeMutation.isPending}
-                  className="py-3 px-6 rounded-2xl bg-gradient-to-r from-sky-400 to-mana hover:brightness-110 text-obsidian font-bold shadow-[0_8px_24px_rgba(56,189,248,0.35)] transition-all flex items-center justify-center gap-2 min-h-[44px]"
+                  className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold text-sm tracking-wide transition-all shadow-xl shadow-emerald-500/20 flex items-center justify-center space-x-2 animate-bounce"
                 >
-                  <Sparkles size={18} />
-                  <span>Complete & Restore Mana</span>
-                </motion.button>
-              )}
-            </div>
-
-            {/* In-Session Ambient Sound Switcher */}
-            <div className="p-1 rounded-full bg-obsidian-900/80 border border-white/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] backdrop-blur-md flex items-center gap-1">
-              {AMBIENT_TRACKS.map(({ id, label, icon: Icon }) => {
-                const isActive = (currentSession.ambientSound || selectedAmbient) === id;
-                return (
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span>{completeMutation.isPending ? 'Validating...' : 'Claim Victory & Rewards ⚡'}</span>
+                </button>
+              ) : currentSession.commitmentLevel === 1 ? (
+                /* Level 1: Standard Controls */
+                <div className="flex space-x-3 w-full">
+                  {timer.isPaused ? (
+                    <button
+                      type="button"
+                      onClick={() => resumeMutation.mutate(currentSession.id)}
+                      disabled={resumeMutation.isPending}
+                      className="flex-1 py-3 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <Play className="w-4 h-4 fill-white" />
+                      <span>Resume Sprint</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => pauseMutation.mutate(currentSession.id)}
+                      disabled={pauseMutation.isPending}
+                      className="flex-1 py-3 px-4 rounded-2xl bg-slate-200/80 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/15 text-slate-800 dark:text-white font-semibold text-xs transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <Pause className="w-4 h-4" />
+                      <span>Pause</span>
+                    </button>
+                  )}
                   <button
-                    key={id}
-                    onClick={() => handleTrackChange(id)}
-                    className={clsx(
-                      'flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all min-h-[36px]',
-                      isActive
-                        ? 'bg-sky-500/20 text-sky-300 border border-sky-400/40 shadow-sm'
-                        : 'text-ink-muted hover:text-ink hover:bg-white/5'
-                    )}
+                    type="button"
+                    onClick={() => setShowAbandonConfirm(true)}
+                    className="py-3 px-4 rounded-2xl bg-slate-200/60 dark:bg-white/5 hover:bg-rose-500/20 border border-slate-300/80 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-300 font-semibold text-xs transition-colors"
                   >
-                    <Icon size={14} />
-                    <span>{label}</span>
+                    Abandon
                   </button>
-                );
-              })}
+                </div>
+              ) : (
+                /* Level 2 & Level 3: Commitment Lock Controls */
+                <div className="w-full flex flex-col items-center space-y-3">
+                  <HoldToConfirmButton
+                    onConfirm={handleEarlyExit}
+                    holdDurationMs={4000}
+                    label="Hold 4s to Break Commitment"
+                    className="w-full"
+                  />
+                  <p className="text-[11px] text-slate-500 font-mono text-center">
+                    Pause is locked to protect flow state. Hold to exit or use Emergency Exit.
+                  </p>
+                </div>
+              )}
+
+              {/* Ambient Sound Controller */}
+              <div className="flex items-center space-x-2 p-1.5 rounded-2xl bg-slate-200/70 dark:bg-white/5 border border-slate-300/80 dark:border-white/10 text-xs">
+                {AMBIENT_TRACKS.map((t) => {
+                  const Icon = t.icon;
+                  const isActive = (currentSession.ambientSound || selectedAmbient) === t.id;
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedAmbient(t.id);
+                        ambientSound.setTrack(t.id);
+                      }}
+                      className={clsx(
+                        'px-3 py-1.5 rounded-xl font-medium transition-all flex items-center space-x-1.5',
+                        isActive
+                          ? 'bg-indigo-600 text-white shadow-sm'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                      )}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      <span>{t.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
-        ) : (
-          /* ── Pre-Session Setup Cockpit Screen ── */
-          <div className="flex flex-col items-center text-center gap-6 w-full">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/25 text-sky-300 text-xs font-mono font-semibold">
-                <Sparkles size={13} className="text-sky-400" />
-                <span>COGNITIVE FLOW SANCTUM</span>
+        ) : completedResult ? (
+          /* ========================================================================= */
+          /* VICTORY CELEBRATION CARD */
+          /* ========================================================================= */
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="w-full max-w-md p-8 rounded-3xl bg-white dark:bg-slate-900 border border-emerald-500/30 text-center space-y-6 shadow-2xl"
+          >
+            <div className="w-16 h-16 rounded-3xl bg-emerald-500/20 text-emerald-500 dark:text-emerald-400 border border-emerald-500/40 flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-10 h-10" />
+            </div>
+
+            <div className="space-y-1">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Focus Sprint Conquered!</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">Cognitive depth rewarded through Progression Service</p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2.5 p-4 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+              <div className="p-2">
+                <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">XP Earned</div>
+                <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400">+{completedResult.xpAwarded}</div>
               </div>
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-ink tracking-tight font-display">
-                Focus Chamber
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-ink-muted max-w-sm mx-auto leading-relaxed">
-                Enter an uninterrupted sprint. Every completed minute regenerates 1.5 Mana for your hero.
+              <div className="p-2">
+                <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">Gold Earned</div>
+                <div className="text-lg font-bold text-amber-500 dark:text-amber-400">+{completedResult.goldAwarded}</div>
+              </div>
+              <div className="p-2">
+                <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">Mana Restored</div>
+                <div className="text-lg font-bold text-sky-500 dark:text-sky-400">+{completedResult.manaRegenerated}</div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setCompletedResult(null);
+                setActiveTab('chamber');
+              }}
+              className="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-colors shadow-lg shadow-indigo-600/30"
+            >
+              Continue to Dashboard
+            </button>
+          </motion.div>
+        ) : (
+          /* ========================================================================= */
+          /* PREPARATION & CONFIGURATION COCKPIT */
+          /* ========================================================================= */
+          <div className="w-full space-y-8 animate-fade-in">
+            {/* Header Title */}
+            <div className="text-center space-y-2">
+              <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+                <Shield className="w-3.5 h-3.5" />
+                <span>Distraction-Resistant Deep Work</span>
+              </div>
+              <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight sm:text-4xl">Focus Chamber</h1>
+              <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md mx-auto">
+                Lock in with selectable app restrictions, verified anti-cheat tracking, and authentic gamified progression.
               </p>
             </div>
 
-            {/* Optional Task Link Selector with Rich Options & Quick Creation */}
-            <div className="w-full text-left space-y-2">
-              <div className="flex items-center justify-between pl-1">
-                <label className="text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-ink-muted flex items-center gap-1.5">
-                  <Target size={13} className="text-indigo-400" />
-                  <span>Link to Task (Optional)</span>
-                </label>
-
+            {/* Presets Grid */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
+                  <Clock className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400" />
+                  <span>Session Preset</span>
+                </span>
                 <button
                   type="button"
-                  onClick={() => setIsAddingQuickTask((prev) => !prev)}
-                  className="text-[11px] font-semibold text-indigo-500 hover:text-indigo-400 flex items-center gap-1 transition-colors"
+                  onClick={() => setIsCustomDuration(!isCustomDuration)}
+                  className="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold text-xs flex items-center space-x-1"
                 >
-                  <Plus size={13} />
-                  <span>{isAddingQuickTask ? 'Cancel' : '+ New Task'}</span>
+                  <Sliders className="w-3.5 h-3.5" />
+                  <span>{isCustomDuration ? 'Use Standard Presets' : 'Custom Duration'}</span>
                 </button>
               </div>
 
-              {/* Inline Quick Task Creation Form */}
-              {isAddingQuickTask && (
-                <form
-                  onSubmit={handleCreateAndLinkTask}
-                  className="flex items-center gap-2 p-2 rounded-2xl bg-indigo-50/50 dark:bg-indigo-500/10 border border-indigo-200/80 dark:border-indigo-500/30"
-                >
-                  <input
-                    type="text"
-                    value={quickTaskTitle}
-                    onChange={(e) => setQuickTaskTitle(e.target.value)}
-                    placeholder="Enter task title to focus on..."
-                    autoFocus
-                    className="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-black/30 border border-slate-200 dark:border-white/10 text-xs font-medium text-slate-900 dark:text-ink placeholder:text-slate-400 focus:outline-none"
-                  />
-                  <button
-                    type="submit"
-                    disabled={createTaskMutation.isPending || !quickTaskTitle.trim()}
-                    className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition-colors shrink-0 disabled:opacity-50"
-                  >
-                    Create & Link
-                  </button>
-                </form>
-              )}
-
-              {/* Dropdown with Rich Options */}
-              <SelectDropdown
-                value={selectedTaskId}
-                onChange={setSelectedTaskId}
-                options={taskOptions}
-                placeholder="Choose a task backlog item to link..."
-              />
-
-              {/* Selected Task Highlight Card */}
-              {activeTasks.find((t) => t.id === selectedTaskId) && (
-                <div className="flex items-center justify-between p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 backdrop-blur-md">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
-                      <CheckSquare size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-xs font-bold text-slate-900 dark:text-ink truncate">
-                        {activeTasks.find((t) => t.id === selectedTaskId)?.title}
-                      </div>
-                      <div className="text-[10px] text-slate-500 dark:text-ink-muted flex items-center gap-2 mt-0.5">
-                        <span className="font-mono text-indigo-400 font-semibold">
-                          [{activeTasks.find((t) => t.id === selectedTaskId)?.projectName || 'General'}]
-                        </span>
-                        <span>•</span>
-                        <span className="capitalize">{activeTasks.find((t) => t.id === selectedTaskId)?.priority} Priority</span>
-                        <span>•</span>
-                        <span>+25 XP upon finish</span>
-                      </div>
-                    </div>
+              {!isCustomDuration ? (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {DURATION_PRESETS.map((p) => {
+                    const isSelected = selectedDuration === p.seconds;
+                    return (
+                      <button
+                        key={p.seconds}
+                        type="button"
+                        onClick={() => setSelectedDuration(p.seconds)}
+                        className={clsx(
+                          'p-4 rounded-2xl border text-left transition-all',
+                          isSelected
+                            ? 'bg-indigo-50 dark:bg-indigo-600/20 border-indigo-500 shadow-md shadow-indigo-500/10'
+                            : 'bg-white/80 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
+                        )}
+                      >
+                        <div className="font-mono text-xl font-black text-slate-900 dark:text-white">{p.label}</div>
+                        <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 mt-1">{p.title}</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{p.desc}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="p-4 rounded-2xl bg-white/80 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-3">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-600 dark:text-slate-400">Custom Focus Length</span>
+                    <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 text-sm">{customMinutes} minutes</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedTaskId('')}
-                    className="p-1 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
-                    title="Unlink Task"
-                  >
-                    <X size={14} />
-                  </button>
+                  <input
+                    type="range"
+                    min="5"
+                    max="180"
+                    step="5"
+                    value={customMinutes}
+                    onChange={(e) => setCustomMinutes(parseInt(e.target.value, 10))}
+                    className="w-full accent-indigo-600"
+                  />
+                  <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+                    <span>5m Quick Sprint</span>
+                    <span>90m Deep Block</span>
+                    <span>180m Marathon</span>
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Duration Preset Cards */}
-            <div className="w-full space-y-2 text-left">
-              <label className="text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-ink-muted block pl-1">
-                Sprint Preset
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                {DURATION_PRESETS.map((preset) => {
-                  const isSelected = selectedDuration === preset.seconds;
+            {/* Commitment Level Selector (3 Tiers) */}
+            <div className="space-y-3">
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
+                <Lock className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
+                <span>Anti-Cheat Commitment Level</span>
+              </span>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  {
+                    lvl: 1,
+                    title: 'Level 1: Standard Flow',
+                    desc: 'Normal pause & cancel. Base XP & Gold rewards.',
+                    bonus: '1.0x Base',
+                  },
+                  {
+                    lvl: 2,
+                    title: 'Level 2: Commitment Lock',
+                    desc: 'Pause disabled. Requires 4-second hold to exit early.',
+                    bonus: '+15% XP & Gold',
+                  },
+                  {
+                    lvl: 3,
+                    title: 'Level 3: Maximum Shield',
+                    desc: 'Full distraction blocking barrier + hold to exit.',
+                    bonus: '+25% XP & Gold',
+                  },
+                ].map((item) => {
+                  const isSelected = selectedCommitmentLevel === item.lvl;
                   return (
-                    <motion.button
-                      key={preset.seconds}
+                    <button
+                      key={item.lvl}
                       type="button"
-                      onClick={() => setSelectedDuration(preset.seconds)}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.96 }}
-                      transition={spring.snappy}
+                      onClick={() => setSelectedCommitmentLevel(item.lvl)}
                       className={clsx(
-                        'flex flex-col items-center justify-center p-3 rounded-2xl border transition-all text-center min-h-[72px] shadow-xs cursor-pointer',
+                        'p-4 rounded-2xl border text-left transition-all relative overflow-hidden',
                         isSelected
-                          ? 'bg-sky-50 dark:bg-sky-500/15 border-sky-400 text-sky-950 dark:text-ink shadow-[0_0_20px_rgba(56,189,248,0.2)] ring-2 ring-sky-400/40'
-                          : 'bg-white/80 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-ink-muted hover:border-slate-300 dark:hover:border-white/20'
+                          ? 'bg-indigo-50 dark:bg-indigo-600/20 border-indigo-500 shadow-md shadow-indigo-500/10'
+                          : 'bg-white/80 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
                       )}
                     >
-                      <span className="text-base font-bold font-mono">{preset.label}</span>
-                      <span className="text-[10px] text-sky-600 dark:text-sky-400 font-mono font-semibold mt-0.5">
-                        +{preset.mana} MP
-                      </span>
-                    </motion.button>
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="font-bold text-xs text-slate-900 dark:text-white">{item.title}</span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-500/30">
+                          {item.bonus}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">{item.desc}</p>
+                    </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* Ambient Sound Selector */}
-            <div className="w-full space-y-2 text-left">
-              <label className="text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-ink-muted block pl-1">
-                Ambient Soundscape
-              </label>
-              <div className="grid grid-cols-3 gap-2.5">
-                {AMBIENT_TRACKS.map(({ id, label, icon: Icon }) => {
-                  const isSelected = selectedAmbient === id;
+            {/* Distraction Shield Profile Selector */}
+            <div className="p-4 rounded-3xl bg-white/80 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
+                  <Shield className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
+                  <span>Distraction Shield Profile</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsProfileModalOpen(true)}
+                  className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-semibold flex items-center space-x-1"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Create / Edit Profiles</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                {[...PRESET_PROFILES, ...profiles].map((prof) => {
+                  const isSelected = activeProfile?.name === prof.name;
                   return (
-                    <motion.button
-                      key={id}
+                    <button
+                      key={prof.id || prof.name}
                       type="button"
-                      onClick={() => setSelectedAmbient(id)}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.96 }}
-                      transition={spring.snappy}
+                      onClick={() => setSelectedProfileId(prof.id || '')}
                       className={clsx(
-                        'flex flex-col items-center justify-center p-2.5 rounded-2xl border text-center transition-all min-h-[64px] shadow-xs cursor-pointer',
+                        'p-3 rounded-2xl border text-left transition-all text-xs',
                         isSelected
-                          ? 'bg-sky-50 dark:bg-sky-500/15 border-sky-400 text-sky-700 dark:text-sky-300 ring-2 ring-sky-400/40'
-                          : 'bg-white/80 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-ink-muted hover:border-slate-300 dark:hover:border-white/20'
+                          ? 'bg-emerald-50 dark:bg-emerald-500/20 border-emerald-500 text-slate-900 dark:text-white shadow-xs'
+                          : 'bg-slate-50 dark:bg-black/30 border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                       )}
                     >
-                      <Icon size={16} className="mb-1" />
-                      <span className="text-xs font-semibold">{label}</span>
-                    </motion.button>
+                      <div className="font-semibold text-slate-900 dark:text-slate-100">{prof.name}</div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                        {prof.restrictedApps?.length || 0} apps • {prof.restrictedDomains?.length || 0} sites
+                      </div>
+                    </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* Start Button */}
-            <motion.button
-              onClick={handleStart}
-              disabled={startMutation.isPending}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-sky-400 to-mana text-obsidian font-extrabold text-sm sm:text-base shadow-[0_8px_30px_rgba(56,189,248,0.35)] hover:brightness-105 transition-all flex items-center justify-center gap-2 min-h-[50px] cursor-pointer"
+            {/* Objective Linkage Selector */}
+            <div className="p-4 rounded-3xl bg-white/80 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-3">
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center space-x-1.5">
+                <Target className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
+                <span>Link to Goal or Quest</span>
+              </span>
+
+              <div className="flex space-x-2 text-xs">
+                {[
+                  { id: 'none', label: 'Free Flow Sprint' },
+                  { id: 'task', label: 'Linked Task' },
+                  { id: 'quest', label: 'Active Quest' },
+                  { id: 'custom', label: 'Session Goal' },
+                ].map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setLinkedEntityType(t.id)}
+                    className={clsx(
+                      'flex-1 py-2 px-2.5 rounded-xl border text-xs font-semibold transition-all',
+                      linkedEntityType === t.id
+                        ? 'bg-indigo-50 dark:bg-indigo-600/20 border-indigo-500 text-indigo-700 dark:text-white'
+                        : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                    )}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+              {linkedEntityType === 'task' && (
+                <select
+                  value={selectedTaskId}
+                  onChange={(e) => setSelectedTaskId(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-xs text-slate-900 dark:text-white focus:outline-none"
+                >
+                  <option value="">Select a task to focus on...</option>
+                  {activeTasks.map((task) => (
+                    <option key={task.id} value={task.id}>
+                      {task.title} ({task.priority || 'medium'})
+                    </option>
+                  ))}
+                </select>
+              )}
+
+              {linkedEntityType === 'quest' && (
+                <select
+                  value={selectedQuestId}
+                  onChange={(e) => setSelectedQuestId(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-xs text-slate-900 dark:text-white focus:outline-none"
+                >
+                  <option value="">Select a quest to advance...</option>
+                  {activeQuests.map((quest) => (
+                    <option key={quest.id} value={quest.id}>
+                      {quest.title} ({quest.questType || 'weekly'})
+                    </option>
+                  ))}
+                </select>
+              )}
+
+              {linkedEntityType === 'custom' && (
+                <input
+                  type="text"
+                  value={customGoalTitle}
+                  onChange={(e) => setCustomGoalTitle(e.target.value)}
+                  placeholder="e.g. Master React 19 Server Components"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none"
+                />
+              )}
+            </div>
+
+            {/* Launch Focus Chamber Button */}
+            <button
+              type="button"
+              onClick={() => setIsPrepModalOpen(true)}
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-500 hover:to-sky-500 text-white font-bold text-sm tracking-wide transition-all shadow-xl shadow-indigo-600/30 flex items-center justify-center space-x-2"
             >
-              <Play size={18} className="fill-current" />
-              <span>{startMutation.isPending ? 'Igniting Chamber...' : 'Begin Focus Session'}</span>
-            </motion.button>
+              <Zap className="w-5 h-5 fill-white" />
+              <span>Review & Enter Chamber ⚡</span>
+            </button>
           </div>
         )}
       </main>
 
-      {/* ── Focus Analytics Bottom Strip ── */}
-      <footer className="w-full max-w-4xl grid grid-cols-3 gap-3 p-3 rounded-2xl bg-white/60 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 backdrop-blur-md">
-        <div className="text-center">
-          <span className="text-[10px] font-mono uppercase text-slate-400">TODAY'S FOCUS</span>
-          <span className="text-sm font-bold font-mono text-slate-800 dark:text-ink block">
-            {summary.todayMinutes || 0} mins
-          </span>
+      {/* Preparation Briefing Modal */}
+      <PreparationModal
+        isOpen={isPrepModalOpen}
+        onClose={() => setIsPrepModalOpen(false)}
+        onConfirm={handleConfirmStart}
+        isStarting={startMutation.isPending}
+        sessionConfig={{
+          plannedDurationSeconds: isCustomDuration ? customMinutes * 60 : selectedDuration,
+          commitmentLevel: selectedCommitmentLevel,
+          shieldProfile: activeProfile,
+          taskTitle: activeGoalTitle,
+        }}
+        capabilities={capabilities}
+      />
+
+      {/* Shield Profile Editor Modal */}
+      <ShieldProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        onSave={(data) => {
+          createProfileMutation.mutate(data, {
+            onSuccess: (p) => {
+              setSelectedProfileId(p.id);
+              setIsProfileModalOpen(false);
+            },
+          });
+        }}
+        isSaving={createProfileMutation.isPending}
+      />
+
+      {/* Emergency Exit Confirmation Modal */}
+      <EmergencyExitModal
+        isOpen={isEmergencyModalOpen}
+        onClose={() => setIsEmergencyModalOpen(false)}
+        onConfirm={handleEmergencyExit}
+        isPending={emergencyExitMutation.isPending}
+      />
+
+      {/* Abandon Confirmation Modal (Level 1 only) */}
+      {showAbandonConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-sm p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white space-y-4">
+            <h3 className="text-base font-bold">Abandon Focus Session?</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              Abandoning ends the session without logging focus minutes or awarding XP.
+            </p>
+            <div className="flex space-x-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowAbandonConfirm(false)}
+                className="flex-1 py-2 rounded-xl bg-slate-100 dark:bg-white/10 text-xs font-semibold text-slate-700 dark:text-slate-300"
+              >
+                Keep Going
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  abandonMutation.mutate(currentSession?.id);
+                  setShowAbandonConfirm(false);
+                }}
+                className="flex-1 py-2 rounded-xl bg-rose-600 text-xs font-bold text-white"
+              >
+                Abandon
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="text-center border-x border-slate-200/60 dark:border-white/10">
-          <span className="text-[10px] font-mono uppercase text-slate-400">WEEKLY TOTAL</span>
-          <span className="text-sm font-bold font-mono text-sky-400 block">
-            {((summary.weekMinutes || 0) / 60).toFixed(1)} hrs
-          </span>
-        </div>
-        <div className="text-center">
-          <span className="text-[10px] font-mono uppercase text-slate-400">COMPLETION RATE</span>
-          <span className="text-sm font-bold font-mono text-emerald-400 block">
-            {summary.completionRate || 100}%
-          </span>
-        </div>
-      </footer>
+      )}
     </div>
   );
 }

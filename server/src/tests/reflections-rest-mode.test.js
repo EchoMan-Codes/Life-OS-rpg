@@ -121,6 +121,16 @@ async function runReflectionsRestModeTestSuite() {
     // Test 5: Reflection creation & uniqueness enforcement (409)
     // -------------------------------------------------------------
     console.log('5. Testing reflection creation and uniqueness (409 on duplicate for_date)...');
+    const getPastDateStr = (daysAgo) => {
+      const d = new Date();
+      d.setDate(d.getDate() - daysAgo);
+      return d.toISOString().slice(0, 10);
+    };
+
+    const dateA1 = getPastDateStr(10);
+    const dateA2 = getPastDateStr(8);
+    const dateA3 = getPastDateStr(5);
+
     // Snapshot stats and battle events before reflection
     const statsBeforeRes = await query('SELECT xp, gold, hp, mana FROM character_stats WHERE user_id = $1', [testUserA.id]);
     const eventsBeforeRes = await query('SELECT count(*) FROM battle_events WHERE user_id = $1', [testUserA.id]);
@@ -129,7 +139,7 @@ async function runReflectionsRestModeTestSuite() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenA}` },
       body: JSON.stringify({
-        for_date: '2026-09-01',
+        for_date: dateA1,
         mood_score: 4,
         energy_score: 3,
         focus_score: 5,
@@ -150,7 +160,7 @@ async function runReflectionsRestModeTestSuite() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenA}` },
       body: JSON.stringify({
-        for_date: '2026-09-01',
+        for_date: dateA1,
         mood_score: 5,
         energy_score: 5,
         focus_score: 5,
@@ -220,12 +230,12 @@ async function runReflectionsRestModeTestSuite() {
     await fetch(`${baseUrl}/reflections`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenA}` },
-      body: JSON.stringify({ for_date: '2026-09-02', mood_score: 2, energy_score: 2, focus_score: 2 }),
+      body: JSON.stringify({ for_date: dateA2, mood_score: 2, energy_score: 2, focus_score: 2 }),
     });
     await fetch(`${baseUrl}/reflections`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenA}` },
-      body: JSON.stringify({ for_date: '2026-09-03', mood_score: 1, energy_score: 2, focus_score: 3 }),
+      body: JSON.stringify({ for_date: dateA3, mood_score: 1, energy_score: 2, focus_score: 3 }),
     });
 
     const listARes = await fetch(`${baseUrl}/reflections?range=30d`, {
@@ -242,20 +252,23 @@ async function runReflectionsRestModeTestSuite() {
     // -------------------------------------------------------------
     console.log('10. Testing Burnout Condition (a): 3 low mood/energy entries (avg <= 4.0)...');
     // For User B, insert 3 days with low mood and energy (e.g. 2+1, 2+2, 1+2 -> sum = 10 / 3 = 3.33 <= 4.0)
+    const dateB1 = getPastDateStr(3);
+    const dateB2 = getPastDateStr(2);
+    const dateB3 = getPastDateStr(1);
     await fetch(`${baseUrl}/reflections`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenB}` },
-      body: JSON.stringify({ for_date: '2026-09-10', mood_score: 2, energy_score: 1, focus_score: 3 }),
+      body: JSON.stringify({ for_date: dateB1, mood_score: 2, energy_score: 1, focus_score: 3 }),
     });
     await fetch(`${baseUrl}/reflections`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenB}` },
-      body: JSON.stringify({ for_date: '2026-09-11', mood_score: 2, energy_score: 2, focus_score: 2 }),
+      body: JSON.stringify({ for_date: dateB2, mood_score: 2, energy_score: 2, focus_score: 2 }),
     });
     await fetch(`${baseUrl}/reflections`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenB}` },
-      body: JSON.stringify({ for_date: '2026-09-12', mood_score: 1, energy_score: 2, focus_score: 2 }),
+      body: JSON.stringify({ for_date: dateB3, mood_score: 1, energy_score: 2, focus_score: 2 }),
     });
 
     const suggBRes = await fetch(`${baseUrl}/rest-mode/suggestion`, {

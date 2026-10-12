@@ -680,18 +680,26 @@ If information is ambiguous or critical details are missing, ask one brief clari
     }
 
     // 2. UPDATE ITEM (e.g. reschedule or modify duration)
-    if (actionType === 'update_item' || actionType === 'update_daily') {
-      const section = payload.section || 'daily';
+    if (actionType === 'update_item' || actionType === 'update_daily' || actionType === 'update_task') {
+      const section = payload.section || (actionType === 'update_task' ? 'task' : 'daily');
       const itemData = payload.item || payload;
-      let targetId = itemData.id || itemData.dailyId;
+      let targetId = itemData.id || itemData.dailyId || itemData.taskId;
 
       if (!targetId && itemData.title) {
         // Resolve ID by title matching
-        const matchRes = await query(
-          'SELECT id, title FROM dailies WHERE user_id = $1 AND title ILIKE $2 AND archived_at IS NULL LIMIT 1',
-          [userId, `%${itemData.title.trim()}%`]
-        );
-        if (matchRes.rows.length > 0) targetId = matchRes.rows[0].id;
+        if (section === 'daily') {
+          const matchRes = await query(
+            'SELECT id, title FROM dailies WHERE user_id = $1 AND title ILIKE $2 AND archived_at IS NULL LIMIT 1',
+            [userId, `%${itemData.title.trim()}%`]
+          );
+          if (matchRes.rows.length > 0) targetId = matchRes.rows[0].id;
+        } else if (section === 'task') {
+          const matchRes = await query(
+            'SELECT id, title FROM tasks WHERE user_id = $1 AND title ILIKE $2 LIMIT 1',
+            [userId, `%${itemData.title.trim()}%`]
+          );
+          if (matchRes.rows.length > 0) targetId = matchRes.rows[0].id;
+        }
       }
 
       if (!targetId) throw new Error('Target item ID or title is required for update.');
@@ -711,6 +719,17 @@ If information is ambiguous or critical details are missing, ask one brief clari
           verified: true,
           section: 'daily',
           message: `Daily "${updated.title}" updated successfully!`,
+          item: updated,
+        };
+      }
+
+      if (section === 'task') {
+        const updated = await taskService.updateTask(userId, targetId, itemData);
+        return {
+          success: true,
+          verified: true,
+          section: 'task',
+          message: `Task "${updated.title}" updated successfully!`,
           item: updated,
         };
       }

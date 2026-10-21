@@ -34,14 +34,14 @@ export class TaskService {
       `INSERT INTO tasks (
         user_id, title, description, status, priority, difficulty,
         due_date, start_date, scheduled_time, estimated_duration_minutes,
-        project_name, tags, parent_id, position, xp_reward, gold_reward, quest_id
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+        project_name, tags, parent_id, position, xp_reward, gold_reward
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
       RETURNING
         id, user_id as "userId", title, description, status, priority, difficulty,
         due_date as "dueDate", start_date as "startDate", scheduled_time as "scheduledTime",
         estimated_duration_minutes as "estimatedDurationMinutes",
         actual_duration_minutes as "actualDurationMinutes",
-        project_name as "projectName", tags, parent_id as "parentId", quest_id as "questId",
+        project_name as "projectName", tags, parent_id as "parentId",
         position, xp_reward as "xpReward", gold_reward as "goldReward",
         completed_at as "completedAt", created_at as "createdAt", updated_at as "updatedAt"`,
       [
@@ -61,19 +61,10 @@ export class TaskService {
         data.position || 0,
         rewards.xp,
         rewards.gold,
-        data.questId || null,
       ]
     );
 
     const task = res.rows[0];
-
-    if (task.questId) {
-      import('./quest.service.js').then(({ questService }) => {
-        questService.syncTaskProgress(task.id, task.questId).catch((err) => {
-          console.error('[TASK_SERVICE] Error syncing quest progress on create:', err.message);
-        });
-      });
-    }
 
     // Subtasks batch creation if provided
     if (Array.isArray(data.subtasks) && data.subtasks.length > 0) {
@@ -235,41 +226,28 @@ export class TaskService {
     const projectName = data.projectName !== undefined ? data.projectName.trim() : existing.projectName;
     const tags = Array.isArray(data.tags) ? data.tags : existing.tags;
 
-    const questId = data.questId !== undefined ? (data.questId || null) : existing.questId;
-
     const res = await query(
       `UPDATE tasks
        SET title = $1, description = $2, status = $3, priority = $4, difficulty = $5,
            due_date = $6, start_date = $7, scheduled_time = $8,
-           estimated_duration_minutes = $9, project_name = $10, tags = $11, quest_id = $12, updated_at = now()
-       WHERE id = $13 AND user_id = $14
+           estimated_duration_minutes = $9, project_name = $10, tags = $11, updated_at = now()
+       WHERE id = $12 AND user_id = $13
        RETURNING
         id, user_id as "userId", title, description, status, priority, difficulty,
         due_date as "dueDate", start_date as "startDate", scheduled_time as "scheduledTime",
         estimated_duration_minutes as "estimatedDurationMinutes",
         actual_duration_minutes as "actualDurationMinutes",
-        project_name as "projectName", tags, parent_id as "parentId", quest_id as "questId",
+        project_name as "projectName", tags, parent_id as "parentId",
         position, xp_reward as "xpReward", gold_reward as "goldReward",
         completed_at as "completedAt", created_at as "createdAt", updated_at as "updatedAt"`,
       [
         title, description, status, priority, difficulty,
-        dueDate, startDate, scheduledTime, estimatedDuration, projectName, tags, questId,
+        dueDate, startDate, scheduledTime, estimatedDuration, projectName, tags,
         taskId, userId
       ]
     );
 
-    const updatedTask = res.rows[0];
-
-    const targetQuestId = updatedTask.questId || existing.questId;
-    if (targetQuestId) {
-      import('./quest.service.js').then(({ questService }) => {
-        questService.syncTaskProgress(taskId, targetQuestId).catch((err) => {
-          console.error('[TASK_SERVICE] Error syncing quest progress on update:', err.message);
-        });
-      });
-    }
-
-    return updatedTask;
+    return res.rows[0];
   }
 
   /**
@@ -279,7 +257,7 @@ export class TaskService {
     return withTransaction(async (client) => {
       // 1. Lock task row
       const { rows } = await client.query(
-        `SELECT id, user_id, title, status, difficulty, xp_reward, gold_reward, completed_at, quest_id
+        `SELECT id, user_id, title, status, difficulty, xp_reward, gold_reward, completed_at
          FROM tasks
          WHERE id = $1 AND user_id = $2
          FOR UPDATE`,
@@ -326,7 +304,7 @@ export class TaskService {
         `UPDATE tasks
          SET status = 'completed', completed_at = now(), updated_at = now()
          WHERE id = $1
-         RETURNING id, user_id as "userId", title, status, quest_id as "questId", completed_at as "completedAt"`,
+         RETURNING id, user_id as "userId", title, status, completed_at as "completedAt"`,
         [taskId]
       );
 
@@ -337,12 +315,6 @@ export class TaskService {
          ON CONFLICT (task_id) DO NOTHING`,
         [taskId, userId, xp, gold]
       );
-
-      // 6. Idempotently synchronize linked quest progress inside transaction
-      if (task.quest_id) {
-        const { questService } = await import('./quest.service.js');
-        await questService.syncTaskProgress(taskId, task.quest_id, client);
-      }
 
       return {
         task: updateRes.rows[0],
@@ -368,7 +340,7 @@ export class TaskService {
   async uncompleteTask(userId, taskId) {
     return withTransaction(async (client) => {
       const { rows } = await client.query(
-        `SELECT id, status, quest_id FROM tasks WHERE id = $1 AND user_id = $2 FOR UPDATE`,
+        `SELECT id, status FROM tasks WHERE id = $1 AND user_id = $2 FOR UPDATE`,
         [taskId, userId]
       );
 
@@ -378,7 +350,6 @@ export class TaskService {
         err.code = 'TASK_NOT_FOUND';
         throw err;
       }
-      const task = rows[0];
 
       await client.query(
         `UPDATE tasks
@@ -389,11 +360,6 @@ export class TaskService {
 
       await client.query(`DELETE FROM task_completions WHERE task_id = $1`, [taskId]);
 
-      if (task.quest_id) {
-        const { questService } = await import('./quest.service.js');
-        await questService.syncTaskProgress(taskId, task.quest_id, client);
-      }
-
       return { success: true, message: 'Task restored to active.' };
     });
   }
@@ -403,7 +369,7 @@ export class TaskService {
    */
   async deleteTask(userId, taskId) {
     const res = await query(
-      `DELETE FROM tasks WHERE id = $1 AND user_id = $2 RETURNING id, quest_id`,
+      `DELETE FROM tasks WHERE id = $1 AND user_id = $2 RETURNING id`,
       [taskId, userId]
     );
 
@@ -412,12 +378,6 @@ export class TaskService {
       err.status = 404;
       err.code = 'TASK_NOT_FOUND';
       throw err;
-    }
-
-    const deleted = res.rows[0];
-    if (deleted.quest_id) {
-      const { questService } = await import('./quest.service.js');
-      await questService.syncTaskProgress(null, deleted.quest_id).catch(() => {});
     }
 
     return { success: true, id: taskId };

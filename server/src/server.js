@@ -4,11 +4,9 @@ import { env } from './config/env.js';
 import { pool } from './db/pool.js';
 import { startDailyResetScheduler } from './services/daily-reset.service.js';
 import { notificationService } from './services/notification.service.js';
-import { questService } from './services/quest.service.js';
 
 let resetTask = null;
 let notificationTask = null;
-let questExpirationTask = null;
 
 const server = app.listen(env.PORT, '0.0.0.0', () => {
   console.log(`[SERVER] Life OS API running on http://0.0.0.0:${env.PORT}`);
@@ -26,18 +24,6 @@ const server = app.listen(env.PORT, '0.0.0.0', () => {
     }
   });
   console.log('[SERVER] Smart notification scheduler started (interval: * * * * *).');
-
-  questExpirationTask = cron.schedule('*/15 * * * *', async () => {
-    try {
-      const res = await questService.expireOverdueQuestsAcrossUsers();
-      if (res.expiredCount > 0) {
-        console.log(`[QUEST_CRON] Expired ${res.expiredCount} overdue quest(s).`);
-      }
-    } catch (err) {
-      console.error('[QUEST_CRON] Expiration check error:', err.message);
-    }
-  });
-  console.log('[SERVER] Quest expiration scheduler started (interval: */15 * * * *).');
 });
 
 function handleShutdown(signal) {
@@ -47,9 +33,6 @@ function handleShutdown(signal) {
   }
   if (notificationTask) {
     notificationTask.stop();
-  }
-  if (questExpirationTask) {
-    questExpirationTask.stop();
   }
   server.close(async () => {
     try {

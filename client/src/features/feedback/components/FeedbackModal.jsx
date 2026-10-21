@@ -19,6 +19,7 @@ import clsx from 'clsx';
 import { useSubmitFeedback } from '../hooks';
 import { isNativePlatform } from '@/lib/native/nativeApp';
 import { playSound } from '@/lib/sound';
+import { JeevanLoader } from '@/components/ui/JeevanLoader';
 
 const CATEGORIES = [
   { id: 'suggestion', label: 'Suggestion', icon: Lightbulb, color: 'text-amber-500' },
@@ -252,7 +253,7 @@ export function FeedbackModal({ isOpen, onClose }) {
                         className="w-full py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer disabled:opacity-50 active:scale-98"
                       >
                         {submitMutation.isPending ? (
-                          <Loader2 size={16} className="animate-spin" />
+                          <JeevanLoader variant="micro" />
                         ) : (
                           <>
                             <Send size={15} />

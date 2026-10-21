@@ -7,7 +7,6 @@ import {
   User,
   AlertCircle,
   ArrowRight,
-  Loader2,
   Edit2,
   Eye,
   EyeOff,

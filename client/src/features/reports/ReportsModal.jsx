@@ -20,6 +20,7 @@ import { jsPDF } from 'jspdf';
 
 import { apiClient } from '@/lib/axios';
 import { playSound } from '@/lib/sound';
+import { JeevanLoader } from '@/components/ui/JeevanLoader';
 
 export function ReportsModal({ isOpen, onClose }) {
   const [isExporting, setIsExporting] = useState(false);
@@ -382,7 +383,7 @@ export function ReportsModal({ isOpen, onClose }) {
 
             {isExporting && (
               <div className="flex items-center justify-center gap-2 py-2 text-xs text-amber-600 dark:text-gold font-bold">
-                <Loader2 size={14} className="animate-spin" />
+                <JeevanLoader variant="micro" />
                 <span>Compiling real telemetry data...</span>
               </div>
             )}

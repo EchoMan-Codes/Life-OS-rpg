@@ -5,7 +5,7 @@ import { AppShell } from '@/components/layout';
 import { initNativeApp, initNativeStatusBar } from '@/lib/native';
 import { keyboardManager } from '@/lib/keyboard';
 import { useAuth } from '@/features/auth/hooks';
-import { JeevanSplash } from '@/components/ui/JeevanSplash';
+import { JeevanLoader } from '@/components/ui/JeevanLoader';
 import AuthCallback from '@/pages/AuthCallback';
 import DashboardPage from '@/pages/DashboardPage';
 import HabitsPage from '@/pages/HabitsPage';
@@ -76,7 +76,7 @@ export default function App() {
   }, [isAuthenticated, authLoading, location.pathname, navigate]);
 
   if (authLoading) {
-    return <JeevanSplash message="Restoring Hero Session..." />;
+    return <JeevanLoader variant="full" message="Restoring Hero Session..." submessage="Live. Track. Grow." />;
   }
 
   return (

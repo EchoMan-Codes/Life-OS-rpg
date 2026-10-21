@@ -26,6 +26,7 @@ import {
 } from '@/features/calendar/hooks';
 import { useTasks } from '@/features/tasks/hooks';
 import { SelectDropdown } from '@/components/ui';
+import { JeevanLoader } from '@/components/ui/JeevanLoader';
 import { spring } from '@/lib/motionVariants';
 
 const VIEWS = ['day', 'week', 'month'];
@@ -215,38 +216,50 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      {/* ── Main Calendar Grid Views ── */}
-      {view === 'week' && (
-        <WeekView
-          currentDate={currentDate}
-          events={events}
-          onSelectSlot={(slot) => {
-            setSelectedSlot(slot);
-            setModalOpen(true);
-          }}
-        />
-      )}
+      {/* ── Main Calendar Grid Views or Loading State ── */}
+      {isLoading ? (
+        <div className="py-24 flex items-center justify-center rounded-3xl bg-white/40 dark:bg-obsidian-900/40 border border-slate-200/80 dark:border-glass-border/40 backdrop-blur-xl">
+          <JeevanLoader
+            variant="medium"
+            message="Synchronizing Temporal Coordinates..."
+            submessage="Aligning events, rituals & time blocks"
+          />
+        </div>
+      ) : (
+        <>
+          {view === 'week' && (
+            <WeekView
+              currentDate={currentDate}
+              events={events}
+              onSelectSlot={(slot) => {
+                setSelectedSlot(slot);
+                setModalOpen(true);
+              }}
+            />
+          )}
 
-      {view === 'day' && (
-        <DayView
-          currentDate={currentDate}
-          events={events}
-          onSelectSlot={(slot) => {
-            setSelectedSlot(slot);
-            setModalOpen(true);
-          }}
-        />
-      )}
+          {view === 'day' && (
+            <DayView
+              currentDate={currentDate}
+              events={events}
+              onSelectSlot={(slot) => {
+                setSelectedSlot(slot);
+                setModalOpen(true);
+              }}
+            />
+          )}
 
-      {view === 'month' && (
-        <MonthView
-          currentDate={currentDate}
-          events={events}
-          onSelectDate={(date) => {
-            setCurrentDate(date);
-            setView('day');
-          }}
-        />
+          {view === 'month' && (
+            <MonthView
+              currentDate={currentDate}
+              events={events}
+              onSelectDate={(date) => {
+                setCurrentDate(date);
+                setView('day');
+              }}
+            />
+          )}
+        </>
       )}
 
       {/* ── Schedule Event / Time Block Modal ── */}

@@ -38,6 +38,7 @@ import {
 import clsx from 'clsx';
 
 import { Card } from '@/components/ui/Card';
+import { JeevanLoader } from '@/components/ui/JeevanLoader';
 import { pageTransition } from '@/lib/motionVariants';
 import { useAuth } from '@/features/auth/hooks';
 import { useTheme } from '@/lib/theme';
@@ -668,7 +669,7 @@ export function SettingsCarousel({
                         >
                           {pushState === 'requesting' ? (
                             <>
-                              <Loader2 size={12} className="animate-spin" />
+                              <JeevanLoader variant="micro" />
                               <span>Requesting...</span>
                             </>
                           ) : (
@@ -687,7 +688,7 @@ export function SettingsCarousel({
                         className="px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/15 text-slate-800 dark:text-ink font-semibold text-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                       >
                         {isSendingTest ? (
-                          <Loader2 size={12} className="animate-spin" />
+                          <JeevanLoader variant="micro" />
                         ) : (
                           <Send size={12} />
                         )}
@@ -1127,7 +1128,7 @@ export function SettingsCarousel({
                       className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-indigo-500 text-white flex items-center justify-center shadow-md cursor-pointer hover:scale-105"
                       title="Upload photo"
                     >
-                      {isUploadingAvatar ? <Loader2 size={10} className="animate-spin" /> : <Camera size={10} />}
+                      {isUploadingAvatar ? <JeevanLoader variant="micro" /> : <Camera size={10} />}
                     </button>
                   </div>
                   <div>
@@ -1578,7 +1579,7 @@ export function SettingsCarousel({
                   )}
                 >
                   {isResettingTarget ? (
-                    <Loader2 size={14} className="animate-spin" />
+                    <JeevanLoader variant="micro" />
                   ) : (
                     <span>Confirm Reset</span>
                   )}
@@ -1650,7 +1651,7 @@ export function SettingsCarousel({
                       : 'bg-rose-500/30 text-rose-300 cursor-not-allowed'
                   )}
                 >
-                  {isDeleting ? <Loader2 size={14} className="animate-spin" /> : <span>Delete Forever</span>}
+                  {isDeleting ? <JeevanLoader variant="micro" /> : <span>Delete Forever</span>}
                 </button>
               </div>
             </motion.div>

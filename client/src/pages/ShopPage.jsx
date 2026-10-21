@@ -32,6 +32,7 @@ import { ShopItemModal } from '@/components/shop/ShopItemModal';
 import { ItemInspectionModal } from '@/components/shop/ItemInspectionModal';
 import { InventoryDrawer } from '@/components/shop/InventoryDrawer';
 import { SpoilsVaultRibbon } from '@/components/shop/SpoilsVaultRibbon';
+import { JeevanLoader } from '@/components/ui/JeevanLoader';
 import { useJeevanTransition } from '@/context/JeevanTransitionContext';
 import { triggerHaptic } from '@/lib/native';
 import { spring } from '@/lib/motionVariants';
@@ -290,13 +291,12 @@ export default function ShopPage() {
 
       {/* ── Shop Grid Content ── */}
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className="h-48 rounded-3xl bg-slate-100 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 animate-pulse p-5"
-            />
-          ))}
+        <div className="py-24 flex items-center justify-center rounded-3xl bg-white/40 dark:bg-obsidian-900/40 border border-slate-200/80 dark:border-glass-border/40 backdrop-blur-xl">
+          <JeevanLoader
+            variant="medium"
+            message="Opening Reward Emporium..."
+            submessage="Stocking rare artifacts & items"
+          />
         </div>
       ) : isError ? (
         <div className="p-8 text-center text-xs text-red-500 border border-red-200 dark:border-red-500/20 rounded-2xl bg-red-50 dark:bg-red-500/10">

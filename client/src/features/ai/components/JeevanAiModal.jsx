@@ -33,6 +33,7 @@ import { aiApi } from '../api';
 import { useAiExecuteAction, useAiHistory, useAiClearHistory, useAiStatus } from '../hooks';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { useAuth } from '@/features/auth/hooks';
+import { JeevanLoader } from '@/components/ui/JeevanLoader';
 import { AuthModal } from '@/features/auth/components/AuthModal';
 import { useFloatingText } from '@/features/character/floatingText';
 import { playSound } from '@/lib/sound';
@@ -520,7 +521,7 @@ export function JeevanAiModal({ isOpen, onClose, initialPrompt = '' }) {
                         <MarkdownRenderer content={msg.content} />
                       ) : (
                         <div className="flex items-center gap-2 text-xs text-white/60 py-1">
-                          <Loader2 size={14} className="animate-spin text-amber-400" />
+                          <JeevanLoader variant="micro" />
                           <span className="animate-pulse">Reasoning and structuring response...</span>
                         </div>
                       )}
@@ -910,7 +911,7 @@ function ActionCard({ action, isApplied, isUndone, isPending, onExecute, onUndo 
               className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-amber-500/20 cursor-pointer active:scale-98 disabled:opacity-50"
             >
               {isPending ? (
-                <Loader2 size={14} className="animate-spin" />
+                <JeevanLoader variant="micro" />
               ) : (
                 <>
                   <span>Confirm & Execute Action</span>

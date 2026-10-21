@@ -54,6 +54,7 @@ import { ReportsModal } from '@/features/reports/ReportsModal';
 import { NotificationCenterModal } from '@/features/notifications/components/NotificationCenterModal';
 import { FeedbackModal } from '@/features/feedback/components/FeedbackModal';
 import { SettingsCarousel } from '@/components/settings/SettingsCarousel';
+import { JeevanLoader } from '@/components/ui/JeevanLoader';
 
 const ATTR_DETAILS = [
   {
@@ -460,7 +461,7 @@ export default function ProfilePage() {
               aria-label="Upload new profile picture"
             >
               {isUploadingAvatar ? (
-                <Loader2 size={14} className="animate-spin text-slate-950" />
+                <JeevanLoader variant="micro" />
               ) : (
                 <Camera size={14} />
               )}

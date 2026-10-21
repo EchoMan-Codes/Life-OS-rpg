@@ -4,6 +4,7 @@ import { RestModeBanner } from '@/components/hud/RestModeBanner';
 import { EveningReflectionCard } from '@/components/reflection/EveningReflectionCard';
 import { ConsistencyHeatmap } from '@/components/reflection/ConsistencyHeatmap';
 import { useRestModeStatus, useDeactivateRestMode } from '@/features/rest-mode/hooks';
+import { JeevanLoader } from '@/components/ui/JeevanLoader';
 import { spring } from '@/lib/motionVariants';
 
 /**
@@ -11,7 +12,7 @@ import { spring } from '@/lib/motionVariants';
  * Redesigned with Glassy iOS Cockpit, Mindful Teal palette, and smooth motion.
  */
 export default function ReflectionPage() {
-  const { data: restStatus } = useRestModeStatus();
+  const { data: restStatus, isLoading } = useRestModeStatus();
   const deactivateMutation = useDeactivateRestMode();
 
   const handleDeactivate = async () => {
@@ -21,6 +22,18 @@ export default function ReflectionPage() {
       console.error('Failed to deactivate rest mode:', err);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="py-24 flex items-center justify-center">
+        <JeevanLoader
+          variant="medium"
+          message="Entering Wellness Sanctuary..."
+          submessage="Reviewing rest mode & reflections"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-20">

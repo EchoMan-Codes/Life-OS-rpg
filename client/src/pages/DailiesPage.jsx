@@ -5,6 +5,7 @@ import clsx from 'clsx';
 
 import { useDailies } from '@/features/dailies/hooks';
 import { DailyCard, DailyModal, DailiesOrbitRibbon } from '@/components/dailies';
+import { JeevanLoader } from '@/components/ui/JeevanLoader';
 import { spring } from '@/lib/motionVariants';
 
 const FILTERS = [
@@ -154,9 +155,12 @@ export default function DailiesPage() {
 
       {/* ── 4. Dailies List / Empty State ── */}
       {isLoading ? (
-        <div className="py-20 text-center text-ink-muted text-sm animate-pulse space-y-2">
-          <CalendarCheck size={28} className="mx-auto text-emerald-500 animate-bounce" />
-          <p>Consulting daily ritual chronicles...</p>
+        <div className="py-20 flex items-center justify-center">
+          <JeevanLoader
+            variant="medium"
+            message="Consulting Daily Ritual Chronicles..."
+            submessage="Preparing daily protocol"
+          />
         </div>
       ) : isError ? (
         <div className="p-6 text-center text-red-400 text-sm rounded-2xl bg-red-500/10 border border-red-500/20">

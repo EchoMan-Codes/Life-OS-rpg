@@ -5,6 +5,7 @@ import clsx from 'clsx';
 
 import { useHabits } from '@/features/habits/hooks';
 import { HabitCard, HabitModal, HabitMomentumRibbon } from '@/components/habits';
+import { JeevanLoader } from '@/components/ui/JeevanLoader';
 import { spring } from '@/lib/motionVariants';
 
 const FILTERS = [
@@ -156,9 +157,12 @@ export default function HabitsPage() {
 
       {/* ── 4. Habits List / Empty State ── */}
       {isLoading ? (
-        <div className="py-20 text-center text-ink-muted text-sm animate-pulse space-y-2">
-          <Flame size={28} className="mx-auto text-amber-500 animate-bounce" />
-          <p>Loading discipline protocols...</p>
+        <div className="py-20 flex items-center justify-center">
+          <JeevanLoader
+            variant="medium"
+            message="Synchronizing Discipline Protocols..."
+            submessage="Tracking streaks & willpower"
+          />
         </div>
       ) : isError ? (
         <div className="p-6 text-center text-red-400 text-sm rounded-2xl bg-red-500/10 border border-red-500/20">
